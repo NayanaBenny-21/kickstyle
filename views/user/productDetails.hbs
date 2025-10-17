@@ -1,0 +1,179 @@
+<div class="container mt-4 mb-5" id="product_details">
+
+  <!-- Product Header -->
+  <div class="row g-4">
+    <!-- Product Image Section -->
+    <div class="col-md-6">
+
+      <!-- Main Image with Zoom -->
+<div class="main-image position-relative text-center mb-3">
+  <div class="zoom-container" style="width:100%; max-height:500px;">
+    <img src="{{product.images.main}}" alt="{{product.product_name}}" 
+         class="img-fluid rounded shadow-sm zoom-image" 
+         id="mainProductImage"
+         style="max-height:500px; object-fit:contain;">
+  </div>
+</div>
+
+<div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+  {{#each product.images.gallery}}
+    <img src="{{this}}" alt="thumbnail" 
+         class="img-thumbnail small-thumb" 
+         style="width:80px; height:80px; cursor:pointer;"
+         onclick="changeMainImage('{{this}}')">
+  {{/each}}
+</div>
+
+    </div>
+
+   <!-- Product Info Section -->
+<div class="col-md-6">
+  <h3 class="fw-bold">{{product.product_name}}</h3>
+
+  <!-- Price -->
+  <div class="mb-3">
+    <h4 class="fw-bold  d-inline">₹{{product.final_price}}</h4>
+    {{#if product.base_price}}
+      <span class="text-decoration-line-through text-muted ms-2">₹{{product.base_price}}</span>
+                    <span class="badge bg-danger">-{{product.discount_percentage}}%</span>
+    {{/if}}
+  </div>
+  <!-- Colors with images -->
+  <div class="colors mb-3">
+    <p class="fw-semibold mb-1">Colors:</p>
+    <div class="d-flex gap-2 flex-wrap">
+      {{#each product.colors}}
+        <div class="text-center">
+          <p class="small mb-0">{{this}}</p>
+          <img src="{{lookup ../product.colorImages this}}" 
+               alt="{{this}}" 
+               class="img-thumbnail small-thumb mb-1" 
+               style="width:50px; height:50px; cursor:pointer;"
+               onclick="changeMainImage('{{lookup ../product.colorImages this}}')">
+          
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+
+  <!-- Sizes -->
+<div class="sizes mb-3">
+  <p class="fw-semibold mb-1">Size:</p>
+  <div class="d-flex flex-wrap gap-2">
+    {{#each product.sizesWithStock}}
+      <button class="btn btn-sm {{#if (eq this.stock 0)}}text-secondary border-secondary{{else}}btn-outline-dark{{/if}}"
+              {{#if (eq this.stock 0)}}disabled{{/if}}>
+        {{this.size}}
+      </button>
+    {{/each}}
+  </div>
+</div>
+
+  <!-- Quantity -->
+  <div class="mb-3">
+    <label for="quantity" class="fw-semibold">Quantity:</label>
+    <input type="number" id="quantity" name="quantity" min="1" value="1" class="form-control w-25 d-inline ms-2" style="width: 15% !important;">
+  </div>
+
+  <!-- Stock Status -->
+  {{#if (eq product.stock 0)}}
+    <p class="text-danger fw-semibold">✖ Out of Stock</p>
+  {{/if}}
+
+  <!-- Buttons -->
+<div class="d-flex flex-column gap-2 mt-4 ">
+  <button class="btn btn-light px-4 py-2 w-50 text-black fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>ADD TO CART</button>
+  <button class="btn btn-warning px-4 py-2 w-50 text-white fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>BUY IT NOW</button>
+</div>
+  <small class="d-block mt-2 text-muted fw-semibold">Customer Safe Checkout</small>
+</div>
+
+  <hr class="my-5">
+
+  <!-- Description Section -->
+  <div class="mt-4">
+    <h5 class="fw-bold mb-3">Description</h5>
+    <ul class="list-unstyled">
+      {{#each product.description}}
+        <li class="mb-1">• {{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+<div class="alert text-danger mt-4 p-3 rounded-3 shadow-sm">
+    <span class="fs-5">🚚 <strong>Pre-order Notice:</strong></span>
+    <p class="mb-0 mt-1 small">
+      All pre-orders will be shipped within <strong>3 weeks</strong> after placing your order.<br>
+      Thank you for your patience and continued support!
+    </p>
+  </div>
+  
+  <hr class="my-5">
+
+  <!-- Similar Products Section -->
+ <h4 class="fw-bold mb-4">You May Also Like</h4>
+<div class="row g-4">
+  {{#each similarProducts}}
+  <div class="col-6 col-md-4 col-lg-3 mb-4">
+    <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
+      <div class="card h-100 shadow-sm">
+        <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" data-product-id="{{this._id}}">
+          <i class="fa-regular fa-heart"></i>
+        </button>
+
+        <img src="{{this.images.main}}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{this.product_name}}">
+        <div class="card-body p-2">
+          <h6 class="card-title fw-bold mb-1">{{this.brand}}</h6>
+          <p class="mb-1" style="font-size: small;">{{this.product_name}}</p>
+          <div class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
+            <p class="fw-bold mb-0" style="font-size: small;">₹{{this.final_price}}</p>
+            <p class="mb-0 text-muted" style="font-size: small;"><s>₹{{this.base_price}}</s></p>
+          </div>
+          {{#if this.discount_percentage}}
+            <span class="badge bg-danger">-{{this.discount_percentage}}%</span>
+          {{/if}}
+        </div>
+      </div>
+    </a>
+  </div>
+  {{/each}}
+
+</div>
+</div>
+
+<!--  Zoom & Image Change Script -->
+<script>
+  function changeMainImage(src) {
+    document.getElementById('mainProductImage').src = src;
+  }
+
+  // Zoom functionality
+  const zoomContainer = document.querySelector('.zoom-container');
+  const zoomImage = document.querySelector('.zoom-image');
+
+  zoomContainer.addEventListener('mousemove', function(e) {
+    const rect = zoomContainer.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    zoomImage.style.transformOrigin = `${x}% ${y}%`;
+    zoomImage.style.transform = "scale(2)";
+  });
+
+  zoomContainer.addEventListener('mouseleave', function() {
+    zoomImage.style.transform = "scale(1)";
+  });
+</script>
+
+
+<style>
+  .zoom-container {
+    overflow: hidden;
+    position: relative;
+    display: inline-block;
+  }
+
+  .zoom-image {
+    transition: transform 0.2s ease;
+    cursor: zoom-in;
+  }
+</style>

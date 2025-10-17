@@ -1,0 +1,42 @@
+<div class="otp-box">
+    <h5 class="fw-bold">Confirm OTP</h5>
+    <p class="text-muted mb-3">
+        Please enter the OTP sent to your email to reset your password.
+    </p>
+
+    {{#if general_error}}
+  <p class="text-danger">{{general_error}}</p>
+{{/if}}
+
+    <form action="/adminAuth/forgot-password/verify-otp" method="POST">
+        <input type="hidden" name="email" value="{{email}}">
+
+        <div class="d-flex justify-content-center mb-3 gap-2">
+            <input type="text" inputmode="numeric" maxlength="1" name="otp1" class="otp-input" required>
+            <input type="text" inputmode="numeric" maxlength="1" name="otp2" class="otp-input" required>
+            <input type="text" inputmode="numeric" maxlength="1" name="otp3" class="otp-input" required>
+            <input type="text" inputmode="numeric" maxlength="1" name="otp4" class="otp-input" required>
+        </div>
+
+        <p class="text-danger small mb-2" id="timer">1.00 left</p>
+
+        <button id="resend" type="button" style="display:none">Resend OTP</button>
+
+        <div class="d-flex justify-content-center mb-3">
+            <button class="btn btn-danger w-50">Confirm OTP</button>
+        </div>
+    </form>
+
+    <div>
+        <a href="/adminAuth/login" class="back-link">← Back to Login Page</a>
+    </div>
+</div>
+
+<script>
+  
+    window.otpSent = {{otpSent}};
+    window.remainingTime = {{remainingTime}}; 
+    window.otpSuccess = {{otpSuccess}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/js/admin/reset_otp.js"></script>

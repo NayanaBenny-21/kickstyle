@@ -1,0 +1,39 @@
+.gallery-image-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  border-radius: 5px;
+  overflow: hidden; /* keep image size intact */
+  display: inline-block;
+}
+
+.gallery-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-image-wrapper .remove-btn {
+  position: absolute;
+  top: 4px;       
+  right: 4px;    
+  width: 20px;
+  height: 20px;
+  background: rgb(230, 230, 230);
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 18px;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+}
+.gallery-image-wrapper .remove-btn:hover {
+  background: red;      
+  color: white;         
+  transform: scale(1.2); 
+}

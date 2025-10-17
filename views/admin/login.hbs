@@ -1,0 +1,37 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<div class="card shadow-sm mx-auto" style="max-width: 400px;">
+  <div class="card-body">
+    <h3 class="text-center text-danger mb-3">ADMIN LOGIN</h3>
+
+<a href="/adminAuth/google" class="btn btn-google w-100 mb-3 d-flex align-items-center justify-content-center">
+  <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2"> 
+  Login with Google
+</a>
+
+
+    <p class="text-center text-muted">or</p>
+  {{#if error}}
+  <p class="text-danger">{{error}}</p>
+  {{/if}}
+    <form action="/adminAuth/login" method="POST">
+      <div class="form-group mb-3">
+        <label class="form-label">Email <span class="text-danger">*</span></label>
+        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required value="{{email}}">
+      </div>
+   <div class="form-group mb-3">
+        <label class="form-label">Password <span class="text-danger">*</span></label>
+        <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required
+         pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
+      </div>
+      <button type="submit" class="btn btn-danger w-100">Login</button>
+    </form>
+
+    <div class="d-flex justify-content-between mt-3">
+  <div>
+    <a class="mb-0 loginbase_text" href="/adminAuth/forgot-password">Forgot Password?</a>
+  </div>
+</div>
+  </div>
+</div>

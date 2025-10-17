@@ -1,0 +1,58 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<div class="card shadow-sm mx-auto" style="max-width: 400px;">
+  <div class="card-body">
+    <h3 class="text-center text-danger mb-3">Welcome Back</h3>
+
+<a href="/auth/google" class="btn btn-google w-100 mb-3">
+  <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2"> 
+  Login with Google
+</a>
+
+
+    <p class="text-center text-muted">or</p>
+{{#if general_error}}
+  <p class="text-danger">{{general_error}}</p>
+{{/if}}
+    <form action="/auth/login" method="POST">
+      <div class="form-group mb-3">
+        <label class="form-label">Email <span class="text-danger">*</span></label>
+        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required value="{{email}}">
+      </div>
+   <div class="form-group mb-3">
+        <label class="form-label">Password <span class="text-danger">*</span></label>
+        <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required
+         pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
+      </div>
+      <button type="submit" class="btn btn-danger w-100">Login</button>
+    </form>
+
+    <div class="d-flex justify-content-between mt-3">
+  <div>
+    <p class="mb-0 loginbase_text">Don't have an account? <a class="loginbase_text" href="/auth/signup">Join Us</a></p>
+  </div>
+  <div>
+    <a class="mb-0 loginbase_text" href="/auth/forgot-password">Forgot Password?</a>
+  </div>
+</div>
+  </div>
+</div>
+{{#if swal}}
+<script>
+        Swal.fire({
+            icon: '{{swal.icon}}',
+            text: '{{{swal.text}}}',
+            toast: true,
+            position: "bottom",
+            timer: 3000,
+            showConfirmButton: false,
+            width: 350,
+            padding: '0.5em 1em',
+            customClass: { popup: 'small-toast' },
+            showClass: { popup: '' }
+        })
+</script>
+
+{{/if}}
+

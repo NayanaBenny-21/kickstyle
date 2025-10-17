@@ -1,0 +1,87 @@
+<div class="container-fluid">
+  <div class="row">
+    {{> adminSidebar}}
+
+    <div class="col-md-10 d-flex justify-content-center align-items-center py-5" style="background-color: #fffbee;">
+      <div class="card shadow-sm p-5 w-75" style="border-radius: 15px;">
+        <h3 class="text-center mb-4 fw-bold">Edit Category</h3>
+        <hr>
+
+        <form action="/admin/categories/edit/{{category._id}}" method="POST" enctype="multipart/form-data">
+          <div class="row g-4">
+            <!-- Category Name -->
+            <div class="col-md-6">
+              <label for="categoryName" class="form-label fw-semibold">Category Name</label>
+              <input
+                type="text"
+                id="categoryName"
+                name="category"
+                class="form-control"
+                placeholder="Enter category name"
+                value="{{category.category}}"
+                required
+              />
+            </div>
+
+            <!-- Thumbnail Upload -->
+            <div class="col-md-6">
+              <label for="thumbnail" class="form-label fw-semibold">Thumbnail</label>
+              <div class="border rounded-3 text-center p-4" style="border-style: dashed;">
+                <img id="preview" src="{{category.thumbnail}}" alt="Preview" class="img-fluid mb-2" style="max-height: 100px;">
+                <p class="text-muted small mb-2">Drag and drop your image or Change using the button</p>
+                <input
+                  type="file"
+                  class="form-control d-none"
+                  id="thumbnail"
+                  name="thumbnail"
+                  accept="image/*"
+                  onchange="previewImage(event)"
+                />
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('thumbnail').click()">Change Image</button>
+              </div>
+            </div>
+
+            <!-- Category Description -->
+            <div class="col-12">
+              <label for="description" class="form-label fw-semibold">Category Description</label>
+              <textarea
+                id="description"
+                name="description"
+                class="form-control"
+                rows="4"
+                placeholder="Write your description here..."
+                required
+              >{{category.description}}</textarea>
+            </div>
+
+            <!-- Visibility Status -->
+            <div class="col-md-6">
+              <label for="isActive" class="form-label fw-semibold">Visibility Status</label>
+              <select id="isActive" name="isActive" class="form-select">
+                <option value="true" {{#if category.isActive}}selected{{/if}}>Active</option>
+                <option value="false" {{#unless category.isActive}}selected{{/unless}}>Blocked</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex justify-content-center gap-3 mt-5">
+            <a href="/admin/categories" class="btn btn-outline-danger px-5">Cancel</a>
+            <button type="submit" class="btn btn-danger px-5">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+      const output = document.getElementById('preview');
+      output.src = reader.result;
+    };
+    reader.readAsDataURL(event.target.files[0]);
+  }
+</script>

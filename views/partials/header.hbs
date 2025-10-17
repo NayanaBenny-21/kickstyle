@@ -1,0 +1,77 @@
+<header>
+  {{#if isUserLoggedIn}}
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="/images/logo.jpg" alt="KickStyle" height="35">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="#">Men</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Women</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Kids</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Sports</a></li>
+        </ul>
+
+        <!-- SEARCH FORM -->
+        <form id="searchForm" class="d-flex me-3" style="width: 300px;" onsubmit="return handleSearch(event)">
+          <div class="input-group">
+            <span class="input-group-text" id="basic-addon1">
+              <i class="bi bi-search"></i>
+            </span>
+            <input type="search" id="searchInput" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1" required>
+          </div>
+        </form>
+
+        <!-- Icons -->
+        <a href="/wishlist" class="me-3"><i class="bi bi-heart"></i></a>
+        <a href="/cart" class="me-3"><i class="bi bi-cart"></i></a>
+        <a href="/login" class="me-3"><i class="bi bi-person"></i></a>
+
+        <!-- Logout -->
+        <form action="/auth/logout" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+  {{/if}}
+  {{#if isAdminLoggedIn}}
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container">
+    <!-- Logo -->
+    <a class="navbar-brand" href="/admin/dashboard">
+      <img src="/images/logo.jpg" alt="KickStyle Admin" height="35">
+    </a>
+
+    <!-- Logout button on the right -->
+    <div class="ms-auto">
+      <form action="/adminAuth/google/logout" method="POST">
+        <button type="submit" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+      </form>
+    </div>
+  </div>
+</nav>
+{{/if}}
+
+</header>
+
+<script>
+  function handleSearch(event) {
+    event.preventDefault(); // prevent page reload
+    const query = document.getElementById('searchInput').value.trim();
+    if(query) {
+      // Redirect to /search?q=yourquery
+      window.location.href = `/search?q=${encodeURIComponent(query)}`;
+    }
+    return false;
+  }
+</script>

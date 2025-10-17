@@ -1,0 +1,231 @@
+body {
+  background-color: hsl(43, 50%, 95%);
+  font-family: 'Arial', sans-serif;
+}
+a {
+  color: #1a1a1b; 
+  text-decoration: none;
+}
+a:hover{
+  color: #0056b3; 
+}
+.navbar-brand img {
+  height: 40px;
+}
+
+.btn-danger {
+  background-color: #c00; 
+  border-color: #c00;
+}
+
+.btn-danger:hover {
+  background-color: #a00;
+  border-color: #900;
+}
+
+.card {
+  border-radius: 12px;
+}
+.navbar-brand{
+   margin-left: -70px;
+}
+.error {
+  color: #a00;
+}
+.custom-footer{
+background-color: #797573;
+
+}
+.footer-links li a{
+  color:rgb(205, 205, 205);
+}
+footer .footer-links li a:hover{
+text-decoration: underline;
+}
+
+.btn-google{
+   border: 1px solid #484849;
+}
+.btn-google:hover{
+  background-color: rgb(238, 236, 236);
+   border: 1px solid #1a1a1b;
+}
+.loginbase_text{
+  font-size: 12px;
+}
+/*confirm with otp */
+  .otp-box {
+      max-width: 400px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+    }
+    .otp-input {
+      width: 40px;
+      height: 45px;
+      text-align: center;
+      margin: 0 5px;
+      font-size: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #resend{
+       color: #0056b3; 
+      font-size: 14px;
+      text-decoration: none;
+      background: none; 
+      border: none;
+    }
+    
+    .back-link {
+      display: inline-block;
+      margin-top: 15px;
+      font-size: 14px;
+      text-decoration: none;
+      color: black;
+    }
+    
+
+.reset-box {
+  width: 350px;
+  margin: 60px auto;
+  padding: 25px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.reset-box h4 {
+  margin-bottom: 20px;
+}
+
+.reset-box input {
+  height: 45px;
+  font-size: 15px;
+  border-radius: 8px;
+}
+   .password-box {
+      max-width: 400px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .small-toast {
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.small-toast .swal2-icon {
+    width: 18px;
+    height: 18px;
+}
+.sidebar {
+      background-color: #fff;
+      height: auto; 
+      padding: 20px;
+      border-right: 1px solid #ddd;
+    }
+    .sidebar button {
+      width: 100%;
+      margin-bottom: 12px;
+      border-radius: 20px;
+    }
+   .sidebar .btn.active {
+      color: #ffffff !important;
+      background-color: #c3081a !important;
+    }
+    .table thead {
+      background-color: #d32f2f;
+      color: #fff;
+    }
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: center;
+  min-width: 80px; 
+}
+
+.status-badge.active {
+  color: green;
+  border: 1px solid green;
+  background-color: #e6f4ea;
+}
+
+.status-badge.blocked {
+  color: red;
+  border: 1px solid red;
+  background-color: #fde6e6;
+}
+.status-badge.list {
+  color: green;
+  border: 1px solid green;
+  background-color: #e6f4ea;
+}
+
+.status-badge.unlist {
+  color: red;
+  border: 1px solid red;
+  background-color: #fde6e6;
+}
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+    .switch input {
+      display: none;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #28a745;
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+.pagination {
+  --bs-pagination-active-bg: #991010;
+    --bs-pagination-active-border-color: darkred;
+    --bs-pagination-color: darkred;
+    --bs-pagination-hover-color: #d04242;
+}
+
+#sortProducts option:hover {
+    background-color: lightgrey;
+    color: black;
+}
+

@@ -188,7 +188,7 @@ const googleCallback = passport.authenticate("google-admin", {
 const googleSuccess = async (req, res) => {
   try {
     if (!req.user) {
-      console.log("⚠️ No user returned from passport");
+      console.log("No user returned from passport");
       return res.redirect("/adminAuth/login");
     }
 
@@ -203,7 +203,7 @@ const googleSuccess = async (req, res) => {
     );
     res.cookie("admin_jwt", token, { httpOnly: true, secure: false });
 
-    console.log("✅ Admin logged in via Google:", req.user.email);
+    console.log("Admin logged in via Google:", req.user.email);
 
     console.log("Session ID:", req.sessionID);
 console.log("Session adminId:", req.session.adminId);
@@ -211,7 +211,7 @@ console.log("Cookies:", req.cookies);
 
     res.redirect("/admin/dashboard");
   } catch (err) {
-    console.error("❌ Google admin login error:", err);
+    console.error("Google admin login error:", err);
     res.redirect("/adminAuth/login");
   }
 };
@@ -219,14 +219,8 @@ console.log("Cookies:", req.cookies);
 
 
 
-const logoutGoogle = (req, res, next) => {
-  req.logout(err => {
-    if (err) return next(err);
-    res.clearCookie("admin_jwt");
-    req.session.destroy(() => res.redirect("/adminAuth/login"));
-  });
-};
+
 
 module.exports = {loadLoginPage, loginAdmin, loadLoginVerify, loginResendOtp, loginVerifyOtp, adminLogout,
-googleLogin, googleCallback, googleSuccess, logoutGoogle
+googleLogin, googleCallback, googleSuccess 
 }

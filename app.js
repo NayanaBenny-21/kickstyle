@@ -2,7 +2,7 @@ const express = require('express');
 const path = require("path");
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
-const exphbs = require('express-handlebars'); // <-- changed from hbs
+const exphbs = require('express-handlebars'); 
 const cookieParser = require('cookie-parser');
 const connectDB = require("./config/db");
 const passport = require("./config/passport");
@@ -13,7 +13,7 @@ const userRouter = require('./routes/user/userRouter');
 const authRouter = require('./routes/user/authRouter');
 const adminAuthRouter = require('./routes/admin/adminAuthRouter');
 const adminRouter = require('./routes/admin/adminRouter');
-const hbsHelpers = require('./helpers/hbsHelpers'); // import your helpers
+const hbsHelpers = require('./helpers/hbsHelpers'); 
 const searchRouter = require('./routes/search');
 connectDB();
 
@@ -39,8 +39,8 @@ app.use(passport.session());
 // -------------------- Handlebars setup --------------------
 const hbs = exphbs.create({
   extname: '.hbs',
-  helpers: hbsHelpers,           // <-- pass helpers
-  defaultLayout: 'main',          // layouts/main.hbs
+  helpers: hbsHelpers,          
+  defaultLayout: 'main',          
   layoutsDir: path.join(__dirname, 'views', 'layouts'),
   partialsDir: path.join(__dirname, 'views', 'partials')
 });

@@ -25,5 +25,5 @@ router.post('/logout', adminAuthController.adminLogout);
 //GOOGLE LOGIN/LOGOUT
 router.get("/google", adminAuthController.googleLogin);
 router.get("/google/callback", adminAuthController.googleCallback, adminAuthController.googleSuccess);
-router.get("/google/logout", adminAuthController.logoutGoogle);
+
 module.exports = router;

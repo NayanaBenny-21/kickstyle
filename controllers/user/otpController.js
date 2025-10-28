@@ -164,20 +164,27 @@ const loginVerifyOtp = async (req, res) => {
                 email,
                 error: "OTP invalid or expired",
                 otpSent: false,
+                showResend: true,
                 showToast: false,
-                remainingTime
+                remainingTime : 0
             });
         }
-        if (otp !== req.session.loginOTP) {
-            return res.render('user/confirmWithOTP', {
-                email,
-                error: 'Invalid OTP',
-                otpSent: false,
-                remainingTime,
-                showToast : false,
-                 otpSuccess: false
-            });
-        }
+if (otp !== req.session.loginOTP) {
+    const now = Date.now();
+    const remainingTime = req.session.loginOTPExpiresAt
+        ? Math.max(0, Math.floor((req.session.loginOTPExpiresAt - now) / 1000))
+        : 0;
+
+    return res.render('user/confirmWithOTP', {
+        email,
+        error: 'Invalid OTP',
+        otpSent: remainingTime > 0,
+        showResend: remainingTime <= 0,  
+        remainingTime ,
+        otpSuccess: false,
+        showToast: false
+    });
+}
         const user = await User.findOne({ email });
         const payload = { id: user._id, email: user.email };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });

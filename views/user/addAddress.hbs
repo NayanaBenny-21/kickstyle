@@ -1,0 +1,76 @@
+<link rel="stylesheet" href="/css/style1.css">
+
+<div class="container mt-5 mb-5" id="addAddressPage" style="max-width:800px;">
+  <div class="card p-4 shadow-sm">
+    <h4 class="fw-bold mb-3">Add New Address</h4>
+
+    <div id="formAlert" class="alert d-none" role="alert"></div>
+
+    <form id="addAddressForm" autocomplete="off">
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label small">Name*</label>
+          <input type="text" name="name" id="name" class="form-control form-control-sm" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small">Mobile Number*</label>
+          <input type="text" name="mobile" id="mobile" class="form-control form-control-sm" required>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small">Pin code*</label>
+          <input type="text" name="pincode" id="pincode" class="form-control form-control-sm" required>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label small">Locality*</label>
+          <input type="text" name="locality" id="locality" class="form-control form-control-sm" required>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small">Address (House no., Building, Street, Area)*</label>
+          <textarea name="address" id="address" rows="3" class="form-control form-control-sm" required></textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small">City/District*</label>
+          <input type="text" name="city" id="city" class="form-control form-control-sm" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small">State*</label>
+          <input type="text" name="state" id="state" class="form-control form-control-sm" required>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small">Landmark (Optional)</label>
+          <input type="text" name="landmark" id="landmark" class="form-control form-control-sm">
+        </div>
+
+        <div class="col-12 mt-2">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="addressType" id="homeType" value="home" checked>
+            <label class="form-check-label small" for="homeType">Home</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="addressType" id="workType" value="work">
+            <label class="form-check-label small" for="workType">Work</label>
+          </div>
+        </div>
+
+        <div class="col-12 mt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="isDefault" name="isDefault">
+            <label class="form-check-label small" for="isDefault">Make this my default address</label>
+          </div>
+        </div>
+
+        <div class="col-12 mt-3 d-flex gap-2">
+          <button type="submit" id="saveAddressBtn" class="btn btn-danger px-4">Save</button>
+          <a href="/address" class="btn btn-light border">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/js/user/addAddress.js"></script>

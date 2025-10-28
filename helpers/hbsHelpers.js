@@ -7,6 +7,7 @@ module.exports = {
     gt : (a, b) => a > b,
     lt : (a, b) => a < b,
     eq: (a, b) => a === b,
+    json: (context) => JSON.stringify(context),
     range : (start, end) =>{
         let arr = [];
         for(let i = start ;i <= end; i++) {

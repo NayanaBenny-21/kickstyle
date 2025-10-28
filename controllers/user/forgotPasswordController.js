@@ -68,7 +68,8 @@ const loadResetVerify = async (req, res) => {
       email,
       otpSent,
       remainingTime,
-      otpSuccess: false
+      otpSuccess: false,
+      showOtpSentToast: true
     });
 
   } catch (error) {
@@ -87,9 +88,10 @@ const resetVerifyOtp = async (req, res) => {
     if (!req.session.resetOtp || !req.session.resetOtpExpiresAt || Date.now() > req.session.resetOtpExpiresAt) {
       return res.render('user/confirmWithOTP_reset', {
         email,
-        swal: { icon: "error", text: "OTP invalid or expired" },
+        general_error: "OTP invalid or expired",
         otpSent: false,
         remainingTime: 0,
+        showOtpSentToast: false 
       });
     }
 
@@ -99,7 +101,8 @@ const resetVerifyOtp = async (req, res) => {
     : 0;
       return res.render('user/confirmWithOTP_reset', {
         email,
-        swal: { icon: "error", text: "Invalid OTP" },
+        general_error: "Invalid OTP",
+        showOtpSentToast: false, 
         otpSent:  remainingTime > 0,
        remainingTime
       });

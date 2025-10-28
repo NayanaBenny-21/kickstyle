@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="otp-box">
     <h5 class="fw-bold">Confirm with OTP</h5>
     <p class="text-muted mb-3">
@@ -28,8 +30,36 @@
 </div>
 
 <script>
-    window.otpSent = {{otpSent}};
-    window.remainingTime = {{remainingTime}};
-    window.otpSuccess = {{otpSuccess}};
+    window.otpSent = {{#if otpSent}}true{{else}}false{{/if}};
+    window.remainingTime = {{#if remainingTime}}{{remainingTime}}{{else}}0{{/if}};
+    window.otpSuccess = {{#if otpSuccess}}true{{else}}false{{/if}};
+    window.showToast = {{#if showToast}}true{{else}}false{{/if}};
+
+    console.log("DEBUG: window.otpSent =", window.otpSent);
+    console.log("DEBUG: window.remainingTime =", window.remainingTime);
+    console.log("DEBUG: window.otpSuccess =", window.otpSuccess);
+    console.log("DEBUG: window.showToast =", window.showToast);
 </script>
+
 <script src="/js/user/login_otp.js"></script>
+<script>
+    console.log("otpSent:", window.otpSent, "remainingTime:", window.remainingTime, "otpSuccess:", window.otpSuccess);
+
+    if (window.otpSuccess) {
+        setTimeout(() => {
+            Swal.fire({
+                icon: "success",
+                text: "Logged Successfully!",
+                toast: true,
+                position: "bottom",
+                timer: 2500,
+                showConfirmButton: false,
+                width: 350,
+                padding: '0.5em 1em',
+                customClass: { popup: 'small-toast' }
+            }).then(() => {
+                window.location.href = '/';
+            });
+        }, 100); // tiny delay to ensure Swal is ready
+    }
+</script>

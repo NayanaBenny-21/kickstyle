@@ -96,6 +96,7 @@ document.querySelectorAll('.delete-btn').forEach( button => {
 
 document.querySelectorAll('.edit-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    
     const productId = btn.dataset.id;
     if (!productId) {
       alert("Invalid product ID");

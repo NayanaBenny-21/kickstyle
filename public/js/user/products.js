@@ -22,3 +22,7 @@ params.set('page', 1);
     params.set('page', 1);
     window.location.href = '/products?' + params.toString();
   });
+
+
+
+

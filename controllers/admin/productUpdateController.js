@@ -5,11 +5,11 @@ const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
 const { deleteImage } = require('../../helpers/fileHelper');
-//ADD PRODUCT
+
+// LOAD ADD PRODUCT PAGE
 const loadAddProduct = async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true }).lean();
-    console.log(categories);
     res.render('admin/addProduct', { categories });
   } catch (error) {
     console.error(error);
@@ -17,11 +17,10 @@ const loadAddProduct = async (req, res) => {
   }
 };
 
+// ADD PRODUCT
 const addProduct = async (req, res) => {
   try {
-    // After processProductImages middleware, images are in req.body.processedImages
     const { main, gallery, variants } = req.body.processedImages || {};
-
     if (!main) return res.status(400).send("Main image is required");
     if (!gallery || gallery.length < 3) return res.status(400).send("Please upload at least 3 gallery images");
 
@@ -29,7 +28,6 @@ const addProduct = async (req, res) => {
 
     const finalPrice = parseFloat(base_price) - (parseFloat(base_price) * (parseFloat(discount_percentage) || 0) / 100);
 
-    // Calculate total stock
     let total_stock = 0;
     if (req.body.variants) {
       Object.values(req.body.variants).forEach((v) => {
@@ -38,7 +36,6 @@ const addProduct = async (req, res) => {
       });
     }
 
-    // Save product
     const product = new Product({
       category_id,
       product_name,
@@ -54,19 +51,18 @@ const addProduct = async (req, res) => {
 
     const savedProduct = await product.save();
 
-    // Save variants
+    // Save variants with images mapped by color
     if (req.body.variants && Object.keys(req.body.variants).length > 0) {
-      const variantData = Object.entries(req.body.variants).map(([key, v]) => ({
+      const variantList = Object.entries(req.body.variants).map(([key, v]) => ({
         product_id: savedProduct._id,
         sku: v.sku,
         color: v.color,
         size: v.size,
         stock: parseInt(v.stock) || 0,
-        image: req.body.processedImages.variants[key] || "",  // make sure key matches
+        image: req.body.processedImages.variants[key] || "",
         isActive: true
       }));
-
-      await Variant.insertMany(variantData);
+      await Variant.insertMany(variantList);
     }
 
     res.redirect("/admin/product-management");
@@ -76,8 +72,7 @@ const addProduct = async (req, res) => {
   }
 };
 
-//EDIT PRODUCT
-// Load edit form
+// LOAD EDIT PRODUCT PAGE
 const loadEditProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
@@ -85,11 +80,35 @@ const loadEditProduct = async (req, res) => {
 
     const product = await Product.findById(productId).lean();
     if (!product) return res.status(404).send("Product not found");
-    product.category_id = product.category_id.toString();
+
+    // Ensure images exist
+    product.images = product.images || { main: '', gallery: [] };
+
+    // Main image path
+    if (product.images.main) {
+      const mainPath = path.join(__dirname, '../../public', product.images.main);
+      product.images.main = fs.existsSync(mainPath) ? '/' + product.images.main.replace(/^\/?/, '') : '';
+    }
+
+    // Gallery images
+    if (Array.isArray(product.images.gallery)) {
+      product.images.gallery = product.images.gallery
+        .filter(img => fs.existsSync(path.join(__dirname, '../../public', img)))
+        .map(img => '/' + img.replace(/^\/?/, ''));
+    }
+
+    // Categories
     const categories = await Category.find({ isActive: true }).lean();
-   categories.forEach(cat => cat._id = cat._id.toString());
+    categories.forEach(cat => cat._id = cat._id.toString());
+
+    // Variants
     const variants = await Variant.find({ product_id: productId }).lean();
-    product.variants = variants.map(v => ({ ...v, image: v.image || '' }));
+    product.variants = variants.map(v => {
+      let img = v.image || '';
+      const imgPath = path.join(__dirname, '../../public', img);
+      img = img && fs.existsSync(imgPath) ? '/' + img.replace(/^\/?/, '') : '';
+      return { ...v, image: img };
+    });
 
     res.render('admin/editProduct', { product, categories });
   } catch (err) {
@@ -98,7 +117,7 @@ const loadEditProduct = async (req, res) => {
   }
 };
 
-// Edit product
+// EDIT PRODUCT
 const editProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
@@ -117,6 +136,26 @@ const editProduct = async (req, res) => {
     product.final_price = product.base_price - (product.base_price * (product.discount_percentage || 0) / 100);
     product.isActive = isActive === 'on';
 
+    const processed = req.body.processedImages || {};
+
+    // Main image replacement
+    if (processed.main && processed.main !== product.images.main) {
+      if (product.images.main) deleteImage(product.images.main);
+      product.images.main = processed.main;
+    }
+
+    // Gallery image replacement
+    if (processed.gallery?.length) {
+      processed.gallery.forEach(img => {
+        const existingIndex = product.images.gallery.findIndex(g => g === img);
+        if (existingIndex !== -1) {
+          deleteImage(product.images.gallery[existingIndex]);
+          product.images.gallery.splice(existingIndex, 1);
+        }
+      });
+      product.images.gallery.push(...processed.gallery);
+    }
+
     // Remove deleted gallery images
     if (req.body.removedImages) {
       const removed = JSON.parse(req.body.removedImages);
@@ -124,28 +163,29 @@ const editProduct = async (req, res) => {
       removed.forEach(img => deleteImage(img));
     }
 
-    // Update main & gallery images
-    const processed = req.body.processedImages || {};
-
-    if (processed.main) product.images.main = processed.main;
-    if (processed.gallery?.length)
-      product.images.gallery.push(...processed.gallery);
-
     await product.save();
 
-    // Update / insert variants
-    const variantList = Array.isArray(variants)
-      ? variants
-      : Object.values(variants || {});
-    const processedVariants = processed.variants || [];
+    // Map variant images by color to preserve position
+    const variantList = Array.isArray(variants) ? variants : Object.values(variants || {});
+    const processedVariantsMap = {};
+    if (processed.variants && Array.isArray(processed.variants)) {
+      variantList.forEach((v, idx) => {
+        processedVariantsMap[v.color] = processed.variants[idx] || v.existingImage || '';
+      });
+    }
 
-    for (let idx = 0; idx < variantList.length; idx++) {
-      const v = variantList[idx];
-      const newImage =
-        processedVariants[idx] || v.existingImage || product.image || "";
+    // Update / insert variants and remove old variant images if replaced
+    for (const v of variantList) {
+      const variantQuery = { color: v.color, size: v.size, product_id: productId };
+      const existingVariant = await Variant.findOne(variantQuery);
+
+      const newImage = processedVariantsMap[v.color] || v.existingImage || '';
+      if (existingVariant && existingVariant.image && existingVariant.image !== newImage) {
+        deleteImage(existingVariant.image);
+      }
 
       await Variant.findOneAndUpdate(
-        { sku: v.sku, product_id: productId },
+        variantQuery,
         {
           color: v.color,
           size: v.size,
@@ -169,7 +209,7 @@ const editProduct = async (req, res) => {
   }
 };
 
-// Remove gallery image
+// REMOVE GALLERY IMAGE
 const removeGalleryImage = async (req, res) => {
   try {
     const { imageUrl } = req.body;
@@ -188,6 +228,9 @@ const removeGalleryImage = async (req, res) => {
 };
 
 module.exports = {
-  loadAddProduct, addProduct,
-  loadEditProduct, editProduct, removeGalleryImage
-}
+  loadAddProduct,
+  addProduct,
+  loadEditProduct,
+  editProduct,
+  removeGalleryImage
+};

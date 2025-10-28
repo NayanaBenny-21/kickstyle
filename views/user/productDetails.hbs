@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="/css/style1.css">
+
 <div class="container mt-4 mb-5" id="product_details">
 
   <!-- Product Header -->
@@ -7,20 +9,22 @@
 
       <!-- Main Image with Zoom -->
 <div class="main-image position-relative text-center mb-3">
-  <div class="zoom-container" style="width:100%; max-height:500px;">
-    <img src="{{product.images.main}}" alt="{{product.product_name}}" 
+  <div class="zoom-container" 
+       style="width:100%; height:400px; overflow:hidden; position:relative;">
+    <img src="{{{product.images.main}}}" 
+         alt="{{product.product_name}}" 
          class="img-fluid rounded shadow-sm zoom-image" 
          id="mainProductImage"
-         style="max-height:500px; object-fit:contain;">
+         style="width:100%; height:100%; object-fit:contain; transition: transform 0.2s ease;">
   </div>
 </div>
 
 <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
   {{#each product.images.gallery}}
-    <img src="{{this}}" alt="thumbnail" 
+    <img src="{{{this}}}" alt="thumbnail" 
          class="img-thumbnail small-thumb" 
          style="width:80px; height:80px; cursor:pointer;"
-         onclick="changeMainImage('{{this}}')">
+         onclick="changeMainImage('{{{this}}}')">
   {{/each}}
 </div>
 
@@ -47,9 +51,9 @@
           <p class="small mb-0">{{this}}</p>
           <img src="{{lookup ../product.colorImages this}}" 
                alt="{{this}}" 
-               class="img-thumbnail small-thumb mb-1" 
-               style="width:50px; height:50px; cursor:pointer;"
-               onclick="changeMainImage('{{lookup ../product.colorImages this}}')">
+               class="img-thumbnail color-thumb mb-1 {{#if (eq this ../selectedColor)}}border-dark selected{{/if}}"  
+               style="width:50px; height:50px; cursor:pointer;" data-color="{{this}}"
+                 onclick="selectColor('{{this}}', '{{lookup ../product.colorImages this}}')">
           
         </div>
       {{/each}}
@@ -57,18 +61,26 @@
   </div>
 
 
-  <!-- Sizes -->
-<div class="sizes mb-3">
+
+<!-- Sizes -->
+<div class="sizes mb-3" id="sizesContainer">
   <p class="fw-semibold mb-1">Size:</p>
-  <div class="d-flex flex-wrap gap-2">
+  <div class="d-flex flex-wrap gap-2" id="sizeButtons">
     {{#each product.sizesWithStock}}
-      <button class="btn btn-sm {{#if (eq this.stock 0)}}text-secondary border-secondary{{else}}btn-outline-dark{{/if}}"
-              {{#if (eq this.stock 0)}}disabled{{/if}}>
+      <button 
+        class="btn btn-sm size-btn 
+        {{#if (eq this.stock 0)}}{{else}}btn-outline-dark{{/if}}"
+        data-size="{{this.size}}"  
+        data-color="{{this.color}}"
+        data-variant-id="{{this.variantId}}"
+        {{#if (eq this.stock 0)}}disabled{{/if}}>
         {{this.size}}
       </button>
     {{/each}}
   </div>
 </div>
+
+
 
   <!-- Quantity -->
   <div class="mb-3">
@@ -83,7 +95,7 @@
 
   <!-- Buttons -->
 <div class="d-flex flex-column gap-2 mt-4 ">
-  <button class="btn btn-light px-4 py-2 w-50 text-black fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>ADD TO CART</button>
+  <button class="addToCartBtn btn btn-light px-4 py-2 w-50 text-black fw-bold" data-product-id="{{product._id}}" {{#unless (gt product.stock 0)}}disabled{{/unless}}>ADD TO CART</button>
   <button class="btn btn-warning px-4 py-2 w-50 text-white fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>BUY IT NOW</button>
 </div>
   <small class="d-block mt-2 text-muted fw-semibold">Customer Safe Checkout</small>
@@ -164,16 +176,4 @@
   });
 </script>
 
-
-<style>
-  .zoom-container {
-    overflow: hidden;
-    position: relative;
-    display: inline-block;
-  }
-
-  .zoom-image {
-    transition: transform 0.2s ease;
-    cursor: zoom-in;
-  }
-</style>
+<script src="/js/user/productDetails.js"></script>

@@ -49,6 +49,7 @@
     <div class="row">
       {{#each products}}
       <div class="col-6 col-md-3 mb-4" style="height: min-content;">
+         <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
         <div class="card h-100 shadow-sm">
               <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" 
             data-product-id="{{this._id}}">
@@ -63,6 +64,7 @@
          <span class="badge bg-danger">-{{this.discountPercentage}}%</span>
           </div>
         </div>
+        </a>
       </div>
       {{/each}}
     </div>

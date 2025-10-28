@@ -1,0 +1,87 @@
+<link rel="stylesheet" href="/css/style1.css">
+
+<div class="container mt-4 mb-5" id="your_address">
+  <div class="row">
+    
+    <!-- Sidebar -->
+<div class="col-md-3">
+      <div class="p-3 shadow-sm bg-white rounded">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 text-center">My Account</h5>
+        <div class="list-group border-0 text-center">
+          <a href="/user/profile" class="list-group-item border-0 list-group-item-action ">Profile</a>
+          <a href="/user/orders" class="list-group-item border-0 list-group-item-action">Orders</a>
+          <a href="/address" class="list-group-item border-0 list-group-item-action active">Your Address</a>
+          <a href="/user/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
+          <a href="/user/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
+          <a href="/user/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
+          <a href="/logout" class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Addresses -->
+    <div class="col-md-9">
+      <div class="card p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="fw-bold mb-0">Saved Address</h4>
+          <a href="/address/add" class="btn btn-sm btn-outline-secondary">+ Add New Address</a>
+        </div>
+
+        <!-- Default Address -->
+        {{#if defaultAddress}}
+        <div class="border p-3 mb-3 rounded">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold mb-0">Default Address</h5>
+            <span class="badge bg-secondary">{{defaultAddress.addressType}}</span>
+          </div>
+<p class="mb-0 fw-bold">{{defaultAddress.name}}</p>
+<p class="mb-0">
+  {{defaultAddress.addressLine}}</p>
+  <p class="mb-0">
+   {{defaultAddress.locality}}, {{defaultAddress.city}}, {{defaultAddress.state}} - {{defaultAddress.pincode}}
+</p>
+  {{#if defaultAddress.landmark}}
+  <p class="mb-0">Landmark: {{defaultAddress.landmark}}</p>
+  {{/if}}
+<p class="mb-0">Mobile: {{defaultAddress.mobile}}</p>
+          <div class="mt-2">
+            <a href="/address/edit/{{defaultAddress._id}}" class="btn btn-dark btn-sm me-2">Edit</a>
+            <button class="btn btn-danger btn-sm delete-address" data-id="{{defaultAddress._id}}">Delete</button>
+          </div>
+        </div>
+        {{/if}}
+
+        <!-- Other Addresses -->
+        {{#if otherAddresses}}
+        <div>
+          <h5 class="fw-bold mb-2">Other Address</h5>
+          {{#each otherAddresses}}
+          <div class="border p-3 mb-3 rounded">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <p class="fw-bold mb-0">{{this.name}}</p>
+      <span class="badge bg-secondary">{{this.addressType}}</span>
+    </div>
+          <p class="mb-0">{{this.addressLine}}</p>
+          <p class="mb-0">{{this.locality}}, {{this.city}}, {{this.state}} - {{this.pincode}}</p>
+          {{#if this.landmark}}
+          <p class="mb-0">Landmark: {{this.landmark}}</p>
+          {{/if}}
+          <p class="mb-0">Mobile: {{this.mobile}}</p>
+            
+            <div class="mt-2">
+          <a href="/address/edit/{{this._id}}?from=address" class="btn btn-dark btn-sm me-2">Edit</a>
+              <button class="btn btn-danger btn-sm delete-address" data-id="{{this._id}}">Delete</button>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <p>No other addresses saved.</p>
+        {{/if}}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/js/user/address.js"></script>

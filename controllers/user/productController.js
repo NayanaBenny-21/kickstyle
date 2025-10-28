@@ -7,7 +7,7 @@ const loadProductsPage = async (req, res) => {
         const sortQuery = req.query.sort || 'newest'; // default to newest
         console.log("Sort query:", sortQuery);
 
-        // Ensure numeric sorting and stable order
+        // Ensure  sorting 
         let sortOption;
         switch (sortQuery) {
             case 'priceLowHigh':
@@ -70,85 +70,92 @@ const loadProductsPage = async (req, res) => {
     }
 };
 
+
 const LoadProductDetailsPage = async (req, res) => {
-    try {
-        const productId = req.params.productId;
-        console.log('Requested productId:', productId);
-        const product = await Product.findById(productId).lean();
-        console.log(product.images);
-        if(!product) {
-            return res.status(404).send("Product not found");
-        }
-        let descriptionList = [];
-        if(product.description) {
-            descriptionList = product.description.split(/[\r\n]+|\. +/).map(item => item.trim()).filter(item => item);
-        };
-        console.log("Processed descriptionList:", descriptionList);
-       
-           const sizeStocks = await Variant.aggregate([
-      { $match: { product_id: product._id, isActive: true } },
-      { $group: { _id: "$size", totalStock: { $sum: "$stock" } } }
-    ]);
+  try {
+    const productId = req.params.productId;
+    const product = await Product.findById(productId).lean();
 
-        const variants = await Variant.find({ product_id: productId, isActive: true }).lean();
-     const sizes = [...new Set(variants.map(v => v.size))];
-    const colors = [...new Set(variants.map(v => v.color))];
-  
-const colorImages = {};
-variants.forEach(v => {
-  console.log("Variant color:", v.color, "Image path from DB:", v.image);
+    if (!product) return res.status(404).send("Product not found");
 
-  if (!colorImages[v.color]) {
-    let img = v.image || 'default-product.jpg';
-    // Ensure correct folder path
-    if (!img.startsWith('/images/')) {
-      img = '/images/' + img;
+    // --- Description ---
+    let descriptionList = [];
+    if (product.description) {
+      descriptionList = product.description
+        .split(/[\r\n]+|\. +/)
+        .map(item => item.trim())
+        .filter(Boolean);
     }
-    colorImages[v.color] = img;
-    console.log("Processed color image path:", colorImages[v.color]);
-  }
-});
 
-const sizeStockMap = {};
-variants.forEach(v => {
-  sizeStockMap[v.size] = v.stock; // or total variant stock for that size
-});
+    // --- Variants ---
+    const variants = await Variant.find({ product_id: productId, isActive: true }).lean();
 
-const sizesWithStock = [...new Set(variants.map(v => v.size))].map(size => ({
-  size,
-  stock: sizeStockMap[size] || 0
-}));
-    console.log("Size stock map:", sizeStockMap);
- const images = {
-      main: product.images.main,
-      gallery: product.images.gallery || []
+    const sizesWithStock = variants.map(v => ({
+      size: v.size,
+      color: v.color,
+      stock: v.stock,
+      variantId: v._id
+    }));
+
+    const colors = [...new Set(variants.map(v => v.color))];
+    const sizes = [...new Set(variants.map(v => v.size))];
+
+    // --- Color Images ---
+    const colorImages = {};
+    variants.forEach(v => {
+      if (!colorImages[v.color]) {
+        let img = v.image || '/images/default-product.jpg';
+        if (!img.startsWith('/')) img = '/' + img;
+        colorImages[v.color] = img;
+      }
+    });
+
+    // --- Images ---
+    const images = {
+      main: '/images/default-product.jpg',
+      gallery: []
     };
-    if (images.main && !images.main.startsWith('/')) {
-  images.main = '/' + images.main;
-}
-if (images.gallery) {
-  images.gallery = images.gallery.map(img => img.startsWith('/') ? img : '/' + img);
-}
+    if (product.images?.main) {
+      let mainImg = product.images.main.trim();
+      if (!mainImg.startsWith('/')) mainImg = '/' + mainImg;
+      images.main = mainImg;
+    }
+    if (Array.isArray(product.images?.gallery)) {
+      images.gallery = product.images.gallery
+        .map(img => img.trim())
+        .filter(Boolean)
+        .map(img => img.startsWith('/') ? img : '/' + img);
+    }
+
+    // --- Similar products ---
     const similarProducts = await Product.find({ _id: { $ne: product._id }}).limit(4).lean();
     similarProducts.forEach(p => {
-  if (p.images?.main) {
-    if (!p.images.main.startsWith('/')) {
-      p.images.main = '/' + p.images.main;
-    }
-  } else {
-    p.images.main = '/images/default-product.jpg'; // fallback
-  }
-});
-    console.log('Main image path:', product.images.main);
+      if (p.images?.main && !p.images.main.startsWith('/')) {
+        p.images.main = '/' + p.images.main;
+      } else if (!p.images?.main) {
+        p.images.main = '/images/default-product.jpg';
+      }
+    });
 
-     res.render('user/productDetails', { product: {...product, description: descriptionList, sizes, colors, colorImages, images, stock: product.total_stock, sizesWithStock},
-        similarProducts});
-    
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
-    
-}
+  
+    res.render('user/productDetails', {
+      product: {
+        ...product,
+        description: descriptionList,
+        colors,
+        colorImages,
+        images,
+        sizesWithStock,
+        selectedColor: colors[0] || null,
+        stock: product.total_stock
+      },
+      similarProducts
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+};
 
 module.exports = { loadProductsPage, LoadProductDetailsPage };

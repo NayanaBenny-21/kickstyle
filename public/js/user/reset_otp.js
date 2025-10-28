@@ -56,14 +56,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    if (countdown > 0 && !toastShown) {
-        if(window.otpSent ) {
+if (countdown > 0) {
+    if (window.showOtpSentToast === true && !toastShown) {
         showToast("success", "OTP sent to your email");
         toastShown = true;
-        }
-
-        startTimer();
     }
+    startTimer();
+}
+
 
     // Resend OTP
     resend.addEventListener("click", async (e) => {

@@ -56,14 +56,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    if (countdown > 0 && !toastShown) {
-        if(window.otpSent ) {
+   
+// Decide whether to start timer or show resend
+if (!window.otpSent || countdown <= 0) {
+    resend.style.display = "inline-block";
+    resend.disabled = false;
+    timerElement.style.display = "none";
+} else if (window.otpSent && countdown > 0) {
+    startTimer();
+
+    // Only show toast if the server explicitly requested it
+    if (window.showToast && !toastShown) {
         showToast("success", "OTP sent to your email");
         toastShown = true;
-        }
-
-        startTimer();
     }
+}
+
 
     // Resend OTP
     resend.addEventListener("click", async (e) => {
@@ -108,9 +116,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         });
     });
-
-   
-if (window.otpSuccess) {
-    showToast("success", "Logged Successfully!", '/');
-}
 });
+   

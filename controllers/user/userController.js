@@ -4,6 +4,7 @@ const loadHomepage =  async (req,res)=>{
 const featuredProducts = await Product.find({isActive: true}).sort({createdAt : -1}).limit(4).lean();
 
 const product = featuredProducts.map((p)=> ({
+    _id: p._id,
     name : p.product_name,
     price : p.base_price,
     offerPrice : p.final_price,

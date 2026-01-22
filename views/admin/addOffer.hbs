@@ -1,0 +1,107 @@
+<link rel="stylesheet" href="/css/style1.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+<div class="container-fluid">
+  <div class="row">
+
+    {{> adminSidebar}}
+
+    <div class="col-md-9 ms-auto p-4">
+      <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="fw-bold text-danger mb-0">Add New Offer</h4>
+         
+        </div>
+
+        <form action="/admin/offers/add" method="POST" id="offerForm">
+
+          <!-- Offer Name -->
+          <div class="mb-3">
+            <label class="fw-semibold">Offer Name</label>
+            <p class="text-danger d-none" id="offerNameError"></p>
+            <input type="text" name="offerName" class="form-control">
+          </div>
+
+          <!-- Offer Type -->
+          <div class="mb-3">
+            <label class="fw-semibold">Offer Type</label>
+            <p class="text-danger d-none" id="offerTypeError"></p>
+            <select class="form-select" name="offerType" id="offerType">
+              <option value="">Select</option>
+              <option value="product">Product Offer</option>
+              <option value="category">Category Offer</option>
+            </select>
+          </div>
+
+          <!-- Discount Type -->
+          <div class="mb-3">
+            <label class="fw-semibold">Discount Type</label>
+            <p class="text-danger d-none" id="discountTypeError"></p>
+            <select class="form-select" name="discountType" id="discountType">
+              <option value="">Select</option>
+              <option value="percentage">Percentage</option>
+              <option value="flat">Flat</option>
+            </select>
+          </div>
+
+          <!-- Discount Value -->
+          <div class="mb-3">
+            <label class="fw-semibold">Discount Value</label>
+            <p class="text-danger d-none" id="discountValueError"></p>
+            <input type="number" name="discountValue" class="form-control" id="discountValue" disabled>
+          </div>
+
+          <!-- PRODUCT OFFER -->
+          <div class="mb-3 d-none" id="productSection">
+            <label class="fw-semibold">Select Products</label>
+            <p class="text-danger d-none" id="productError"></p>
+            <select class="form-select" name="products[]" id="productSelect" multiple>
+              {{#each products}}
+                <option value="{{this._id}}" data-price="{{this.final_price}}">
+                  {{this.product_name}} (₹{{this.final_price}})
+                </option>
+              {{/each}}
+            </select>
+          </div>
+
+          <!-- CATEGORY OFFER -->
+          <div class="mb-3 d-none" id="categorySection">
+            <label class="fw-semibold">Select Category</label>
+            <p class="text-danger d-none" id="categoryError"></p>
+            <select class="form-select" name="category" id="categorySelect">
+              <option value="">Select Category</option>
+              {{#each categories}}
+                <option value="{{this._id}}">{{this.category}}</option>
+              {{/each}}
+            </select>
+          </div>
+
+          <!-- Dates -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="fw-semibold">Start Date</label>
+              <input type="date" name="startDate" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="fw-semibold">End Date</label>
+              <input type="date" name="endDate" class="form-control">
+            </div>
+            <small class="text-danger d-none" id="dateError"></small>
+          </div>
+
+          <!-- Buttons -->
+          <div class="text-end mt-4">
+             <a href="/admin/offer-management" class="btn btn-outline-secondary">Cancel</a>
+            <button class="btn btn-danger px-4">Create</button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="/js/admin/addOffer.js"></script>

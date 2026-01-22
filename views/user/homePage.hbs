@@ -49,12 +49,13 @@
     <div class="row">
       {{#each products}}
       <div class="col-6 col-md-3 mb-4" style="height: min-content;">
-         <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm">
               <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" 
             data-product-id="{{this._id}}">
       <i class="fa-regular fa-heart"></i>
     </button>
+         <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
+
 
           <img src="{{this.images.main}}" class="card-img-top" style="height: 300px;" alt="{{this.name}}">
           <div class="card-body p-2">
@@ -75,3 +76,4 @@
   </a>
 </div>
 
+<script src="/js/user/wishlist.js"></script>

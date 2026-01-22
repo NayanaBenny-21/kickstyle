@@ -13,16 +13,21 @@
 </head>
 
 <body>
-
-  {{> header}}
+  {{#if isUserLoggedIn}}
+  {{> user/header}}
+{{else if isAdminLoggedIn}}
+{{> admin/header}}
+{{/if}}
   <main class="container-fluid my-5">
     {{{body}}}
   </main>
-
-  {{>footer}}
-
+{{#if isUserLoggedIn}}
+  {{> user/footer}}
+{{/if}}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
 </body>
 
 </html>
+

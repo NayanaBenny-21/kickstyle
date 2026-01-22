@@ -3,21 +3,29 @@
 <div class="container mt-5 mb-5" id="cartPage">
   <h4 class="fw-bold mb-4">My Cart</h4>
 
+  <!-- ================== CART BLOCK ================== -->
   {{#if cartItems.length}}
-  <div class="row g-4">
+  <div class="row g-4" id="cartContent">
 
-    <!-- 🧺 CART ITEMS -->
-    <div class="col-lg-8">
+    <!-- CART ITEMS -->
+    <div class="col-lg-8" id="cartItemsSection">
+
       {{#each cartItems}}
-      <div class="card shadow-sm mb-3 border-0 p-3 rounded-3">
+      <div class="card shadow-sm mb-3 border-0 p-3 rounded-3 cart-item"
+           data-product="{{this._id}}"
+           data-variant="{{this.variantId}}"
+           data-price="{{this.price}}">
+
         <div class="row g-3 align-items-center">
 
-          <!-- Product Image -->
-          <div class="col-4 col-md-3">
-            <img src="{{this.image}}" alt="{{this.name}}" class="img-fluid rounded">
+          <!-- Image -->
+          <div class="col-md-3 text-center">
+            <img src="{{#if this.image}}{{this.image}}{{else}}/images/default.png{{/if}}"
+                 class="img-fluid rounded"
+                 style="max-height:130px;">
           </div>
 
-          <!-- Product Info -->
+          <!-- Info -->
           <div class="col-8 col-md-6">
             <h6 class="fw-bold mb-1">{{this.name}}</h6>
             <p class="text-muted small mb-1">{{this.brand}}</p>
@@ -25,63 +33,74 @@
             <p class="mb-1 small">Color: <strong>{{this.color}}</strong></p>
             <h6 class="fw-semibold text-danger mb-3">₹{{this.price}}</h6>
 
-            <!-- Quantity Controls  -->
+            <!-- Quantity -->
             <div class="d-flex justify-content-start align-items-center gap-2">
-              <button 
-                class="btn btn-outline-dark btn-sm updateQtyBtn" 
-                data-product="{{this._id}}" data-variant="{{this.variantId}}" data-change="-1">−</button>
 
-              <input type="text" value="{{this.quantity}}"  readonly 
-                class="form-control form-control-sm text-center" style="width: 45px;">
+              <button type="button"
+                      class="btn btn-outline-dark btn-sm updateQtyBtn"
+                      data-change="-1">−</button>
 
-              <button 
-                class="btn btn-outline-dark btn-sm updateQtyBtn" 
-                 data-product="{{this._id}}" 
-              data-variant="{{this.variantId}}"  data-change="1" >+</button>
+              <input type="text" value="{{this.quantity}}" readonly
+                     class="form-control form-control-sm text-center qtyInput"
+                     style="width: 45px;">
 
-              <button 
-                class="btn btn-link text-dark text-decoration-none removeItemBtn ms-2" 
-                data-product="{{this._id}}" data-variant="{{this.variantId}}"
-                title="Remove item">
+              <button type="button"
+                      class="btn btn-outline-dark btn-sm updateQtyBtn"
+                      data-change="1"
+                      {{#if (gte this.quantity 5)}}disabled{{/if}}>+</button>
+
+              <button type="button"
+                      class="btn btn-link text-dark removeItemBtn ms-2"
+                      title="Remove item">
                 <i class="fa-solid fa-trash fs-5"></i>
               </button>
+
             </div>
           </div>
 
         </div>
       </div>
       {{/each}}
+
     </div>
 
-    <!--  ORDER SUMMARY -->
+    <!-- ORDER SUMMARY -->
     <div class="col-lg-4">
-      <div class="card shadow-sm border-0 p-3 rounded-3">
+      <div class="card shadow-sm border-0 p-3 rounded-3 order-summary">
+
         <h5 class="fw-bold mb-3">Order Summary</h5>
-        <ul class="list-unstyled mb-3">
+        <ul class="list-unstyled mb-3" id="summaryList">
+
           {{#each cartItems}}
-          <li class="d-flex justify-content-between small mb-2">
-            <span>{{this.name}} (x{{this.quantity}})</span>
-            <span>₹{{this.totalPrice}}</span>
+          <li id="summary-item-{{this._id}}-{{this.variantId}}"
+              class="d-flex justify-content-between small mb-2">
+
+            <span id="summary-name-{{this._id}}-{{this.variantId}}">
+              {{this.name}} (x{{this.quantity}})
+            </span>
+
+            <span id="summary-total-{{this._id}}-{{this.variantId}}">
+              ₹{{this.totalPrice}}
+            </span>
+
           </li>
           {{/each}}
+
         </ul>
+
         <hr>
         <div class="d-flex justify-content-between fw-semibold">
-          <span>Subtotal</span>
-          <span>₹{{subTotal}}</span>
+          <span>Subtotal</span> <span id="subTotal">₹{{subTotal}}</span>
         </div>
         <div class="d-flex justify-content-between text-muted small">
-          <span>Shipping</span>
-          <span>₹{{shippingCharge}}</span>
+          <span>Shipping</span> <span id="shippingCharge">₹{{shippingCharge}}</span>
         </div>
         <div class="d-flex justify-content-between text-muted small">
-          <span>Platform Fee</span>
-          <span>₹{{platformFee}}</span>
+          <span>Platform Fee</span> <span id="platformFee">₹{{platformFee}}</span>
         </div>
         <hr>
         <div class="d-flex justify-content-between fw-bold">
-          <span>Total</span>
-          <span>₹{{total}}</span>
+          <span>Total</span> <span id="grandTotal">₹{{total}}</span>
         </div>
 
         <div class="mt-4 text-center">
@@ -89,20 +108,24 @@
             Place Order
           </button>
         </div>
+
       </div>
     </div>
 
   </div>
-  {{else}}
-  <!-- 🕳 Empty Cart -->
-  <div class="text-center mt-5">
+  {{/if}}
+
+  <!-- ================== ALWAYS RENDERED EMPTY CART ================== -->
+  <div id="emptyCartMessage"
+       class="text-center mt-5 {{#if cartItems.length}}d-none{{/if}}">
     <h5>Your cart is empty</h5>
     <a href="/" class="btn mt-3" style="background-color: rgb(253, 165, 2); color: whitesmoke;">
       Continue Shopping
     </a>
   </div>
-  {{/if}}
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/user/cartPage.js"></script>
+

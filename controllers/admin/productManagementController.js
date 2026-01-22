@@ -1,92 +1,79 @@
 const Product = require('../../models/productSchema');
 const Variant = require('../../models/variantSchema');
-const Category = require('../../models/categorySchema');
+const Category = require('../../models/categorySchema'); // correct path
 const mongoose = require('mongoose');
 
-
-//PAGE LOADING
 const loadProductManagement = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 7;
-        const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 7;
+    const skip = (page - 1) * limit;
+    const { category, status, search } = req.query;
 
-        const { category, status } = req.query;
-        const filter = { deleted: false };
-        if (category && mongoose.Types.ObjectId.isValid(category)) {
-            filter.category_id = new mongoose.Types.ObjectId(category);
-        } if (status) {
-            if (status === 'Listed') filter.isActive = true;
-            else if (status === 'Unlisted') filter.isActive = false;
-        }
-        const totalProducts = await Product.countDocuments(filter);
-        const totalPages = Math.ceil(totalProducts / limit);
+    const filter = { deleted: false };
 
-        const products = await Product.aggregate([
-            { $match: filter },
-            {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'category_id',
-                    foreignField: '_id',
-                    as: 'category'
-                }
-            },
-                {
-        $lookup: {
-            from: 'variants',
-            localField: '_id',
-            foreignField: 'product_id',
-            as: 'variants'
-        }
-    },
-            {
-                $addFields: {
-                    total_stock: { $sum: '$variants.stock' },
-                    category_name: { $arrayElemAt: ['$category.category', 0] },
-                    isActive: { $ifNull: ['$isActive', true] },
-                    status: { $cond: [{ $ifNull: ['$isActive', true] }, 'Listed', 'Unlisted'] },
-                    statusClass: { $cond: [{ $ifNull: ['$isActive', true] }, 'list', 'unlist'] },
-                    formattedDate: {
-                        $dateToString: { format: "%d-%m-%Y", date: "$createdAt" }
-                    }
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    product_name: 1,
-                    base_price: 1,
-                    total_stock: 1,
-                    category_name: 1,
-                    formattedDate: 1,
-                    status: 1,
-                    statusClass: 1,
-                    isActive: 1
-                }
-            },
-            { $sort: { createdAt: -1 } },
-            { $skip: skip },
-            { $limit: limit },
-        ]);
-
-        const categories = await Category.find().lean();
-        res.render('admin/product_management', {
-            products,
-            categories,
-            currentPage: page,
-            totalPages,
-            selectedCategory: category || '',
-            selectedStatus: status || ''
-
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Server error');
-
+    // Category filter
+    if (category && mongoose.Types.ObjectId.isValid(category)) {
+      filter.category_id = new mongoose.Types.ObjectId(category);
     }
+
+    // Status filter
+    if (status) {
+      filter.isActive = status === "Listed";
+    }
+
+    // Main query
+    let products = await Product.find(filter)
+      .populate("category_id") // populate category
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Filter by search (product name OR category name)
+    if (search) {
+      const s = search.toLowerCase();
+      products = products.filter(p => {
+        const productMatch = p.product_name.toLowerCase().includes(s);
+        const categoryMatch = p.category_id?.category.toLowerCase().includes(s);
+        return productMatch || categoryMatch;
+      });
+    }
+
+    const totalProducts = products.length;
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    // Pagination
+    const paginatedProducts = products.slice(skip, skip + limit);
+
+    // Compute total stock and other fields
+    for (let p of paginatedProducts) {
+      const variants = await Variant.find({ product_id: p._id }).lean();
+      p.total_stock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+
+      p.category_name = p.category_id?.category || "No Category";
+      p.status = p.isActive ? "Listed" : "Unlisted";
+      p.statusClass = p.isActive ? "list" : "unlist";
+      p.formattedDate = p.createdAt.toLocaleDateString("en-GB");
+    }
+
+    const categories = await Category.find().lean();
+
+    res.render("admin/product_management", {
+      products: paginatedProducts,
+      categories,
+      currentPage: page,
+      totalPages,
+      selectedCategory: category || "",
+      selectedStatus: status || "",
+      search: search || "",
+      noResults: paginatedProducts.length === 0 // flag for no results
+    });
+
+  } catch (error) {
+    console.log("Error loading product management page:", error);
+    res.status(500).send("Server Error");
+  }
 };
+
 
 //TOGGLE
 const toggleProductStatus = async (req, res) => {

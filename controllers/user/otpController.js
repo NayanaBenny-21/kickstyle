@@ -4,7 +4,8 @@ const pendingUser = require('../../models/pendingUserSchema');
 const { generateOTP, sendOTPEmail } = require('../../helpers/otp_email');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
+const Wallet = require('../../models/walletSchema');
+const WalletTransaction = require('../../models/walletTransactionSchema');
 // Load OTP verification page
 const loadSignupVerify = async (req, res) => {
     const email = req.session.pendingEmail;
@@ -55,45 +56,82 @@ const signupResendOtp = async (req, res) => {
 
 // Verify OTP
 const signupVerifyOtp = async (req, res) => {
-    try {
-        const email = req.session.pendingEmail;
-        const { otp1, otp2, otp3, otp4 } = req.body;
-        const otp = `${otp1}${otp2}${otp3}${otp4}`;
+  try {
+    const email = req.session.pendingEmail;
+    const { otp1, otp2, otp3, otp4 } = req.body;
+    const otp = `${otp1}${otp2}${otp3}${otp4}`;
 
-        const pendingUserRecord = await pendingUser.findOne({ email, otp: otp });
+    const pendingUserRecord = await pendingUser.findOne({ email, otp });
 
-        const now = Date.now();
-        const remainingTime = req.session.otpExpiresAt ? Math.floor((req.session.otpExpiresAt - now) / 1000) : 0;
+    const now = Date.now();
+    const remainingTime = req.session.otpExpiresAt ? Math.floor((req.session.otpExpiresAt - now) / 1000) : 0;
 
-        if (!pendingUserRecord || !req.session.otpExpiresAt || now > req.session.otpExpiresAt) {
-            return res.render('user/confirmWithOTP_signup', {
-                email,
-                error: "OTP invalid or expired",
-                otpSent: remainingTime > 0,
-                remainingTime
-            });
-        }
-
-        await User.create({
-            name: pendingUserRecord.name,
-            email: pendingUserRecord.email,
-            password: pendingUserRecord.password
-        });
-
-        await pendingUser.deleteOne({ email });
-
-        req.session.pendingEmail = null;
-        req.session.pendingUserId = null;
-        req.session.otpExpiresAt = null;
-        req.session.otpSent = false;
-
-        return res.redirect('/auth/login');
-    } catch (error) {
-        console.error(error);
-        res.render('user/confirmWithOTP_signup', { error: 'Server error' });
+    if (!pendingUserRecord || !req.session.otpExpiresAt || now > req.session.otpExpiresAt) {
+      return res.render('user/confirmWithOTP_signup', {
+        email,
+        error: "OTP invalid or expired",
+        otpSent: remainingTime > 0,
+        remainingTime
+      });
     }
-};
 
+    // Create the actual user
+    const newUser = await User.create({
+      name: pendingUserRecord.name,
+      email: pendingUserRecord.email,
+      password: pendingUserRecord.password,
+      referralCode: pendingUserRecord.referralCode,
+      referredBy: pendingUserRecord.referredBy || null
+    });
+
+    console.log("New user : ", newUser)
+    // Initialize wallet for new user
+    await Wallet.create({ userId: newUser._id, balance: 0 });
+
+    // Give ₹200 to the referrer if exists
+  if (pendingUserRecord.referredBy) {
+  let referrerWallet = await Wallet.findOne({
+    userId: pendingUserRecord.referredBy
+  });
+
+  if (!referrerWallet) {
+    referrerWallet = await Wallet.create({
+      userId: pendingUserRecord.referredBy,
+      balance: 0
+    });
+  }
+
+  referrerWallet.balance += 200;
+  await referrerWallet.save();
+
+  await WalletTransaction.create({
+    userId: pendingUserRecord.referredBy,
+    type: 'credit',
+    title: 'referral_bonus',
+    amount: 200,
+    status: 'success',
+    payment_method: 'wallet',
+    transactionId: `ref_${Date.now()}_${pendingUserRecord.referredBy}`
+  });
+}
+
+
+    // Clean up pending user
+    await pendingUser.deleteOne({ email });
+
+    // Clear session
+    req.session.pendingEmail = null;
+    req.session.pendingUserId = null;
+    req.session.otpExpiresAt = null;
+    req.session.otpSent = false;
+
+    return res.redirect('/auth/login');
+
+  } catch (error) {
+    console.error(error);
+    res.render('user/confirmWithOTP_signup', { error: 'Server error' });
+  }
+};
 
 //***********LOGIN*************
 
@@ -103,7 +141,6 @@ const loadLoginVerify = async (req, res) => {
         const email = req.session.loginEmail;
         if (!email) return res.redirect('/auth/login');
 
-        // Calculate remaining time
         const remainingTime = req.session.loginOTPExpiresAt
             ? Math.max(0, Math.floor((req.session.loginOTPExpiresAt - Date.now()) / 1000)) : 0;
 
@@ -129,9 +166,14 @@ const loginResendOtp = async (req, res) => {
         const email = req.session.loginEmail;
         console.log("Email to resend OTP:", email);
 
-        if (!email) {
-            return res.status(400).json({ success: false, message: "Session expired. Please Login again." });
-        }
+       if (!email) {
+    return res.status(400).json({
+        success: false,
+        message: "Session expired. Please login again.",
+        redirect: "/auth/login"
+    });
+}
+
 
         const otp = generateOTP();
         const otpExpiresAt = Date.now() + 60 * 1000;
@@ -155,14 +197,13 @@ const loginResendOtp = async (req, res) => {
 const loginVerifyOtp = async (req, res) => {
     try {
         const email = req.session.loginEmail;
-        const { otp1, otp2, otp3, otp4 } = req.body;
-        const otp = `${otp1}${otp2}${otp3}${otp4}`;
+        const { otp } = req.body;
         const remainingTime = req.session.loginOTPExpiresAt ? Math.floor((req.session.loginOTPExpiresAt - Date.now()) / 1000) : 0;
 
         if (!req.session.loginOTPExpiresAt || Date.now() > req.session.loginOTPExpiresAt) {
-            return res.render('user/confirmWithOTP', {
-                email,
-                error: "OTP invalid or expired",
+            return res.json({
+                success : false,
+                message: "OTP invalid or expired",
                 otpSent: false,
                 showResend: true,
                 showToast: false,
@@ -175,9 +216,9 @@ if (otp !== req.session.loginOTP) {
         ? Math.max(0, Math.floor((req.session.loginOTPExpiresAt - now) / 1000))
         : 0;
 
-    return res.render('user/confirmWithOTP', {
-        email,
-        error: 'Invalid OTP',
+    return res.json({
+        success : false,
+        message: 'Invalid OTP',
         otpSent: remainingTime > 0,
         showResend: remainingTime <= 0,  
         remainingTime ,
@@ -186,12 +227,13 @@ if (otp !== req.session.loginOTP) {
     });
 }
         const user = await User.findOne({ email });
-        const payload = { id: user._id, email: user.email };
+        const payload = { id: user._id, email: user.email, role: 'user' };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
        res.cookie('user_jwt', token, {
        httpOnly: true,
        secure: false,
-         maxAge: 60 * 60 * 1000
+         maxAge: 60 * 60 * 1000,
+          path: '/'
 });
         req.session.userId = req.session.loginUserId;
         req.session.loginEmail = null;
@@ -199,13 +241,18 @@ if (otp !== req.session.loginOTP) {
         req.session.loginOTP = null;
         req.session.loginOTPExpiresAt = null;
         req.session.loginOTPSent = false;
-        return res.render('user/confirmWithOTP', { email, 
-            otpSent:false, remainingTime : 0,
-            otpSuccess :true
+        return res.json({ 
+            success: true, 
+            message : 'Login Successfull!',
+            otpSent:false,
+             remainingTime : 0,
+             showToast : true,
+            otpSuccess :true,
+            redirect : '/'
         });
     } catch (error) {
         console.error("Login OTP verify error:", error);
-        res.render('user/confirmWithOTP', { error: 'Server error' });
+        res.json({success: false, message: "Server error, try again" });
     }
 
 }

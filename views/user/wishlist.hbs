@@ -1,0 +1,274 @@
+<link rel="stylesheet" href="/css/profile.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container my-5" style="margin-left: 0px;">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <div class="p-3 shadow-sm bg-white rounded">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 text-center">My Account</h5>
+        <div class="list-group border-0 text-center">
+          <a href="/profile" class="list-group-item border-0 list-group-item-action">Profile</a>
+          <a href="/orders" class="list-group-item border-0 list-group-item-action">Orders</a>
+          <a href="/address" class="list-group-item border-0 list-group-item-action">Your Address</a>
+          <a href="/wishlist" class="list-group-item border-0 list-group-item-action active">Wishlist</a>
+          <a href="/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
+          <a href="/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
+          <a href="/logout" class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist Section -->
+    <div class="col-md-9">
+      <div class="card border-0 shadow-sm p-4">
+        <h5 class="fw-bold text-dark mb-3">My Wishlist</h5>
+
+        <div class="row">
+          {{#if wishlistProducts.length}}
+            {{#each wishlistProducts}}
+              <div class="col-6 col-md-4 mb-4 wishlist-item" id="wish-{{this._id}}">
+                <div class="card h-100 shadow-sm position-relative wishlist-card">
+
+                  <!-- REMOVE BUTTON -->
+                  <button class="position-absolute top-0 end-0 m-2 p-0 bg-transparent border-0 remove-wishlist-btn"
+                          style="font-size: 26px"
+                          data-product-id="{{this._id}}">
+                    <i class="fa-solid fa-xmark text-danger"></i>
+                  </button>
+
+                  <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
+                    <img src="{{this.images.main}}" 
+                         class="card-img-top"
+                         style="height: 300px; object-fit: cover;"
+                         alt="{{this.product_name}}">
+                    <div class="card-body p-2 text-center d-flex flex-column align-items-center">
+                      <h6 class="card-title mb-1">{{this.product_name}}</h6>
+                      <div class="d-flex justify-content-center align-items-center gap-2 mt-1">
+                        <span class="fw-bold" style="font-size: small;">₹{{this.final_price}}</span>
+                        <span class="text-muted" style="font-size: small;"><s>₹{{this.base_price}}</s></span>
+                        <span class="badge bg-danger" style="font-size: 10px;">-{{this.discount_percentage}}%</span>
+                      </div>
+                    </div>
+                  </a>
+
+                  <!-- ADD TO CART BUTTON -->
+                  <div class="p-2 d-flex justify-content-center">
+<button 
+  class="btn btn-sm btn-warning add-to-cart-btn" 
+  data-product-id="{{this._id}}" 
+  data-sizes='{{json this.sizes}}'
+    data-variants='{{json this.variants}}'
+>
+  Add to Cart
+</button>
+
+                  </div>
+
+                </div>
+              </div>
+            {{/each}}
+          {{else}}
+            <div class="text-center p-4">
+              <p class="text-muted mb-0">Your wishlist is empty.</p>
+              <a href="/" class="btn btn-primary mt-3">Start Shopping</a>
+            </div>
+          {{/if}}
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- SIZE SELECTION MODAL -->
+<div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Select Size</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="sizeOptions">
+        <!-- Sizes will bewillbe here -->
+      </div>
+      <div class="modal-footer">
+        <button id="addToCartBtn" class="btn btn-outline-warning" disabled>Select</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+      
+
+<style>
+.wishlist-card {
+  transition: 0.2s;
+}
+.wishlist-card:hover {
+  transform: scale(1.01);
+  cursor: pointer;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  
+  document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
+    
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      
+      const productId = btn.dataset.productId;
+      const sizes = JSON.parse(btn.dataset.sizes || "[]");
+      const variants = JSON.parse(btn.dataset.variants || "[]");   // ✅ FIXED
+
+      console.log("Wishlist Sizes:", sizes);
+      console.log("Wishlist Variants:", variants);
+
+      if (!sizes.length) {
+        Swal.fire("Info", "No sizes available for this product.", "info");
+        return;
+      }
+
+      const sizeOptionsDiv = document.getElementById("sizeOptions");
+      sizeOptionsDiv.innerHTML = "";
+
+      sizes.forEach(s => {
+        const sizeBtn = document.createElement("button");
+        sizeBtn.className = "btn btn-outline-primary btn-sm m-1";
+        sizeBtn.textContent = s.size;
+
+        if (s.stock <= 0) {
+          sizeBtn.disabled = true;
+          sizeBtn.classList.add("btn-secondary");
+        } else {
+          sizeBtn.addEventListener("click", () => {
+
+            document.querySelectorAll("#sizeOptions .btn")
+              .forEach(b => b.classList.remove("active"));
+
+            sizeBtn.classList.add("active");
+
+            const addBtn = document.getElementById("addToCartBtn");
+            addBtn.dataset.selectedSize = s.size;
+            addBtn.dataset.productId = productId;
+
+            // ✅ FIRST COLOR
+            const firstColor = variants[0]?.color;
+
+            // ✅ MATCH VARIANT using first color + size
+            const matchedVariant = variants.find(v =>
+              v.color === firstColor && v.size === s.size
+            );
+
+            console.log("Selected Variant:", matchedVariant);
+
+            addBtn.dataset.variantId = matchedVariant?._id || "";
+            addBtn.disabled = false;
+          });
+        }
+
+        sizeOptionsDiv.appendChild(sizeBtn);
+      });
+
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById("sizeModal"));
+      modal.show();
+    });
+
+  });
+
+
+  // ================== ADD TO CART ACTION ===================
+  document.getElementById("addToCartBtn").addEventListener("click", async () => {
+    const addBtn = document.getElementById("addToCartBtn");
+
+    const productId = addBtn.dataset.productId;
+    const variantId = addBtn.dataset.variantId;
+    const size = addBtn.dataset.selectedSize;
+    const quantity = 1;
+
+    if (!productId || !variantId || !size) {
+      Swal.fire("Error", "Missing variant information", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("/add-to-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, size, variantId, quantity })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire("Success", "Product added to cart!", "success");
+        const modal = bootstrap.Modal.getInstance(document.getElementById("sizeModal"));
+        modal.hide();
+                const removeRes = await fetch(`/wishlist/remove/${productId}`, {
+            method: "DELETE"
+        });
+
+        const removeData = await removeRes.json();
+
+        if (removeData.success) {
+            // REMOVE FROM UI
+            const wishItem = document.getElementById(`wish-${productId}`);
+            if (wishItem) {
+                wishItem.style.transition = "0.3s";
+                wishItem.style.opacity = "0";
+                setTimeout(() => wishItem.remove(), 300);
+            }
+        }
+
+
+      } else {
+        Swal.fire("Error", data.message || "Failed to add product", "error");
+      }
+
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Network or server error", "error");
+    }
+  });
+
+
+const wishlistContainer = document.querySelector(".row"); // adjust if needed
+
+  wishlistContainer.addEventListener("click", async (e) => {
+    if (e.target.closest(".remove-wishlist-btn")) {
+      const btn = e.target.closest(".remove-wishlist-btn");
+      const productId = btn.dataset.productId;
+
+      try {
+        const res = await fetch(`/wishlist/remove/${productId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          const row = btn.closest(".wishlist-item");
+          if (row) row.remove();
+        }
+
+      } catch (err) {
+        console.error("Wishlist Remove Error:", err);
+      }
+    }
+  });
+
+
+});
+</script>
+
+
+

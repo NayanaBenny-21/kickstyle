@@ -1,0 +1,29 @@
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
+const adminAuthStatus = (req, res, next) => {
+  // Initialize admin locals
+  res.locals.isAdminLoggedIn = false;
+  res.locals.admin = null;
+
+  const adminToken = req.cookies.admin_jwt;
+
+  if (adminToken) {
+    try {
+      const decodedAdmin = jwt.verify(adminToken, process.env.JWT_SECRET);
+
+      if (decodedAdmin.role === 'admin') {
+        res.locals.isAdminLoggedIn = true;
+        res.locals.admin = decodedAdmin;
+      }
+
+    } catch (err) {
+      // Invalid token → remove cookie
+      res.clearCookie('admin_jwt');
+    }
+  }
+
+  next();
+};
+
+module.exports = adminAuthStatus;

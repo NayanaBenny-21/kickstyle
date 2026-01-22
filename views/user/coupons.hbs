@@ -1,0 +1,173 @@
+<link rel="stylesheet" href="/css/profile.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container my-5" style="margin-left:0">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <div class="p-3 shadow-sm bg-white rounded">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 text-center">
+          My Account
+        </h5>
+        <div class="list-group border-0 text-center">
+          <a href="/profile" class="list-group-item border-0">Profile</a>
+          <a href="/orders" class="list-group-item border-0">Orders</a>
+          <a href="/address" class="list-group-item border-0">Your Address</a>
+          <a href="/wishlist" class="list-group-item border-0">Wishlist</a>
+          <a href="/wallet" class="list-group-item border-0">Wallet</a>
+          <a href="/coupons" class="list-group-item border-0 active">Coupons</a>
+          <a href="/logout" class="list-group-item border-0 text-danger fw-semibold">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coupons Section -->
+    <div class="col-md-9">
+      <div class="card border-0 shadow-sm p-4">
+        <h5 class="fw-bold mb-4">My Coupons</h5>
+
+      {{#if coupons.length}}
+  <div class="row">
+    {{#each coupons}}
+      <div class="col-md-6 mb-4">
+
+        <div class="coupon-box d-flex shadow-sm {{#if isUsed}}coupon-used{{/if}}">
+          
+          <!-- LEFT ICON -->
+          <div class="coupon-icon d-flex align-items-center justify-content-center">
+            <i class="fa-solid fa-ticket"></i>
+          </div>
+
+          <!-- PERFORATION -->
+          <div class="coupon-divider"></div>
+
+          <!-- RIGHT CONTENT -->
+          <div class="coupon-content p-3 flex-grow-1" style="background-color: #fffbf1;">
+
+            <h5 class="fw-bold mb-1" style="color:#d63030">
+              Flat
+              {{#if (eq discountType "percentage")}}
+                {{discountValue}}%
+              {{else}}
+                ₹{{discountValue}}
+              {{/if}}
+              off
+            </h5>
+
+            <p class="mb-1">
+              Code: <strong>{{couponCode}}</strong>
+              {{#unless isUsed}}
+                <i class="fa-regular fa-copy ms-2 copy-coupon-btn"
+                   data-code="{{couponCode}}"></i>
+              {{/unless}}
+            </p>
+
+            <p class="text-muted small mb-1">
+              Minimum purchase: ₹{{minOrderAmount}}
+            </p>
+
+            <p class="text-muted small mb-2">
+              Expiry: {{formatDate expiryDate}}
+            </p>
+
+            {{#if isUsed}}
+              <span class="badge bg-secondary">Used</span>
+            {{else}}
+              <span class="badge" style="background-color:rgb(204 38 130)">
+                Available
+              </span>
+            {{/if}}
+
+          </div>
+        </div>
+
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+
+
+          <p class="text-muted text-center">No coupons available</p>
+        {{/if}}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COPY SCRIPT -->
+<script>
+  document.querySelectorAll(".copy-coupon-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const code = btn.dataset.code;
+      navigator.clipboard.writeText(code);
+
+      Swal.fire({
+        icon: "success",
+        title: "Copied!",
+        text: `Coupon ${code} copied`,
+        timer: 1200,
+        showConfirmButton: false
+      });
+    });
+  });
+</script>
+
+<!-- STYLES -->
+<style>
+  .coupon-box {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .coupon-icon {
+    width: 120px;
+    background: #fff3cd;
+    font-size: 50px;
+    color: #ffc107;
+  }
+
+  .coupon-divider {
+    width: 20px;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 10px,
+        #ccc 10px,
+        #ccc 20px
+      );
+  }
+
+  .coupon-content {
+    position: relative;
+  }
+
+  .copy-coupon-btn {
+    cursor: pointer;
+    color: #6c757d;
+  }
+
+  .copy-coupon-btn:hover {
+    color: #000;
+  }
+
+  .view-products {
+    color: #ff4d6d;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .view-products:hover {
+    text-decoration: underline;
+  }
+
+  .coupon-used {
+    opacity: 0.6;
+  }
+  
+</style>

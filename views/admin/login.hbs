@@ -24,6 +24,9 @@
         <label class="form-label">Password <span class="text-danger">*</span></label>
         <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required
          pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
+       <button  type="button"  id="togglePasswordBtn" class="btn position-absolute "style="top: 70%; right: 10px; transform: translateY(-50%);border: none; background: transparent;">
+    <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+ </button>
       </div>
       <button type="submit" class="btn btn-danger w-100">Login</button>
     </form>

@@ -1,6 +1,7 @@
 const User = require('../../models/userSchema');
 const pendingUser = require("../../models/pendingUserSchema");
 const bcrypt = require("bcryptjs");
+const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const { generateOTP, sendOTPEmail } = require('../../helpers/otp_email');
@@ -25,13 +26,14 @@ const signupUser = async (req, res) => {
     });
   }
 
-  let { name, email, password, confirmPassword } = req.body;
+  let { name, email, password, confirmPassword, referralCode } = req.body;
 
   // Trim inputs
   name = name ? name.trim() : '';
   email = email ? email.trim() : '';
   password = password ? password.trim() : '';
   confirmPassword = confirmPassword ? confirmPassword.trim() : '';
+    referralCode = referralCode?.trim();
 
   let general_error = null;
 
@@ -68,6 +70,20 @@ const signupUser = async (req, res) => {
       });
     }
 
+  let referredByUser = null;
+
+    if (referralCode) {
+      referredByUser = await User.findOne({ referralCode });
+console.log("Referralby :", referredByUser)
+      if (!referredByUser) {
+        return res.render('user/signup', {
+          general_error: "Invalid referral code",
+          name,
+          email
+        });
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -76,16 +92,32 @@ const signupUser = async (req, res) => {
     
     // Create or update pending user
     let pending = await pendingUser.findOne({ email });
-    if (!pending) {
-      pending = await pendingUser.create({ name, email, password: hashedPassword, otp });
-      console.log('Pending user saved:', pending);
+if (!pending) {
+  pending = await pendingUser.create({
+    name,
+    email,
+    password: hashedPassword,
+    otp,
+    referralCode: referralCode || null,
+    referredBy: referredByUser?._id || null
+  });
 
-    } else {
+  console.log('Pending user saved:', pending);
+}
+else {
       pending = await pendingUser.findOneAndUpdate(
-        { email },
-        { name, password: hashedPassword, otp, createdAt: Date.now() },
-        { new: true }
-      );
+  { email },
+  { 
+    name, 
+    password: hashedPassword, 
+    otp, 
+    referralCode: referralCode || null,
+    referredBy: referredByUser?._id || null,
+    createdAt: Date.now() 
+  },
+  { upsert: true, new: true }
+);
+
       console.log('Pending user saved:', pending);
 
     }
@@ -112,6 +144,7 @@ req.session.pendingEmail = email;
 //***Load login page***
 const loadLoginPage = async (req, res) => {
   try {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
     return res.render('user/login');
   } catch (error) {
     console.log('Login page not loading', error);
@@ -174,50 +207,83 @@ req.session.loginOTPSent = true;
 }
 
 //logout
-const logout = (req, res) => {
+const logout = (req, res, next) => {
   try {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error("Session destroy error:", err);
-        return res.status(500).send("Server error");
+    // Only call logout if req.logout exists
+    if (req.logout && typeof req.logout === 'function') {
+      req.logout(function(err) {
+        if (err) return next(err);
+
+        // Destroy session only if it exists
+        if (req.session) {
+          req.session.destroy(function(err) {
+            if (err) console.error("Session destroy error:", err);
+            res.clearCookie('connect.sid'); // clear session cookie
+            res.clearCookie('user_jwt');    // clear JWT cookie if used
+            return res.redirect("/auth/login");
+          });
+        } else {
+          // Session doesn't exist, just clear cookies
+          res.clearCookie('connect.sid');
+          res.clearCookie('user_jwt');
+          return res.redirect("/auth/login");
+        }
+      });
+    } else {
+      // Fallback if req.logout is not defined
+      if (req.session) {
+        req.session.destroy(function(err) {
+          if (err) console.error("Session destroy error:", err);
+          res.clearCookie('connect.sid');
+          res.clearCookie('user_jwt');
+          return res.redirect("/auth/login");
+        });
+      } else {
+        res.clearCookie('connect.sid');
+        res.clearCookie('user_jwt');
+        return res.redirect("/auth/login");
       }
-      res.clearCookie("user_jwt");
-      return res.redirect("/auth/login");
-    });
+    }
   } catch (error) {
     console.error("Logout error:", error);
     res.status(500).send("Server error");
   }
 };
 
-const passport = require("passport");
-const googleLogin = passport.authenticate("google", {
-  scope: ["profile", "email"],
-  prompt: "select_account"
-});
-const googleCallback = passport.authenticate("google", {
-  failureRedirect: "/auth/login",
-});
 
 
 
 const googleSuccess = (req, res) => {
-  if (!req.user) return res.redirect("/auth/login");
+  if (!req.user) return res.send('<script>window.close();</script>'); // close popup if no user
+
   req.session.userId = req.user._id;
 
-  const payload = { id: req.user._id, name: req.user.name, email: req.user.email };
-const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
-res.cookie('user_jwt', token, { httpOnly: true });
+  const payload = { id: req.user._id, name: req.user.name, email: req.user.email, role: 'user' };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+  res.cookie('user_jwt', token, { httpOnly: true });
 
-    res.redirect("/");
-  };
-  const logoutGoogle = (req, res, next) => {
-  req.logout(err => {
-    if (err) return next(err);
- res.clearCookie('user_jwt'); 
-    res.redirect("/auth/login");
-  });
+  // Send script to popup to notify main window
+  res.send(`
+    <script>
+      window.opener.postMessage({ type: 'google-auth-success' }, window.location.origin);
+      window.close();
+    </script>
+  `);
 };
+
+
+const googleLogin = passport.authenticate("google", {
+  scope: ["profile", "email"],
+  prompt: "select_account"
+});
+
+const googleCallback = passport.authenticate("google", {
+  failureRedirect: "/auth/login",
+});
+
+const logoutGoogle = logout;
+
+
 module.exports = { loadSignup, signupUser, loadLoginPage, loginUser, logout,
   googleLogin, googleCallback, googleSuccess, logoutGoogle
  };

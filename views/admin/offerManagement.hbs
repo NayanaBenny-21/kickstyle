@@ -1,0 +1,259 @@
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Sidebar -->
+    {{> adminSidebar}}
+
+    <div class="col-10 p-4">
+
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="m-0">Offer Management</h3>
+
+        <div class="d-flex align-items-center gap-3">
+
+          <!-- SEARCH -->
+          <form class="d-flex" style="width:300px;" method="GET">
+            <input type="hidden" name="status" value="{{selectedStatus}}">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input
+                type="search"
+                name="search"
+                class="form-control"
+                placeholder="Search by offer name..."
+                value="{{search}}">
+            </div>
+          </form>
+
+          <!-- FILTER -->
+          <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+            <i class="bi bi-funnel"></i> Filter
+          </button>
+
+          <!-- ADD OFFER -->
+          <a href="/admin/offers/add" class="btn btn-danger">
+            <i class="bi bi-plus-lg"></i> Add
+          </a>
+
+        </div>
+      </div>
+
+      <hr style="height:6px">
+
+      <!-- OFFER TABLE -->
+      <table class="table table-bordered text-center mt-4">
+        <thead>
+          <tr>
+            <th>Offer Name</th>
+            <th>Type</th>
+            <th>Discount</th>
+            <th>Target</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {{#if offers.length}}
+            {{#each offers}}
+              <tr data-id="{{this._id}}">
+                <td>{{this.offerName}}</td>
+
+                <td>
+                  <span class="badge bg-info text-dark text-capitalize">
+                    {{this.offerType}}
+                  </span>
+                </td>
+
+                <td>
+                  {{#if (eq this.discountType "percentage")}}
+                    {{this.discountValue}}%
+                  {{else}}
+                    ₹ {{this.discountValue}}
+                  {{/if}}
+                </td>
+
+                <td>
+                  {{#if (eq this.offerType "product")}}
+                    {{this.products.length}} Products
+                  {{else}}
+                    {{this.category.name}}
+                  {{/if}}
+                </td>
+
+                <td>{{this.startDateFormatted}}</td>
+                <td>{{this.endDateFormatted}}</td>
+
+            <td>
+  <span class="status-chip 
+    {{#if (lt this.endDate (now))}}expired
+    {{else if this.isActive}}active
+    {{else}}blocked
+    {{/if}}">
+    {{#if (lt this.endDate (now))}}Expired
+    {{else if this.isActive}}Active
+    {{else}}Blocked
+    {{/if}}
+  </span>
+</td>
+
+
+                <td class="d-flex justify-content-center gap-2">
+                  <!-- Toggle -->
+                  <label class="switch">
+                    <input type="checkbox" class="toggle-offer" data-id="{{this._id}}" {{#if this.isActive}}checked{{/if}}>
+                    <span class="slider"></span>
+                  </label>
+
+                  <!-- Edit -->
+                  <a href="/admin/offers/edit/{{this._id}}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+
+                  <!-- Delete -->
+                  <button class="btn btn-sm btn-outline-danger delete-offer" data-id="{{this._id}}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            {{/each}}
+          {{else}}
+            <tr>
+              <td colspan="8" class="text-center">No offers found</td>
+            </tr>
+          {{/if}}
+        </tbody>
+      </table>
+
+      <!-- PAGINATION -->
+      <nav>
+        <ul class="pagination justify-content-center mt-4">
+
+          {{#if (gt currentPage 1)}}
+          <li class="page-item">
+            <a class="page-link" href="?page={{decrement currentPage 1}}&search={{search}}&status={{selectedStatus}}">
+              Previous
+            </a>
+          </li>
+          {{/if}}
+
+          {{#each (range 1 totalPages)}}
+          <li class="page-item {{#ifEquals ../currentPage this}}active{{/ifEquals}}">
+            <a class="page-link" href="?page={{this}}&search={{../search}}&status={{../selectedStatus}}">
+              {{this}}
+            </a>
+          </li>
+          {{/each}}
+
+          {{#if (lt currentPage totalPages)}}
+          <li class="page-item">
+            <a class="page-link" href="?page={{increment currentPage 1}}&search={{search}}&status={{selectedStatus}}">
+              Next
+            </a>
+          </li>
+          {{/if}}
+
+        </ul>
+      </nav>
+
+    </div>
+  </div>
+</div>
+
+
+<!---------- MODAL ------->
+
+<div class="modal fade" id="filterModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <form method="GET">
+        <div class="modal-header">
+          <h5 class="modal-title">Filter Offers</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <div class="mb-3">
+            <label>Offer Type</label>
+            <select class="form-select" name="offerType">
+              <option value="">All</option>
+              <option value="product">Product</option>
+              <option value="category">Category</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Status</label>
+            <select class="form-select" name="status">
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Discount Type</label>
+            <select class="form-select" name="discountType">
+              <option value="">All</option>
+              <option value="percentage">Percentage</option>
+              <option value="flat">Flat</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Start Date</label>
+            <input type="date" name="startDate" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label>End Date</label>
+            <input type="date" name="endDate" class="form-control">
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Apply</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/admin/offerManagement.js"></script>
+
+<style>
+  .status-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+  text-align: center;
+}
+
+.status-chip.active {
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+  background-color: #e6f4ea;
+}
+
+.status-chip.blocked {
+  color: #c62828;
+  border: 1px solid #c62828;
+  background-color: #fde6e6;
+}
+
+.status-chip.expired {
+  color: #555;
+  border: 1px solid #aaa;
+  background-color: #eee;
+}
+
+</style>

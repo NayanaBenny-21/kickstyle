@@ -9,15 +9,43 @@
       <div class="p-3 shadow-sm bg-white rounded">
         <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 text-center">My Account</h5>
         <div class="list-group border-0 text-center">
-          <a href="/user/profile" class="list-group-item border-0 list-group-item-action active">Profile</a>
-          <a href="/user/orders" class="list-group-item border-0 list-group-item-action">Orders</a>
+          <a href="/profile" class="list-group-item border-0 list-group-item-action active">Profile</a>
+          <a href="/orders" class="list-group-item border-0 list-group-item-action">Orders</a>
           <a href="/address" class="list-group-item border-0 list-group-item-action">Your Address</a>
-          <a href="/user/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
-          <a href="/user/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
-          <a href="/user/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
+          <a href="/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
+          <a href="/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
+          <a href="/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
           <a href="/logout" class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
         </div>
       </div>
+      <!-- Referral Code -->
+<div class="mt-4 p-3 border rounded text-center bg-light">
+  <h6 class="fw-bold text-dark mb-2">
+    <i class="fa fa-gift me-1 text-danger"></i> Referral Code
+  </h6>
+
+  <div class="d-flex justify-content-center align-items-center gap-2">
+    <input
+      type="text"
+      class="form-control form-control-sm text-center fw-semibold"
+      style="max-width: 140px;"
+      value="{{user.referralCode}}"
+      readonly
+      id="referralCode"
+    />
+    <button
+      class="btn btn-sm btn-outline-danger"
+      onclick="copyReferralCode()"
+    >
+      Copy
+    </button>
+  </div>
+
+  <small class="text-muted d-block mt-2">
+    Share & earn rewards 
+  </small>
+</div>
+
     </div>
 
     <!-- Profile Details -->
@@ -25,7 +53,7 @@
       <div class="card border-0 shadow-sm p-4 w-100" style="max-width: 500px;">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="fw-bold text-dark mb-0">Profile Details</h5>
-          <a href="/user/change-password" class="text-danger small text-decoration-none fw-semibold">Change Password</a>
+          <a href="/profile/change-password" class="text-danger small text-decoration-none fw-semibold">Change Password</a>
         </div>
 
         <!-- Profile Image -->
@@ -77,3 +105,25 @@
 
   </div>
 </div>
+
+
+<script>
+  function copyReferralCode() {
+    const input = document.getElementById("referralCode");
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(input.value);
+
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: "success",
+      title: "Referral code copied",
+      showConfirmButton: false,
+      timer: 1500,
+      timerProgressBar: true
+    });
+  }
+</script>
+

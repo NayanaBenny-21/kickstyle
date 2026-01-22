@@ -1,0 +1,223 @@
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Sidebar -->
+    {{> adminSidebar}}
+
+    <!-- Main Content -->
+    <div class="col-10 p-4">
+
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Order Item Details</h3>
+        <a href="/admin/order-management/order-details/{{order.orderId}}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Back
+        </a>
+      </div>
+
+      <hr style="height: 2px">
+
+      <div class="row g-4 mt-4">
+
+        <!-- Left: Product Details -->
+        <div class="col-md-7">
+          <div class="card p-3 shadow-sm mb-3">
+            <div class="d-flex gap-3">
+              <!-- Product Image -->
+              <img src="{{item.productImage}}" style="width:200px;height:200px;object-fit:cover;border-radius:12px" alt="{{item.productName}}">
+              
+              <!-- Product Info -->
+              <div>
+                <h5 class="mb-2">{{item.productName}}</h5>
+                <p class="m-0">Quantity: {{item.quantity}}</p>
+                <p class="mt-2 mb-1">Price: ₹ {{item.finalPrice}}</p>
+                <p class="mt-2 mb-1"><strong>Size:</strong> {{#if item.size}}{{item.size}}{{else}}N/A{{/if}}</p>
+                <p class="m-0"><strong>Color:</strong> {{#if item.color}}{{item.color}}{{else}}N/A{{/if}}</p>
+              </div>
+            </div>
+
+            <!-- Status Update -->
+            <div class="mt-4">
+              <label class="fw-bold mb-2">Order Status:</label>
+              <select
+                class="form-select w-50 order-status-select"
+                data-item-id="{{item._id}}"
+                data-current-status="{{item.status}}"
+                {{#ifEquals item.status "return_requested"}}disabled{{/ifEquals}}
+              >
+                <option value="pending"     {{#ifEquals item.status "pending"}}selected{{/ifEquals}}>Pending</option>
+                <option value="confirmed"   {{#ifEquals item.status "confirmed"}}selected{{/ifEquals}}>Confirmed</option>
+                <option value="shipped"     {{#ifEquals item.status "shipped"}}selected{{/ifEquals}}>Shipped</option>
+                <option value="in-transit"  {{#ifEquals item.status "in-transit"}}selected{{/ifEquals}}>In Transit</option>
+                <option value="delivered"   {{#ifEquals item.status "delivered"}}selected{{/ifEquals}}>Delivered</option>
+                <option value="returned"    {{#ifEquals item.status "returned"}}selected{{/ifEquals}}>Returned</option>
+                <option value="cancelled"   {{#ifEquals item.status "cancelled"}}selected{{/ifEquals}}>Cancelled</option>
+              </select>
+
+              {{#if (eq item.status "return_requested")}}
+              <p class="text-warning fw-semibold mt-2">Return Requested by User</p>
+              <div class="d-flex gap-3 mt-2">
+                <button class="btn btn-success" onclick="updateReturnStatus('{{item._id}}', 'returned')">✅ Approve Return</button>
+                <button class="btn btn-danger" onclick="updateReturnStatus('{{item._id}}', 'delivered')">❌ Reject Return</button>
+              </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Shipping & Order Summary -->
+        <div class="col-md-5">
+
+          <!-- Shipping Details -->
+          <div class="card p-3 shadow-sm mb-4">
+            <h5 class="text-center mb-3">Shipping Details</h5>
+            {{#if address}}
+            <p class="text-center fw-bold">{{address.name}}</p>
+            <p class="text-center small">
+              {{address.addressLine}}, {{address.locality}}, {{address.street}}<br>
+              {{address.city}}, {{address.state}} - {{address.pincode}}
+            </p>
+            <p class="text-center small m-0">Phone: {{address.mobile}}</p>
+            {{else}}
+            <p class="text-center text-muted">No shipping address available</p>
+            {{/if}}
+          </div>
+
+          <!-- Order Summary -->
+          <div class="card p-3 shadow-sm">
+            <h5 class="text-center mb-3">Order Summary</h5>
+            <p><strong>Order ID:</strong> {{order._id}}</p>
+            <p><strong>Order Date:</strong> {{order.formattedDate}}</p>
+            <p><strong>Payment Method:</strong> {{order.paymentMethod}}</p>
+            <p><strong>Payment Status:</strong> {{order.paymentStatus}}</p>
+            <p class="mt-3"><strong>Total Items Amount:</strong> ₹ {{totalAmount}}</p>
+            <p><strong>Total Order Amount:</strong> ₹ {{order.totalPrice}}</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/js/adminOrderStatus.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  document.querySelectorAll('.order-status-select').forEach(dropdown => {
+
+    dropdown.addEventListener('change', async (e) => {
+      const selectEl = e.target;
+      const newStatus = selectEl.value;
+      const itemId = selectEl.dataset.itemId;
+      const previousStatus = selectEl.dataset.currentStatus;
+
+      if (!itemId) {
+        Swal.fire('Error', 'Item ID missing', 'error');
+        return;
+      }
+
+      // 🔒 revert immediately
+      selectEl.value = previousStatus;
+
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: `Change status to "${newStatus}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel'
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        const res = await fetch(`/admin/orders/update-item-status/${itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          selectEl.value = newStatus;
+          selectEl.dataset.currentStatus = newStatus;
+          Swal.fire('Updated!', data.message || 'Status updated', 'success');
+        } else {
+          Swal.fire('Error!', data.message || 'Update failed', 'error');
+        }
+
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error!', 'Server error', 'error');
+      }
+    });
+
+  });
+});
+
+async function updateReturnStatus(itemId, status) {
+
+  if (!itemId) {
+    Swal.fire('Error', 'Item ID missing', 'error');
+    return;
+  }
+
+  // Step 1: Confirm return action
+  const confirmResult = await Swal.fire({
+    title: 'Approve Return?',
+    text: 'This will approve the user return request.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Approve',
+    cancelButtonText: 'Cancel'
+  });
+
+  if (!confirmResult.isConfirmed) return;
+
+  let restock = false;
+
+  // Step 2: Ask stock handling ONLY if approved
+  if (status === 'returned') {
+    const stockResult = await Swal.fire({
+      title: 'Stock Handling',
+      text: 'Should this item be added back to stock?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, add to stock',
+      cancelButtonText: 'No, item is damaged'
+    });
+
+    restock = stockResult.isConfirmed; // true = add to stock
+  }
+
+  // Step 3: API call
+  try {
+    const res = await fetch(`/admin/orders/update-item-status/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status,
+        restock   // 👈 NEW FLAG
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      Swal.fire('Success!', data.message || 'Return approved', 'success')
+        .then(() => location.reload());
+    } else {
+      Swal.fire('Error!', data.message || 'Update failed', 'error');
+    }
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire('Error!', 'Server error', 'error');
+  }
+}
+</script>

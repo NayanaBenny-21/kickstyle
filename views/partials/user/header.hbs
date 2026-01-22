@@ -1,5 +1,5 @@
-<header>
-  {{#if isUserLoggedIn}}
+
+
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
       <a class="navbar-brand" href="/">
@@ -17,7 +17,7 @@
           <li class="nav-item"><a class="nav-link" href="#">Sports</a></li>
         </ul>
 
-        <!-- SEARCH FORM -->
+
         <form id="searchForm" class="d-flex me-3" style="width: 300px;" onsubmit="return handleSearch(event)">
           <div class="input-group">
             <span class="input-group-text" id="basic-addon1">
@@ -27,12 +27,23 @@
           </div>
         </form>
 
-        <!-- Icons -->
         <a href="/wishlist" class="me-3"><i class="bi bi-heart"></i></a>
-        <a href="/cart" class="me-3"><i class="bi bi-cart"></i></a>
+
+<!-- Cart Icon with Updated Badge -->
+<a href="/cart" class="me-3 position-relative">
+  <i class="bi bi-cart"></i>
+
+  <span id="cartCount"
+    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger
+    {{#unless cartCount}}d-none{{/unless}}">
+    {{cartCount}}
+  </span>
+</a>
+
+
         <a href="/profile" class="me-3"><i class="bi bi-person"></i></a>
 
-        <!-- Logout -->
+
         <form action="/auth/logout" method="POST" class="d-inline">
           <button type="submit" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-box-arrow-right"></i> Logout
@@ -41,37 +52,55 @@
       </div>
     </div>
   </nav>
-  {{/if}}
-  {{#if isAdminLoggedIn}}
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-  <div class="container">
-    <!-- Logo -->
-    <a class="navbar-brand" href="/admin/dashboard">
-      <img src="/images/logo.jpg" alt="KickStyle Admin" height="35">
-    </a>
 
-    <!-- Logout button on the right -->
-    <div class="ms-auto">
-      <form action="/adminAuth/logout" method="POST">
-        <button type="submit" class="btn btn-outline-danger btn-sm">
-          <i class="bi bi-box-arrow-right"></i> Logout
-        </button>
-      </form>
-    </div>
-  </div>
-</nav>
-{{/if}}
-
-</header>
 
 <script>
+  // -------------------- Existing Search Code --------------------
   function handleSearch(event) {
     event.preventDefault(); // prevent page reload
     const query = document.getElementById('searchInput').value.trim();
     if(query) {
-      // Redirect to /search?q=yourquery
       window.location.href = `/search?q=${encodeURIComponent(query)}`;
     }
     return false;
   }
+
+/*
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add to Cart button click handler
+    document.querySelectorAll('.addToCartBtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const productId = btn.dataset.productId;
+        if(!productId) return;
+
+        try {
+          const res = await fetch('/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, quantity: 1 })
+          });
+
+          const data = await res.json();
+          if(data.success) {
+            const cartBadge = document.getElementById('cartCount');
+            if(cartBadge) {
+              cartBadge.innerText = data.cartCount;       // Update count
+              cartBadge.classList.remove('d-none');      // Show badge if hidden
+            }
+          }
+        } catch(err) {
+          console.error('Error updating cart:', err);
+        }
+      });
+    });
+    
+  });
+  */
+  
 </script>
+
+<!-- in your main layout (header partial) -->
+<script src="/js/user/updatecart.js"></script>
+
+
+ 

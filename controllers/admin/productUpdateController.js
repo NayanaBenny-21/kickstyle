@@ -80,6 +80,7 @@ const loadEditProduct = async (req, res) => {
 
     const product = await Product.findById(productId).lean();
     if (!product) return res.status(404).send("Product not found");
+product.category_id = product.category_id?.toString();
 
     // Ensure images exist
     product.images = product.images || { main: '', gallery: [] };

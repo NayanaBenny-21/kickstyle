@@ -45,13 +45,13 @@ if(!email) {
         passwordError.textContent ='';
     }
   });
-  confirmInput.addEventListener("input", ()=>{
-    if (confirmInput.value.trim()!= password){
-         confirmError.textContent = "Passwords do not match";
-    } else {
-        confirmError.textContent = "";
-    }
-  });
+confirmInput.addEventListener("input", () => {
+  if (confirmInput.value.trim() !== passwordInput.value.trim()) {
+    confirmError.textContent = "Passwords do not match";
+  } else {
+    confirmError.textContent = "";
+  }
+});
 
   //form submit validation
 

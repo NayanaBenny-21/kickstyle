@@ -22,21 +22,54 @@
       <p class="error" id="emailError"></p>
       </div>
 
-    
-      <div class="form-group mb-3">
-        <label class="form-label">Password <span class="text-danger">*</span></label>
-        <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required
-         pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
-       <p class="error" id="passwordError"></p>
-      </div>
+    <div class="form-group mb-3 position-relative">
+  <label class="form-label">Password <span class="text-danger">*</span></label>
 
-      <div class="form-group mb-3">
-        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-        <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Enter confirm password" required>
-      <p class="error" id="confirmError"></p>
-      </div>
+  <div class="position-relative">
+    <input type="password" name="password"   id="password"   class="form-control pr-5"  placeholder="Enter password"  required  pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters and include at least one letter, one number, and one special character.">
 
-     
+    <button type="button"  id="togglePasswordBtn"  class="btn p-0 position-absolute"  style="top: 50%; right: 12px; transform: translateY(-50%); border: none; background: transparent;">
+      <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+    </button>
+  </div>
+
+  <p class="error text-danger mt-1" id="passwordError"></p>
+</div>
+
+<div class="form-group mb-3">
+  <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+
+  <div class="position-relative">
+    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Enter confirm password" required>
+
+    <button type="button" id="toggleConfirmBtn"
+      class="btn position-absolute"
+      style="top: 50%; right: 15px; transform: translateY(-50%); border: none; background: transparent;">
+      <i class="fa-solid fa-eye" id="toggleConfirmIcon"></i>
+    </button>
+  </div>
+
+  <p class="error" id="confirmError"></p>
+</div>
+<div class="form-group mb-3">
+  <label class="form-label">
+    Referral Code <span class="text-muted">(optional)</span>
+  </label>
+
+  <input
+    type="text"
+    name="referralCode"
+    class="form-control"
+    placeholder="Enter referral code (if any)"
+    value="{{referralCode}}"
+  >
+
+  {{#if referralError}}
+    <p class="text-danger mt-1">{{referralError}}</p>
+  {{/if}}
+</div>
+
+
       <div class="d-flex justify-content-center">
         <button type="submit" class="btn btn-danger w-50">Register</button>
       </div>
@@ -48,3 +81,32 @@
   </div>
 </div>
  <script src="/js/user/signupValidation.js"></script>
+
+ <script>
+      //toggle password
+  document.getElementById('togglePasswordBtn').addEventListener('click', function(){
+        const passwordField = document.getElementById('password');
+        const icon = document.getElementById('togglePasswordIcon');
+        if(passwordField.type === 'password'){
+            passwordField.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        }else{
+            passwordField.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye')
+        }
+    
+  });
+
+  document.getElementById('toggleConfirmBtn').addEventListener('click', function () {
+    const input = document.getElementById('confirmPassword');
+    const icon = document.getElementById('toggleConfirmIcon');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  });
+</script>

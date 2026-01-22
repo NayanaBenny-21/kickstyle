@@ -1,0 +1,242 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+
+    <!-- SIDEBAR -->
+    {{> adminSidebar}}
+
+    <!-- MAIN CONTENT -->
+    <div class="col-md-10">
+      <h3 class="mb-4">Sales Report</h3>
+
+      <!-- FILTERS -->
+      <div class="card p-3 mb-3">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Report Type</label>
+            <select id="reportType" class="form-control">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Start Date</label>
+            <input type="date" id="startDate" class="form-control" disabled>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">End Date</label>
+            <input type="date" id="endDate" class="form-control" disabled>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" onclick="loadReport()">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <!-- SUMMARY CARDS (ONE ROW) -->
+<div class="row g-2 mb-3 flex-nowrap overflow-auto" style="white-space: nowrap;">
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#fce4ec; min-width: 150px;">
+      <h6>Total Orders</h6>
+      <h4 id="totalOrders">{{summary.count}}</h4>
+    </div>
+  </div>
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#e3f2fd; min-width: 150px;">
+      <h6>Total Sales (Debit)</h6>
+      <h4 id="totalSales">₹{{summary.sales}}</h4>
+    </div>
+  </div>
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#fff3e0; min-width: 150px;">
+      <h6>Platform Fee</h6>
+      <h4 id="totalPlatformFee">₹{{summary.platformFee}}</h4>
+    </div>
+  </div>
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#ede7f6; min-width: 150px;">
+      <h6>Total Discount</h6>
+      <h4 id="totalDiscount">₹{{summary.discount}}</h4>
+    </div>
+  </div>
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#e0f7fa; min-width: 150px;">
+      <h6>Total Delivery</h6>
+      <h4 id="totalDelivery">₹{{summary.delivery}}</h4>
+    </div>
+  </div>
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#e8f5e9; min-width: 150px;">
+      <h6>Total Refunds</h6>
+      <h4 id="totalRefunds">₹{{summary.refunds}}</h4>
+    </div>
+  </div>
+  <div class="col flex-shrink-0">
+    <div class="card shadow-sm text-center p-3" style="background-color:#fffde7; min-width: 150px;">
+      <h6>Net Revenue</h6>
+      <h4 id="netRevenue">₹{{summary.net}}</h4>
+    </div>
+  </div>
+</div>
+
+
+      <!-- DOWNLOAD BUTTONS -->
+      <div class="mb-3">
+        <a id="pdfDownload" class="btn btn-danger me-2">Download PDF</a>
+        <a id="excelDownload" class="btn btn-success">Download Excel</a>
+      </div>
+
+      <!-- ORDERS TABLE -->
+      <div class="card p-3">
+        <h5>Order Details</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped" id="ordersTable">
+            <thead class="table-dark">
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Order Date</th>
+                <th>Final Price</th>
+                <th>Delivery Charge</th>
+                <th>Platform Fee</th>
+                <th>Coupon Discount</th>
+                <th>Refund</th>
+                <th>Net Amount</th>
+                <th>Payment Method</th>
+                <th>Payment Status</th>
+                <th>Order Status</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              {{#if orders.length}}
+                {{#each orders}}
+                  <tr>
+                    <td>{{this.orderId}}</td>
+                    <td>{{this.user_id.name}}</td>
+                    <td>{{formatDate this.orderDate}}</td>
+                    <td>₹{{this.totalPrice}}</td>
+                    <td>₹{{this.deliveryCharge}}</td>
+                    <td>₹{{this.platformFee}}</td>
+                    <td>₹{{this.couponDiscount}}</td>
+                    <td>₹{{this.refund}}</td>
+                    <td>₹{{this.netAmount}}</td>
+                    <td>{{this.paymentMethod}}</td>
+                    <td>{{this.paymentStatus}}</td>
+                    <td>{{this.orderStatus}}</td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr>
+                  <td colspan="12" class="text-center">No orders found</td>
+                </tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const reportType = document.getElementById("reportType");
+const startDate = document.getElementById("startDate");
+const endDate = document.getElementById("endDate");
+const ordersTableBody = document.getElementById("ordersTableBody");
+
+const pdfDownload = document.getElementById("pdfDownload");
+const excelDownload = document.getElementById("excelDownload");
+pdfDownload.href = "/admin/sales-report/pdf";
+excelDownload.href = "/admin/sales-report/excel";
+
+// Enable custom dates
+reportType.addEventListener("change", () => {
+  const isCustom = reportType.value === "custom";
+  startDate.disabled = !isCustom;
+  endDate.disabled = !isCustom;
+  if (!isCustom) { startDate.value = ""; endDate.value = ""; }
+});
+
+// Status badges
+const getPaymentBadge = (status) => {
+  switch(status){
+    case "success": return '<span class="badge bg-success">Success</span>';
+    case "pending": return '<span class="badge bg-warning text-dark">Pending</span>';
+    case "failed": return '<span class="badge bg-danger">Failed</span>';
+    default: return `<span class="badge bg-secondary">${status}</span>`;
+  }
+};
+
+const getOrderBadge = (status) => {
+  switch(status){
+    case "pending": return '<span class="badge bg-warning text-dark">Pending</span>';
+    case "confirmed": return '<span class="badge bg-primary">Confirmed</span>';
+    case "shipped": return '<span class="badge bg-info text-dark">Shipped</span>';
+    case "in-transit": return '<span class="badge bg-info text-dark">In Transit</span>';
+    case "delivered": return '<span class="badge bg-success">Delivered</span>';
+    case "cancelled": return '<span class="badge bg-danger">Cancelled</span>';
+    case "return_requested": return '<span class="badge bg-warning text-dark">Return Requested</span>';
+    case "returned": return '<span class="badge bg-secondary">Returned</span>';
+    case "payment_failed": return '<span class="badge bg-danger">Payment Failed</span>';
+    default: return `<span class="badge bg-secondary">${status}</span>`;
+  }
+};
+
+// Load report via AJAX
+async function loadReport(){
+  try {
+    const query = new URLSearchParams({
+      range: reportType.value,
+      startDate: startDate.value,
+      endDate: endDate.value
+    }).toString();
+
+    const res = await fetch(`/admin/sales-report?${query}`, { headers: { "Accept": "application/json" }});
+    const data = await res.json();
+
+    // Update summary cards including delivery
+    document.getElementById("totalOrders").innerText = data.summary.count;
+    document.getElementById("totalSales").innerText = `₹${data.summary.sales.toFixed(2)}`;
+    document.getElementById("totalPlatformFee").innerText = `₹${data.summary.platformFee.toFixed(2)}`;
+    document.getElementById("totalDiscount").innerText = `₹${data.summary.discount.toFixed(2)}`;
+    document.getElementById("totalDelivery").innerText = `₹${data.summary.delivery.toFixed(2)}`;
+    document.getElementById("totalRefunds").innerText = `₹${data.summary.refunds.toFixed(2)}`;
+    document.getElementById("netRevenue").innerText = `₹${data.summary.net.toFixed(2)}`;
+
+    pdfDownload.href = `/admin/sales-report/pdf?${query}`;
+    excelDownload.href = `/admin/sales-report/excel?${query}`;
+
+    // Update table
+    ordersTableBody.innerHTML = "";
+    if (!data.orders.length) {
+      ordersTableBody.innerHTML = `<tr><td colspan="12" class="text-center">No orders found</td></tr>`;
+    } else {
+      data.orders.forEach(o => {
+        ordersTableBody.innerHTML += `
+          <tr>
+            <td>${o.orderId}</td>
+            <td>${o.user_id?.name || "Unknown"}</td>
+            <td>${new Date(o.orderDate).toLocaleDateString("en-IN")}</td>
+            <td>₹${(o.totalPrice || 0).toFixed(2)}</td>
+            <td>₹${(o.deliveryCharge || 0).toFixed(2)}</td>
+            <td>₹${(o.platformFee || 0).toFixed(2)}</td>
+            <td>₹${(o.couponDiscount || 0).toFixed(2)}</td>
+            <td>₹${(o.refund || 0).toFixed(2)}</td>
+            <td>₹${(o.netAmount || 0).toFixed(2)}</td>
+            <td>${o.paymentMethod || "N/A"}</td>
+            <td>${getPaymentBadge(o.paymentStatus)}</td>
+            <td>${getOrderBadge(o.orderStatus)}</td>
+          </tr>
+        `;
+      });
+    }
+  } catch(err) {
+    console.error(err);
+    alert("Failed to load report");
+  }
+}
+</script>

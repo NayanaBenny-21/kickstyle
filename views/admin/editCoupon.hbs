@@ -1,0 +1,178 @@
+<link rel="stylesheet" href="/css/style1.css">
+
+<div class="container-fluid">
+  <div class="row">
+    {{> adminSidebar}}
+
+    <div class="col-md-9 ms-auto p-4">
+      <div class="card shadow-sm border-0 rounded-4 p-4">
+
+        <h4 class="mb-4 fw-bold text-danger">Edit Coupon</h4>
+
+        <!-- Global error -->
+        {{#if errors.global}}
+        <div class="alert alert-danger">{{errors.global}}</div>
+        {{/if}}
+
+        <form action="/admin/coupon/edit/{{coupon._id}}" method="POST">
+
+          <div class="row g-3">
+
+            <!-- Coupon Name -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Coupon Name</label>
+              {{#if errors.name}}
+              <div class="text-danger small mb-1">{{errors.name}}</div>
+              {{/if}}
+              <input type="text" name="name" class="form-control {{#if errors.name}}is-invalid{{/if}}"
+                value="{{coupon.couponName}}" required>
+            </div>
+
+            <!-- Coupon Code -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Coupon Code</label>
+              {{#if errors.couponCode}}
+              <div class="text-danger small mb-1">{{errors.couponCode}}</div>
+              {{/if}}
+              <input type="text" name="couponCode" class="form-control {{#if errors.couponCode}}is-invalid{{/if}}"
+                value="{{coupon.couponCode}}" required>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              {{#if errors.description}}
+              <div class="text-danger small mb-1">{{errors.description}}</div>
+              {{/if}}
+              <textarea name="description" class="form-control {{#if errors.description}}is-invalid{{/if}}"
+                rows="2">{{coupon.description}}</textarea>
+            </div>
+
+            <!-- TERMS & CONDITIONS -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                Terms & Conditions
+              </label>
+
+              <button type="button" id="add-term" class="btn btn-sm btn-outline-danger ms-2">
+                + Add
+              </button>
+
+              <!-- INLINE ERROR (JS controlled) -->
+{{#if errors.terms}}
+  <div class="text-danger small mt-1">{{errors.terms}}</div>
+{{/if}}
+              <div id="terms-container" class="mt-2">
+                {{#each coupon.terms}}
+                <div class="mb-2 d-flex">
+                  <input type="text" name="termsAndConditions[]" class="form-control me-2" value="{{this}}">
+                  <button type="button" class="btn btn-outline-danger remove-term" title="Remove">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                {{/each}}
+              </div>
+            </div>
+
+            <!-- Discount Type -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Discount Type</label>
+              {{#if errors.discountType}}
+              <div class="text-danger small mb-1">{{errors.discountType}}</div>
+              {{/if}}
+              <select name="discountType" class="form-select {{#if errors.discountType}}is-invalid{{/if}}">
+                <option value="percentage" {{#ifEquals coupon.discountType "percentage" }}selected{{/ifEquals}}>
+                  Percentage
+                </option>
+                <option value="flat" {{#ifEquals coupon.discountType "flat" }}selected{{/ifEquals}}>
+                  Flat
+                </option>
+              </select>
+            </div>
+
+            <!-- Discount Value -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Discount Value</label>
+              {{#if errors.discountValue}}
+              <div class="text-danger small mb-1">{{errors.discountValue}}</div>
+              {{/if}}
+              <input type="number" name="discountValue"
+                class="form-control {{#if errors.discountValue}}is-invalid{{/if}}" value="{{coupon.discountValue}}"
+                min="0" required>
+            </div>
+
+            <!-- Min Order -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Minimum Order (₹)</label>
+              {{#if errors.minOrder}}
+              <div class="text-danger small mb-1">{{errors.minOrder}}</div>
+              {{/if}}
+              <input type="number" name="minOrder" class="form-control {{#if errors.minOrder}}is-invalid{{/if}}"
+                value="{{coupon.minOrderAmount}}" min="0">
+            </div>
+
+            <!-- Max Discount -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Maximum Discount (₹)</label>
+              {{#if errors.maxDiscount}}
+              <div class="text-danger small mb-1">{{errors.maxDiscount}}</div>
+              {{/if}}
+              <input type="number" name="maxDiscount" class="form-control {{#if errors.maxDiscount}}is-invalid{{/if}}"
+                value="{{coupon.maxDiscountAmount}}" min="0">
+            </div>
+
+            <!-- Usage Limits -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Total Limit</label>
+              <input type="number" name="limit" class="form-control" value="{{coupon.usageLimit}}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Per User Limit</label>
+              <input type="number" name="perUserLimit" class="form-control" value="{{coupon.perUserLimit}}">
+            </div>
+
+            <!-- Dates -->
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Start Date</label>
+              <input type="date" name="startDate" class="form-control" value="{{coupon.startDate}}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Expiry Date</label>
+              <input type="date" name="expiryDate" class="form-control" value="{{coupon.expiryDate}}">
+            </div>
+
+            <!-- Status -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">Status</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="statusToggle" name="isActive" value="true" {{#if
+                  coupon.isActive}}checked{{/if}}>
+                <label class="form-check-label" for="statusToggle">
+                  <span id="statusLabel">
+                    {{#if coupon.isActive}}Active{{else}}Blocked{{/if}}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="text-end mt-4">
+              <a href="/admin/coupon-management" class="btn btn-outline-secondary px-4">
+                Cancel
+              </a>
+              <button type="submit" class="btn btn-danger px-4">
+                Update
+              </button>
+            </div>
+
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/admin/editCoupon.js"></script>

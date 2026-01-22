@@ -3,7 +3,7 @@ document.addEventListener('click', async(e) => {
       const addressId = e.target.dataset.id;
 
       Swal.fire({
-        title: "Are you sure?",
+        title: "Delete",
         text: "This address will be permanently deleted.",
         icon: "warning",
         showCancelButton: true,

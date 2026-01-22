@@ -1,0 +1,186 @@
+<body data-selected-address="{{selectedAddress._id}}">
+
+  <div class="container mt-5 mb-5" id="paymentPage">
+
+    <div class="row g-4">
+      <!-- Payment Methods Section -->
+      <div class="col-md-7">
+        <h4 class="fw-bold mb-3">Select Payment Method</h4>
+
+        <form id="paymentForm" class="bg-white p-4 rounded-4 shadow-sm">
+
+          <!-- Razorpay -->
+          <div class="form-check border rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between">
+            <div>
+              <input class="form-check-input me-2" type="radio" name="paymentMethod" id="razorpay" value="razorpay" checked>
+            <img src="/images/payment/RazorPay.jpg" alt="Razorpay" height="23" for="razorpay">
+            </div>
+          </div>
+
+          <!-- Google Pay -->
+          <div class="form-check border rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between">
+            <div>
+              <input class="form-check-input me-2" type="radio" name="paymentMethod" id="gpay" value="gpay">
+            <img src="/images/payment/GooglePay.png" alt="Google Pay" height="23" for="gpay">
+            </div>
+          </div>
+
+          <!-- Credit / Debit Card -->
+          <div class="form-check border rounded-3 p-3 mb-3">
+            <input class="form-check-input me-2" type="radio" name="paymentMethod" id="card" value="card">
+            <label class="form-check-label fw-semibold" for="card">Credit / Debit Card</label>
+          </div>
+
+          <!-- Wallet -->
+          <div class="form-check border rounded-3 p-3 mb-3">
+            <input class="form-check-input me-2" type="radio" name="paymentMethod" id="wallet" value="wallet">
+            <label class="form-check-label fw-semibold" for="wallet">Wallet</label>
+          </div>
+
+          <!-- Cash on Delivery -->
+          <div class="form-check border rounded-3 p-3 mb-2">
+            <input class="form-check-input me-2" type="radio" name="paymentMethod" id="cod" value="cod">
+            <label class="form-check-label fw-semibold" for="cod">Cash on Delivery</label>
+          </div>
+
+      
+          <input type="hidden" id="shippingAddressId" value="{{selectedAddress._id}}">
+          <input type="hidden" id="dbOrderId">
+        </form>
+      </div>
+
+      <!-- Order Summary Section -->
+      <div class="col-md-5 mt-4" style=" margin-top: 4.5rem !important;
+}">
+        <!-- Coupon Field-->
+        <div class="card p-4 mb-3 shadow-sm border-0 rounded-4">
+          <h6 class="fw-bold mb-3 text-center">Apply Coupon</h6>
+          <div class="input-group">
+            <input type="text" class="form-control rounded-start" placeholder="Enter coupon code" id="couponCode">
+<button class="btn btn-dark px-4" type="button" id="openCouponModal">
+  <i class="fa-solid fa-ticket me-1"></i> Apply
+</button>
+
+          </div>
+          <div id="couponError" class="mt-2 small text-danger d-none"></div>
+
+
+<div id="couponActionRow"
+     class="d-flex align-items-center justify-content-between mt-2 d-none"
+     style="font-size: 15px;margin-right: 26px;">
+
+  <div id="couponWarning" class="text-warning  d-none" >
+    ⚠ Returns unavailable if this coupon is applied
+  </div>
+
+  <button type="button"
+          id="removeCouponBtn"
+          class="btn text-danger p-0 small fw-semibold">
+    Remove
+  </button>
+
+</div>
+
+
+        </div>
+
+        <!-- Order Summary Card -->
+        <div class="card border-0 shadow-sm p-4 rounded-4">
+          <h5 class="fw-bold mb-3 text-center">Order Summary</h5>
+
+          <!-- Cart Items -->
+        {{#each cart.items}}
+<div class="d-flex justify-content-between small mb-2 cart-item"
+     data-price="{{this.price}}"
+     data-quantity="{{this.quantity}}">
+  <span>{{this.productName}} x {{this.quantity}}</span>
+  <span>₹{{multiply this.price this.quantity}}</span>
+</div>
+{{/each}}
+
+
+          <div class="d-flex justify-content-between small mb-2">
+            <span>Delivery Charges</span>
+            <span>{{#if deliveryCharge}}₹{{deliveryCharge}}{{else}}Free{{/if}}</span>
+          </div>
+
+          <div class="d-flex justify-content-between small mb-3">
+            <span>Platform Fee</span>
+            <span>{{#if platformFee}}₹{{platformFee}}{{else}}Free{{/if}}</span>
+          </div>
+
+          <!-- Coupon Row -->
+          <div id="couponRow" class="d-flex justify-content-between small mb-2 text-success d-none">
+            <span>Coupon Discount</span>
+            <span id="discountValue">-₹0</span>
+          </div>
+
+          <hr>
+          <div class="d-flex justify-content-between fw-bold">
+            <span>Total</span>
+<span id="finalTotal"
+      data-base="{{subtotal}}"
+      data-delivery="{{deliveryCharge}}"
+      data-platform="{{platformFee}}">
+  ₹{{finalTotal}}
+</span>
+
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold" id="orderBtn">
+              Place Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+  window.userEmail = "{{user.email}}";
+  window.userPhone = "{{user.phone}}";
+  window.userName = "{{user.name}}";
+  window.razorpayKey = "{{razorpayKey}}";
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+{{!-- <script>
+  //window.razorpayKey = "{{razorpayKey}}";
+</script> --}}
+
+<script src="/js/user/checkOut.js"></script>
+
+
+
+<!-- COUPON MODAL -->
+<div class="modal fade" id="couponModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4">
+
+      <div class="modal-header">
+        <h5 class="fw-bold">
+          <i class="fa-solid fa-ticket  me-2" style="color: #ff9100"></i>Available Coupons
+        </h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row g-3" id="couponModalList"></div>
+        <p id="noCouponsText" class="text-center text-muted d-none">
+          No coupons available
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  window.couponSession = {{{json coupon}}} || {};
+</script>
+
+
+</body>

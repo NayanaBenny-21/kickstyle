@@ -4,6 +4,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const { profile } = require('console');
 
 // Upload directory
 const uploadDir = path.join(__dirname, "../public/images/products");
@@ -11,7 +12,10 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-
+const profileDir = path.join(__dirname, "../public/images/profile");
+if(!fs.existsSync(profileDir)) {
+  fs.mkdirSync(profileDir, {recursive :true});
+}
 const storage = multer.memoryStorage();
 
 const upload = multer({
@@ -87,5 +91,8 @@ const processProductImages = async (req, res, next) => {
     res.status(500).send('Image processing failed');
   }
 };
+
+
+
 
 module.exports = { upload, processProductImages };

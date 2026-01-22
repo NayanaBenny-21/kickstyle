@@ -134,7 +134,7 @@ const loginVerifyOtp = async (req, res) => {
       return res.render('admin/confirmWithOTP', { error: "Admin not found" });
     }
 
-    const payload = { id: admin._id, email: admin.email };
+    const payload = { id: admin._id, email: admin.email, role: 'admin' };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     res.cookie('admin_jwt', token, {
@@ -209,7 +209,7 @@ const googleSuccess = async (req, res) => {
 console.log("Session adminId:", req.session.adminId);
 console.log("Cookies:", req.cookies);
 
-    res.redirect("/admin/dashboard");
+    res.redirect("/admin/product-management");
   } catch (err) {
     console.error("Google admin login error:", err);
     res.redirect("/adminAuth/login");

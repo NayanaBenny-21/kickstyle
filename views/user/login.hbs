@@ -5,10 +5,16 @@
   <div class="card-body">
     <h3 class="text-center text-danger mb-3">Welcome Back</h3>
 
-<a href="/auth/google" class="btn btn-google w-100 mb-3">
+{{!-- <a href="/auth/google" class="btn btn-google w-100 mb-3">
+  <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2"> 
+  Login with Google
+</a> --}}
+<a href="/auth/google" class="btn btn-google w-100 mb-3" id="google-login-btn">
   <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2"> 
   Login with Google
 </a>
+
+
 
 
     <p class="text-center text-muted">or</p>
@@ -20,10 +26,13 @@
         <label class="form-label">Email <span class="text-danger">*</span></label>
         <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required value="{{email}}">
       </div>
-   <div class="form-group mb-3">
+   <div class="form-group mb-3 position-relative">
         <label class="form-label">Password <span class="text-danger">*</span></label>
         <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required
          pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
+  <button  type="button"  id="togglePasswordBtn" class="btn position-absolute "style="top: 72%; right: 10px; transform: translateY(-50%);border: none; background: transparent;">
+    <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+ </button>
       </div>
       <button type="submit" class="btn btn-danger w-100">Login</button>
     </form>
@@ -55,4 +64,75 @@
 </script>
 
 {{/if}}
+
+<script>
+      //toggle password
+  document.getElementById('togglePasswordBtn').addEventListener('click', function(){
+        const passwordField = document.getElementById('password');
+        const icon = document.getElementById('togglePasswordIcon');
+        if(passwordField.type === 'password'){
+            passwordField.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        }else{
+            passwordField.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye')
+        }
+    
+  }) 
+</script>
+<script>
+window.history.pushState(null, "", window.location.href);
+window.addEventListener("popstate", function () {
+  window.location.href = "/";
+});
+</script>
+
+<script>
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted || window.performance && window.performance.navigation.type === 2) {
+      // Page is loaded from bfcache (back/forward)
+      window.location.href = '/'; // Redirect to home
+    }
+  });
+</script>
+
+
+
+
+<script>
+document.getElementById('google-login-btn').addEventListener('click', function(e) {
+  e.preventDefault(); // Prevent full page redirect
+
+  const width = 600;
+  const height = 700;
+  const left = (screen.width - width) / 2;
+  const top = (screen.height - height) / 2;
+
+  const popup = window.open('/auth/google', 'popup', 'width=600,height=700,top=100,left=100,scrollbars=no,resizable=no');
+
+
+  window.addEventListener('message', function handleMessage(e) {
+    if (e.origin !== window.location.origin) return;
+
+    const data = e.data;
+    if (data.type === 'google-auth-success') {
+      window.location.replace('/');  // Redirect main window to home
+      window.removeEventListener('message', handleMessage);
+    } else if (data.type === 'google-auth-failure') {
+      Swal.fire({
+        icon: 'error',
+        text: 'Google login failed!',
+        toast: true,
+        position: "bottom",
+        timer: 3000,
+        showConfirmButton: false,
+      });
+      window.removeEventListener('message', handleMessage);
+    }
+  });
+});
+</script>
+
+
+
 

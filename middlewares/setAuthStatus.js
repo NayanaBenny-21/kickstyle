@@ -1,36 +1,27 @@
+// setAuthStatus.js
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const setAuthStatus = (req, res, next) => {
-  // ---------------- User Status ----------------
-  const userToken = req.cookies.user_jwt;
+  // Skip if admin route
+  if (req.originalUrl.startsWith('/admin')) return next();
+
+  // Default
   res.locals.isUserLoggedIn = false;
   res.locals.user = null;
 
+  const userToken = req.cookies.user_jwt;
   if (userToken) {
     try {
-      const decodedUser = jwt.verify(userToken, process.env.JWT_SECRET);
-      res.locals.isUserLoggedIn = true;
-      res.locals.user = decodedUser;
+      const decoded = jwt.verify(userToken, process.env.JWT_SECRET);
+      if (decoded?.role === 'user') {
+        res.locals.isUserLoggedIn = true;
+        res.locals.user = decoded;
+      }
     } catch (err) {
+      res.clearCookie('user_jwt'); // Remove invalid token
       res.locals.isUserLoggedIn = false;
       res.locals.user = null;
-    }
-  }
-
-  // ---------------- Admin Status ----------------
-  const adminToken = req.cookies.admin_jwt;
-  res.locals.isAdminLoggedIn = false;
-  res.locals.admin = null;
-
-  if (adminToken) {
-    try {
-      const decodedAdmin = jwt.verify(adminToken, process.env.JWT_SECRET);
-      res.locals.isAdminLoggedIn = true;
-      res.locals.admin = decodedAdmin;
-    } catch (err) {
-      res.locals.isAdminLoggedIn = false;
-      res.locals.admin = null;
     }
   }
 

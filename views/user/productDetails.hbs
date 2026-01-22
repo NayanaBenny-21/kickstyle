@@ -17,6 +17,17 @@
          id="mainProductImage"
          style="width:100%; height:100%; object-fit:contain; transition: transform 0.2s ease;">
   </div>
+<button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" 
+        data-product-id="{{product._id}}">
+{{#if (includes wishlistProductIds product._id)}}
+    <i class="fa-solid fa-heart red-heart"></i>
+{{else}}
+    <i class="fa-regular fa-heart"></i>
+{{/if}}
+
+</button>
+
+
 </div>
 
 <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
@@ -62,25 +73,32 @@
 
 
 
-<!-- Sizes -->
-<div class="sizes mb-3" id="sizesContainer">
-  <p class="fw-semibold mb-1">Size:</p>
-  <div class="d-flex flex-wrap gap-2" id="sizeButtons">
-    {{#each product.sizesWithStock}}
-      <button 
-        class="btn btn-sm size-btn 
-        {{#if (eq this.stock 0)}}{{else}}btn-outline-dark{{/if}}"
-        data-size="{{this.size}}"  
-        data-color="{{this.color}}"
-        data-variant-id="{{this.variantId}}"
-        {{#if (eq this.stock 0)}}disabled{{/if}}>
-        {{this.size}}
-      </button>
-    {{/each}}
-  </div>
-</div>
+      <!-- Sizes -->
+      <div class="sizes mb-3" id="sizesContainer">
+        <p class="fw-semibold mb-1">Size:</p>
+        <div class="d-flex flex-wrap gap-2" id="sizeButtons">
+          {{#each product.sizesWithStock}}
+            <div class="text-center">
+              <button 
+                class="btn btn-sm size-btn {{#if (eq this.stock 0)}}{{else}}btn-outline-dark{{/if}}"
+                data-size="{{this.size}}" data-color="{{this.color}}"
+                data-variant-id="{{this.variantId}}" data-stock="{{this.stock}}"
+                {{#if (eq this.stock 0)}}disabled{{/if}}>
+                {{this.size}}
+              </button>
 
-
+              {{#if (gt this.stock 0)}}
+                {{#if (lte this.stock 2)}}
+                  <!-- Stock message, hidden by default -->
+                  <p class="text-danger small mb-1 stock-msg" data-color="{{this.color}}" style="display: none;">
+                    {{this.stock}} left
+                  </p>
+                {{/if}}
+              {{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </div>
 
   <!-- Quantity -->
   <div class="mb-3">
@@ -92,11 +110,14 @@
   {{#if (eq product.stock 0)}}
     <p class="text-danger fw-semibold">✖ Out of Stock</p>
   {{/if}}
+  <input type="hidden" id="productId" value="{{product._id}}">
+<input type="hidden" id="variantId" value="{{selectedVariant._id}}">
+
 
   <!-- Buttons -->
 <div class="d-flex flex-column gap-2 mt-4 ">
   <button class="addToCartBtn btn btn-light px-4 py-2 w-50 text-black fw-bold" data-product-id="{{product._id}}" {{#unless (gt product.stock 0)}}disabled{{/unless}}>ADD TO CART</button>
-  <button class="btn btn-warning px-4 py-2 w-50 text-white fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>BUY IT NOW</button>
+  <button id="buyNowBtn" class="btn btn-warning px-4 py-2 w-50 text-white fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>BUY IT NOW</button>
 </div>
   <small class="d-block mt-2 text-muted fw-semibold">Customer Safe Checkout</small>
 </div>
@@ -127,11 +148,16 @@
 <div class="row g-4">
   {{#each similarProducts}}
   <div class="col-6 col-md-4 col-lg-3 mb-4">
-    <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
-      <div class="card h-100 shadow-sm">
+          <div class="card h-100 shadow-sm">
         <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" data-product-id="{{this._id}}">
-          <i class="fa-regular fa-heart"></i>
+{{#if (includes wishlistProductIds product._id)}}
+    <i class="fa-solid fa-heart red-heart"></i>
+{{else}}
+    <i class="fa-regular fa-heart"></i>
+{{/if}}
         </button>
+    <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
+
 
         <img src="{{this.images.main}}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{this.product_name}}">
         <div class="card-body p-2">
@@ -177,3 +203,4 @@
 </script>
 
 <script src="/js/user/productDetails.js"></script>
+<script src="/js/user/wishlist.js"></script>

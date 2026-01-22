@@ -10,19 +10,23 @@
       <div class="row g-2">
         <div class="col-md-6">
           <label class="form-label small">Name*</label>
+                 <p id="nameError" class="text-danger"></p>
           <input type="text" name="name" id="name" class="form-control form-control-sm" required>
         </div>
         <div class="col-md-6">
           <label class="form-label small">Mobile Number*</label>
+               <p id="mobileError" class="text-danger"></p>
           <input type="text" name="mobile" id="mobile" class="form-control form-control-sm" required>
         </div>
 
         <div class="col-md-4">
           <label class="form-label small">Pin code*</label>
+       <p id="pincodeError" class="text-danger"></p>
           <input type="text" name="pincode" id="pincode" class="form-control form-control-sm" required>
         </div>
         <div class="col-md-8">
           <label class="form-label small">Locality*</label>
+                 <p id="mobileError" class="text-danger"></p>
           <input type="text" name="locality" id="locality" class="form-control form-control-sm" required>
         </div>
 
@@ -65,7 +69,7 @@
 
         <div class="col-12 mt-3 d-flex gap-2">
           <button type="submit" id="saveAddressBtn" class="btn btn-danger px-4">Save</button>
-          <a href="/address" class="btn btn-light border">Cancel</a>
+<a href="{{#if (eq from 'checkout')}}/cart/select-address{{else}}/address{{/if}}" class="btn btn-light border">Cancel</a>
         </div>
       </div>
     </form>

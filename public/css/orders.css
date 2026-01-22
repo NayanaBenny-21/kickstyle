@@ -1,0 +1,15 @@
+.rating-stars .star {
+  font-size: 22px;
+  cursor: pointer;
+  color: #ccc; /* default grey */
+  transition: color 0.2s;
+}
+
+.rating-stars .star:hover,
+.rating-stars .star.hover {
+  color: gold; /* hover color */
+}
+
+.rating-stars .star.selected {
+  color: gold !important; /* selected rating */
+}

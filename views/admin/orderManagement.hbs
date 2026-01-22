@@ -1,0 +1,195 @@
+<div class="container-fluid">
+  <div class="row">
+
+    {{> adminSidebar}}
+
+    <div class="col-10 p-4">
+
+      <!-- ===================== ORDER HEADER ===================== -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Order Details</h4>
+        <a href="/admin/order-management" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Back
+        </a>
+      </div>
+
+      <div class="card p-3 mb-4">
+        <p><strong>Order ID:</strong> {{order._id}}</p>
+        <p><strong>Customer:</strong> {{order.customerName}}</p>
+       <p><strong>Total Amount:</strong> ₹{{order.totalPrice}}</p>
+      </div>
+
+      <!-- ===================== PRODUCTS TABLE ===================== -->
+      <h5 class="mb-3">Ordered Products</h5>
+{{!-- Show banner if all items requested return --}}
+{{#if fullOrderReturnRequested}}
+<div class="alert alert-warning fw-bold text-center">
+  🛑 User requested return of ENTIRE ORDER
+</div>
+<div class="d-flex gap-2 justify-content-center mb-3">
+  <button 
+    class="btn btn-success full-order-return-btn" 
+    data-order-id="{{order._id}}" 
+    data-action="approve">
+    ✅ Approve Return
+  </button>
+  <button 
+    class="btn btn-danger full-order-return-btn" 
+    data-order-id="{{order._id}}" 
+    data-action="decline">
+    ❌ Decline Return
+  </button>
+</div>
+
+{{/if}}
+
+      <table class="table table-bordered text-center">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {{#each orderedItems}}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <img src="{{this.productImage}}" 
+                     style="width:50px; height:50px; border-radius:6px; margin-right:10px;">
+                {{this.productName}}
+              </div>
+            </td>
+
+            <td>{{this.quantity}}</td>
+
+            <td>₹{{this.price}}</td>
+
+            <td>
+              <span class="status-badge {{this.statusClass}}">
+                {{this.status}}
+              </span>
+            </td>
+
+<td>
+  {{#if ../fullOrderReturnRequested}}
+    <span class="badge bg-warning text-dark">Return Requested</span>
+  {{else}}
+    <a href="/admin/order-management/orderedItem-details/{{this._id}}" 
+       class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-eye"></i> View
+    </a>
+  {{/if}}
+</td>
+
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+    </div>
+    
+  </div>
+
+  <style>
+    .status-badge.pending {
+      color: #ff8f00;
+      background: #fff5e6;
+      border: 1px solid #ff8f00;
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+    .status-badge.confirmed {
+      color: #0d6efd;
+      background: #e7f0ff;
+      border: 1px solid #0d6efd;
+    }
+    .status-badge.shipped {
+      color: #6f42c1;
+      background: #f2e8ff;
+      border: 1px solid #6f42c1;
+    }
+    .status-badge.in-transit {
+      color: #20c997;
+      background: #e6fffa;
+      border: 1px solid #20c997;
+    }
+    .status-badge.delivered {
+      color: #2e7d32;
+      background: #e6f4ea;
+      border: 1px solid #2e7d32;
+    }
+    .status-badge.cancelled {
+      color: #c62828;
+      background: #fde6e6;
+      border: 1px solid #c62828;
+    }
+    .status-badge.returned {
+      color: #6c757d;
+      background: #f2f2f2;
+      border: 1px solid #6c757d;
+    }
+        .status-badge.return_requested {
+      color: #ff8f00;          
+      background: #fff5e6;      
+      border: 1px solid #ff8f00;
+    }
+
+  </style>
+
+</div>
+<script>
+document.querySelectorAll('.full-order-return-btn').forEach(button => {
+  button.addEventListener('click', async () => {
+    const orderId = button.dataset.orderId;
+    const action = button.dataset.action;
+
+    const confirmResult = await Swal.fire({
+      title: action === 'approve' ? 'Approve Return?' : 'Decline Return?',
+      text: `Are you sure you want to ${action} the full order return request?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: action === 'approve' ? 'Approve' : 'Decline',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    let restock = false;
+
+    if (action === 'approve') {
+      const stockResult = await Swal.fire({
+        title: 'Stock Handling',
+        text: 'Should all returned items be added back to stock?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      });
+      restock = stockResult.isConfirmed;
+    }
+
+    try {
+      const res = await fetch(`/admin/orders/full-order-return/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, restock })
+      });
+
+      const data = await res.json();
+      if (data.success) Swal.fire('Success!', data.message, 'success').then(() => location.reload());
+      else Swal.fire('Error!', data.message, 'error');
+
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error!', 'Server error', 'error');
+    }
+  });
+});
+
+
+</script>

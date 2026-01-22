@@ -1,0 +1,197 @@
+<link rel="stylesheet" href="/css/profile.css">
+<link rel="stylesheet" href="/css/orders.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mt-5 mb-5" style="max-width:1250px;">
+
+  <!-- MAIN ROW -->
+  <div class="row g-4">
+
+    <!-- ================= LEFT SECTION (PRODUCT DETAILS) ================= -->
+    <div class="col-lg-8 col-md-12">
+
+      {{!-- PAYMENT FAILED ALERT --}}
+      {{#if (eq order.status "payment_failed")}}
+      <div class="alert alert-danger mb-3" style="font-size:14px;">
+        <strong>Payment Failed</strong><br>
+        Your payment was unsuccessful. This order was not placed.
+      </div>
+      {{/if}}
+
+      <div class="card p-3 shadow-sm mb-3 product-item">
+
+        <div class="d-flex justify-content-between align-items-start">
+
+          <!-- PRODUCT INFO -->
+          <div class="product-info flex-grow-1 pe-4 mb-3">
+            <h6 class="mb-1" style="font-size:20px;">{{item.productName}}</h6>
+            <p class="text-muted small mb-1">Size: {{item.size}}, Color: {{item.color}}</p>
+            <p class="text-muted small mb-1">Qty: {{item.quantity}}</p>
+            <p class="fw-bold text-danger mb-2" style="font-size:16px;">
+              ₹{{item.finalPrice}}
+            </p>
+
+            <!-- Timeline -->
+            <div id="timeline-{{item._id}}"></div>
+          </div>
+
+          <!-- PRODUCT IMAGE -->
+          <div class="product-image text-center flex-shrink-0">
+            <img src="{{item.image}}" class="img-fluid rounded"
+                 style="max-height:70px; width:auto;">
+          </div>
+
+        </div>
+
+        <hr class="my-2">
+
+        <!-- ================= ITEM STATUS ================= -->
+        <div class="card p-2 shadow-sm mt-3" id="status-card-{{item._id}}">
+          <h6 class="fw-bold mb-3">Ordered Item Status</h6>
+
+          {{#if (eq order.status "payment_failed")}}
+            <p class="fw-bold mb-0" style="font-size:13px;">
+              Status: <span class="text-danger">Payment Failed</span>
+            </p>
+          {{else}}
+
+            {{#if (eq item.status "delivered")}}
+              <p class="fw-bold mb-0" style="font-size:13px;">
+                Status: <span class="text-success">Delivered</span>
+                {{#if item.formattedDeliveryDate}}
+                  | Delivered on: {{item.formattedDeliveryDate}}
+                {{/if}}
+              </p>
+
+            {{else if (eq item.status "cancelled")}}
+              <p class="fw-bold mb-0" style="font-size:13px;">
+                Status: <span class="text-danger">Cancelled</span>
+              </p>
+
+            {{else if (eq item.status "returned")}}
+              <p class="fw-bold mb-0" style="font-size:13px;">
+                Status: <span class="text-warning">Returned</span>
+                {{#if item.returnReason}}
+                  | Reason: {{item.returnReason}}
+                {{/if}}
+              </p>
+
+            {{else}}
+              <p class="fw-bold mb-0" style="font-size:13px;">
+                Status: <span class="text-info">Order Processing</span>
+                | Expected Delivery: {{order.expectedDeliveryDate}}
+              </p>
+            {{/if}}
+
+          {{/if}}
+        </div>
+
+       <!-- ================= CANCEL BUTTON ================= -->
+   {{#if item.canCancel}}
+<div class="card p-2 shadow-sm text-center" style="margin-top:20px;" id="cancel-btn-{{item._id}}">
+  <a href="/orders/cancel-item/{{item._id}}" 
+     class="cancel-item-btn btn btn-outline-danger fw-bold btn-sm" 
+     style="width:120px; display:inline-block; margin:0 auto;">
+    Cancel order
+  </a>
+</div>
+{{/if}}
+
+
+        <!-- ================= RETURN BUTTON ================= -->
+        {{#if (and (eq item.status "delivered") (neq order.status "payment_failed"))}}
+        <div class="card p-2 shadow-sm text-center mt-3" id="return-btn-{{item._id}}">
+          <button class="return-item-btn btn btn-outline-primary fw-bold btn-sm"
+                  style="width:120px;"
+                  data-id="{{item._id}}">
+            Return order
+          </button>
+        </div>
+        {{/if}}
+
+    <div class="mb-3" style="margin-top: 1%;">
+      <hr style="margin:5px 0;">
+      <p style="font-size:12px;color:#7b7878;margin-top:9px">Order ID: {{order.orderId}}</p>
+    </div>
+
+
+      </div>
+    </div>
+
+    <!-- ================= RIGHT SECTION (SUMMARY) ================= -->
+    <div class="col-lg-4 col-md-12">
+
+      <!-- DELIVERY DETAILS -->
+      <div class="card p-3 shadow-sm mb-3">
+        <h6 class="fw-bold mb-2">Delivery Details</h6>
+        <p class="mb-1 small">{{address.fullName}}</p>
+        <p class="mb-1 small">{{address.addressLine}}</p>
+        <p class="mb-1 small">Pin code: {{address.pincode}}</p>
+        <p class="mb-1 small">{{address.state}}</p>
+      </div>
+
+      <!-- ORDER SUMMARY -->
+      <div class="card p-3 shadow-sm">
+        <h6 class="fw-bold mb-2">Order Summary</h6>
+
+        <div class="d-flex justify-content-between small mb-1">
+          <span>Selling Price</span><span>₹{{summary.sellingPrice}}</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-1">
+          <span>Delivery</span><span>₹{{summary.shipping}}</span>
+        </div>
+        <div class="d-flex justify-content-between small mb-1">
+          <span>Platform Fee</span><span>₹{{summary.marketplaceFee}}</span>
+        </div>
+
+        {{#if order.couponDiscount}}
+        <div class="d-flex justify-content-between text-success small mb-1">
+          <span>Coupon Discount</span>
+          <span>-₹{{order.couponDiscount}}</span>
+        </div>
+        {{/if}}
+
+        <hr class="my-2">
+
+        <div class="d-flex justify-content-between fw-bold">
+          <span>Total Item Price</span>
+          <span>₹{{summary.grandTotal}}</span>
+        </div>
+
+        <hr class="my-2">
+
+        <p class="small d-flex justify-content-between mb-1">
+          <span>Payment Method</span>
+          <span>{{order.paymentMethod}}</span>
+        </p>
+
+        <hr class="my-2">
+
+        <div class="d-flex justify-content-between fw-bold">
+          <span>Total Order Price</span>
+          <span>₹{{order.totalPrice}}</span>
+        </div>
+
+        <hr class="my-2">
+
+<a href="/orders/{{order.orderId}}/invoice"
+   class="btn btn-outline-primary btn-sm w-100">
+  Download Invoice
+</a>
+
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <a href="/orders" class="btn btn-outline-secondary fw-bold mt-4">
+    ← Back to My Orders
+  </a>
+
+</div>
+
+<script src="/js/user/orderDetailspage.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

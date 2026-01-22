@@ -8,28 +8,34 @@
 
 <form id="editAddressForm" autocomplete="off" data-id="{{address._id}}" data-from="{{query.from}}">
       <input type="hidden" id="addressId" value="{{address._id}}">
+  <input type="hidden" name="from" id="fromPage" value="{{query.from}}">
 
       <div class="row g-2">
         <div class="col-md-6">
           <label class="form-label small">Name*</label>
+                    <p id="nameError" class="text-danger"></p>
+
           <input type="text" name="name" id="name" class="form-control form-control-sm" 
                  value="{{address.name}}" required>
         </div>
 
         <div class="col-md-6">
           <label class="form-label small">Mobile Number*</label>
+             <p id="mobileError" class="text-danger"></p>
           <input type="text" name="mobile" id="mobile" class="form-control form-control-sm"
-                 value="{{address.mobile}}" required>
+                 value="{{address.mobile}}" required >
         </div>
 
         <div class="col-md-4">
           <label class="form-label small">Pin code*</label>
+          <p id="pincodeError" class="text-danger"></p>
           <input type="text" name="pincode" id="pincode" class="form-control form-control-sm"
                  value="{{address.pincode}}" required>
         </div>
 
         <div class="col-md-8">
           <label class="form-label small">Locality*</label>
+                   <p id="localityError" class="text-danger"></p>
           <input type="text" name="locality" id="locality" class="form-control form-control-sm"
                  value="{{address.locality}}" required>
         </div>
@@ -80,7 +86,7 @@
 
         <div class="col-12 mt-3 d-flex gap-2">
           <button type="submit" id="updateAddressBtn" class="btn btn-danger px-4">Update</button>
-          <a href="/address" class="btn btn-light border">Cancel</a>
+<a href="{{#if (eq from 'checkout')}}/cart/select-address{{else}}/address{{/if}}" class="btn btn-light border">Cancel</a>
         </div>
       </div>
     </form>

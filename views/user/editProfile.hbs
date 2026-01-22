@@ -1,5 +1,7 @@
 <link rel="stylesheet" href="/css/profile.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <div class="container my-5" style="margin-left: 0px;">
   <div class="row">
@@ -8,13 +10,14 @@
     <div class="col-md-3">
       <div class="p-3 shadow-sm bg-white rounded">
         <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 text-center">My Account</h5>
+
         <div class="list-group border-0 text-center">
-          <a href="/user/profile" class="list-group-item border-0 list-group-item-action active">Profile</a>
-          <a href="/user/orders" class="list-group-item border-0 list-group-item-action">Orders</a>
-          <a href="/user/address" class="list-group-item border-0 list-group-item-action">Your Address</a>
-          <a href="/user/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
-          <a href="/user/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
-          <a href="/user/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
+          <a href="/profile" class="list-group-item border-0 list-group-item-action active">Profile</a>
+          <a href="/orders" class="list-group-item border-0 list-group-item-action">Orders</a>
+          <a href="/address" class="list-group-item border-0 list-group-item-action">Your Address</a>
+          <a href="/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
+          <a href="/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
+          <a href="/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
           <a href="/logout" class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
         </div>
       </div>
@@ -23,70 +26,134 @@
     <!-- Edit Profile Form -->
     <div class="col-md-9 d-flex justify-content-center">
       <div class="card border-0 shadow-sm p-4 w-100" style="max-width: 500px;">
+
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="fw-bold text-dark mb-0">Edit Profile</h5>
         </div>
 
-        <form id="editProfileForm" action="/profile/edit" method="POST" enctype="multipart/form-data">
+        <form id="editProfileForm" action="/profile/edit-profile" method="POST" enctype="multipart/form-data">
 
-          <!-- Profile Image -->
-       <div class="text-center mb-4">
-  <!-- Profile Preview -->
-  <img id="profilePreview" class="rounded-circle border" width="100" height="100"
-       style="object-fit: cover; display: {{#if user.image}}block{{else}}none{{/if}};"
-       src="{{#if user.image}}{{user.image}}{{/if}}" alt="Profile Image">
+          <!-- PROFILE IMAGE -->
+          <div class="text-center mb-4">
+            {{#if user.image}}
+              <img 
+               id="profilePreview"
+                src="{{user.image}}" 
+                alt="Profile Image" 
+                class="rounded-circle border" 
+                width="120" 
+                height="120"
+                style="object-fit: cover;"
+              >
+            {{else}}
+              <div 
+              id="profileIcon"  
+                class="rounded-circle border d-flex align-items-center justify-content-center bg-light"
+                style="width: 120px; height: 120px;"
+              >
+                <i class="fa fa-user fa-3x text-secondary"></i>
+              </div>
+            {{/if}}
+          </div>
 
-  <!-- Default Icon (only shows if no image) -->
-  <div id="profileIcon" class="rounded-circle border d-flex align-items-center justify-content-center bg-light"
-       style="width: 100px; height: 100px; display: {{#if user.image}}none{{else}}flex{{/if}};">
-    <i class="fa fa-user fa-2x text-secondary"></i>
-  </div>
+          <!-- File Input -->
+          <div class="mt-2 text-center">
+            <input 
+              id="profileImageInput"
+              type="file"
+              class="form-control form-control-sm mx-auto"
+              style="max-width: 250px;"
+              {{!-- name="image" --}}
+              accept="image/*"
+            >
+          </div>
 
-  <!-- File input -->
-  <div class="mt-2">
-    <label class="form-label text-muted small fw-semibold">Change Profile Picture</label>
-    <input id="profileImageInput" type="file" class="form-control form-control-sm mx-auto" style="max-width: 250px;" name="image"
-           accept="image/*">
-  </div>
-</div>
+          <!-- Remove Image Button -->
+          <div class="text-center">
+            <button 
+              type="button"
+              id="removeImageBtn"
+              class="btn btn-outline-danger btn-sm mt-2"
+              {{#unless user.image}}style="display:none;"{{/unless}}
+            >
+              Remove Image
+            </button>
+          </div>
 
-
+          <!-- Hidden Inputs -->
+          <input type="hidden" id="removeImage" name="removeImage" value="false">
+          <input type="hidden" id="croppedImageInput" name="croppedImage">
+    <!-- Name -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Full Name</label>
+      <p class="error text-danger mt-1" id="fullNameError"></p>
+      <input type="text" name="name" class="form-control" value="{{user.name}}"     required
+    id="name" >
+    </div>
           <!-- Gender -->
-          <div class="mb-3 text-center">
+          <div class="mb-3 text-center mt-4">
             <label class="form-label fw-semibold text-muted text-start w-100">Gender</label>
+
             <div class="d-flex justify-content-center gap-4 mt-1">
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="gender" id="male" value="Male" {{#if (eq
-                  user.gender "Male" )}}checked{{/if}}>
+                <input 
+                  class="form-check-input" 
+                  type="radio" 
+                  name="gender" 
+                  id="male" 
+                  value="Male"
+                  {{#if (eq user.gender "Male")}}checked{{/if}}
+                >
                 <label class="form-check-label" for="male">Male</label>
               </div>
+
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="gender" id="female" value="Female" {{#if (eq
-                  user.gender "Female" )}}checked{{/if}}>
+                <input 
+                  class="form-check-input" 
+                  type="radio" 
+                  name="gender" 
+                  id="female" 
+                  value="Female"
+                  {{#if (eq user.gender "Female")}}checked{{/if}}
+                >
                 <label class="form-check-label" for="female">Female</label>
               </div>
             </div>
           </div>
 
-          <!-- Email -->
-          <div class="mb-3 text-center ">
-            <label class="form-label fw-semibold text-muted text-start w-100">Email ID</label>
-            <div class="d-flex justify-content-center align-items-center">
-              <input type="email" id="email" class="form-control form-control-sm mx-auto me-2" style="max-width: 300px;"
-                name="email" value="{{user.email}}" >
-              <button type="button" class="btn btn-outline-danger btn-sm" id="changeEmailBtn">Change</button>
-            </div>
-          </div>
+<!-- Email -->
+<div class="mb-3 text-center">
+  <label class="form-label fw-semibold text-muted text-start w-100">Email ID</label>
+
+  <div class="d-flex justify-content-center align-items-center">
+    <input  type="email" id="email"class="form-control form-control-sm mx-auto me-2" 
+    style="max-width: 300px;" name="email" value="{{user.email}}"required>
+    
+    <button  type="button"class="btn btn-outline-danger btn-sm" id="changeEmailBtn"> Change
+    </button>
+    <input type="hidden" id="verifiedEmail" name="verifiedEmail">
+  </div>
+</div>
+
 
           <!-- Phone -->
-          <div class="mb-3 text-center ">
+          <div class="mb-3 text-center">
             <label class="form-label fw-semibold text-muted text-start w-100">Mobile Number</label>
+
             <div class="d-flex justify-content-center align-items-center">
-            <span class="px-2 bg-light border rounded-start">+91</span>
-              <input type="text" id="phone" class="form-control form-control-sm border-start-0 rounded-end" style="max-width: 300px;margin-left: 20px!important;"
-                name="phone" value="{{user.phoneWithoutCode}}" >
-                          <p class="error" id="phoneError"></p>
+              <span class="px-2 bg-light border rounded-start">+91</span>
+
+              <input 
+                type="text"
+                id="phone"
+                class="form-control form-control-sm border-start-0 rounded-end"
+                style="max-width: 300px; margin-left: 20px!important;"
+                name="phone"
+                value="{{phoneWithoutCode}}"
+              >
             </div>
+
+            <p class="error" id="phoneError"></p>
           </div>
 
           <!-- Buttons -->
@@ -94,29 +161,74 @@
             <button type="submit" class="btn btn-danger px-4">Save</button>
             <a href="/profile" class="btn btn-outline-secondary px-4 ms-2">Cancel</a>
           </div>
+
         </form>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Email OTP Modal -->
+<!-- Cropper Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content p-3">
+      <h5 class="fw-bold mb-2">Crop Image</h5>
+
+      <img id="cropImage" style="max-width: 100%;">
+
+      <div class="d-flex justify-content-end mt-3 gap-2">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" id="cropBtn">Crop & Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE EMAIL MODAL -->
+<!-- EMAIL OTP MODAL -->
 <div class="modal fade" id="emailOtpModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3">
-      <h6 class="fw-bold mb-3">Verify New Email</h6>
-      <input type="email" id="newEmail" class="form-control mb-2" placeholder="Enter new email">
-             <p class="error" id="emailError"></p>
-      <div class="d-flex mb-2">
-        <button class="btn btn-danger w-50 me-2" id="sendEmailOtpBtn">Send OTP</button>
-        <button class="btn btn-secondary w-50" id="resendEmailOtpBtn" disabled>Resend (60s)</button>
+    <div class="modal-content p-4">
+
+      <!-- Heading -->
+      <h4 class="fw-bold text-center mb-3">Verify Email</h4>
+
+      <!-- New Email Input -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">New Email</label>
+             <div id="emailError" class="text-danger"></div>
+        <input type="email" id="newEmail" class="form-control" placeholder="Enter new email">
+   
       </div>
-      <input type="text" id="emailOtp" class="form-control mb-2" placeholder="Enter OTP">
-      <button class="btn btn-success w-100" id="verifyEmailOtpBtn">Verify</button>
+
+      <!-- Send OTP Button -->
+      <div class="d-flex justify-content-end mb-4">
+        <button class="btn btn-danger px-4" id="sendEmailOtpBtn">Send OTP</button>
+      </div>
+
+      <!-- OTP Input -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Enter OTP</label>
+        <input type="text" id="emailOtp" class="form-control" placeholder="Enter OTP">
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="d-flex justify-content-between align-items-center mt-4">
+
+        <button class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger px-2" id="resendEmailOtpBtn">Resend</button>
+          <button class="btn btn-danger px-4" id="verifyEmailOtpBtn">Verify</button>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </div>
 
 
-
 <script src="/js/user/profile.js"></script>
+<script src="/js/user/edit_profile.js"></script>
+<script src="/js/user/profile_crop.js"></script>

@@ -1,0 +1,148 @@
+<link rel="stylesheet" href="/css/profile.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container my-5" style="margin-left: 0px;">
+  <div class="row">
+
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <div class="p-3 shadow-sm bg-white rounded">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 text-center">My Account</h5>
+        <div class="list-group border-0 text-center">
+          <a href="/profile" class="list-group-item border-0 list-group-item-action ">Profile</a>
+          <a href="/orders" class="list-group-item border-0 list-group-item-action active">Orders</a>
+          <a href="/address" class="list-group-item border-0 list-group-item-action">Your Address</a>
+          <a href="/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
+          <a href="/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
+          <a href="/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
+          <a href="/logout" class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="col-md-9">
+      <div class="card border-0 shadow-sm p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0">My Orders</h5>
+        </div>
+
+{{#if orders.length}}
+  {{#each orders}}
+    <div class="card mb-4 shadow-sm border-0 order-card" id="order-{{this._id}}" data-order-id="{{this._id}}">
+      <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
+        <span>Order ID: {{this.orderId}} | Status: {{this.orderStatus}}</span>
+
+        {{!-- Cancel entire order button: show only if order is cancellable --}}
+{{#if this.canReturnOrder}}
+  <div class="text-center mb-3">
+    <button type="button" class="btn btn-primary fw-bold return-order-btn" 
+            data-order-id="{{this._id}}" style="width:150px;">
+      Return Order
+    </button>
+  </div>
+{{else if this.canCancelOrder}}
+  <div class="text-center mb-3">
+    <button type="button" class="btn btn-danger fw-bold cancel-order-btn" 
+            data-order-id="{{this._id}}" style="width:150px;">
+      Cancel Order
+    </button>
+  </div>
+{{/if}}
+
+      </div>
+
+      <div class="card-body">
+        {{#each this.items}}
+          <div class="row g-0 align-items-center mb-3 item-row" id="item-{{this._id}}" data-item-id="{{this._id}}" data-order-id="{{../_id}}">
+            
+            <!-- Product Image -->
+            <img src="{{#if this.image}}{{this.image}}{{else}}/images/default.png{{/if}}" 
+              alt="{{this.productName}}" class="img-fluid rounded"
+              style="max-height:130px; width:200px">
+
+            <!-- Product Details -->
+            <div class="col-md-6">
+              <div class="card-body">
+                <h6 class="fw-bold mb-1">{{this.productName}}</h6>
+                <p class="mb-1 text-muted">Color: {{this.color}}</p>
+                <p class="mb-1 text-muted">Size: {{this.size}}</p>
+                <p class="fw-bold text-danger">₹{{this.finalPrice}}</p>
+              </div>
+            </div>
+
+            <!-- Item Status -->
+            <div class="col-md-3 text-end pe-3 item-status">
+
+              {{#if (eq this.status "cancelled")}}
+                <p class="text-danger fw-bold mb-1">
+                  <i class="fa-solid fa-ban"></i> Cancelled
+                </p>
+              {{else if (eq this.status "delivered")}}
+                <p class="text-success fw-bold mb-0" style="font-size: 15px;">
+                  <i class="fa-solid fa-circle-check"></i> Delivered on {{formatDate this.deliveryDate}}
+                </p>
+              {{else if (eq this.status "returned")}}
+                <p class="text-primary fw-bold mb-1">
+                  <i class="fa-solid fa-rotate-left"></i> Returned
+                </p>
+              {{else}}
+                <p class="text-warning fw-bold mb-1">
+                  <i class="fa-solid fa-truck"></i> {{this.status}}
+                </p>
+                <p class="small text-muted mb-1">
+                  Expected by {{../expectedDeliveryDate}}
+                </p>
+
+                <!-- Cancel individual item -->
+                {{#if this.canCancelOrder}}
+                <button 
+                  class="btn btn-outline-danger btn-sm cancel-item-btn" 
+                  data-item-id="{{this._id}}">
+                  Cancel
+                </button>
+                {{/if}}
+              {{/if}}
+
+            </div>
+          </div>
+        {{/each}}
+
+        {{!-- Retry Payment Button: only once per order --}}
+        {{#if this.hasFailedPayment}}
+    <div class="d-flex justify-content-end mt-6">
+      <button 
+        class="btn btn-warning btn-sm retry-payment-btn"
+        data-order-id="{{this._id}}"
+        data-shipping-id="{{this.shippingAddressId}}">
+        Retry Payment
+      </button>
+    </div>
+  {{/if}}
+
+      </div>
+    </div>
+  {{/each}}
+{{else}}
+  <div class="text-center p-4">
+    <p class="text-muted mb-0">No orders yet.</p>
+  </div>
+{{/if}}
+
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/js/user/orders.js"></script>
+
+<style>
+  .order-card {
+  cursor: pointer;
+}
+
+</style>

@@ -8,7 +8,7 @@
     {{#if error}}
     <p class="text-danger">{{error}}</p>
     {{/if}}
-    <form action="/auth/login/verify-otp" method="POST">
+    <form id="loginOtpForm">
     <input type="hidden" name="email" value="{{email}}">
     <div class="d-flex justify-content-center mb-3 gap-2">
       <input type="text" inputmode="numeric" maxlength="1" name="otp1" class="otp-input" required>
@@ -16,8 +16,9 @@
       <input type="text" inputmode="numeric" maxlength="1" name="otp3" class="otp-input" required>
       <input type="text" inputmode="numeric" maxlength="1" name="otp4" class="otp-input" required>
     </div>
+<p id="otpError" class="text-danger mb-2" style="display:none;"></p>
 
-        <p class="text-danger small mb-2" id="timer" >1:00 left</p>
+        <p class="text-danger small mb-2" id="timer" style = "display: none;"></p>
         <button id="resend" type="button" style="display:none">Resend OTP</button>
 
         <div class="d-flex justify-content-center mb-3">
@@ -60,6 +61,6 @@
             }).then(() => {
                 window.location.href = '/';
             });
-        }, 100); // tiny delay to ensure Swal is ready
+        }, 100); 
     }
 </script>

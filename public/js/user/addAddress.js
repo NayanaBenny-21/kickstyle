@@ -107,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
       landmark: form.landmark.value.trim(),
       addressType: form.addressType.value,
       isDefault: form.isDefault.checked,
+        from: form.from.value  
     };
 
     try {
@@ -125,13 +126,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.success) {
         await Swal.fire("Success", "Address saved successfully!", "success");
-        window.location.href = "/address";
+window.location.href = data.redirectUrl;
       } else {
         Swal.fire("Error", data.message || "Failed to save address", "error");
       }
     } catch (err) {
-      console.log("catch block addAddress");
-      window.location.href = "/address";
+  console.error("Add address failed:", err);
+  Swal.fire("Error", "Something went wrong", "Oops");
     }
   });
 });

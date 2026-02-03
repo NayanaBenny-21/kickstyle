@@ -6,6 +6,7 @@ const forgotPasswordController = require('../../controllers/user/forgotPasswordC
 const loggedInUserRedirect = require('../../middlewares/loggedInUserRedirect');
 const noCache = require('../../middlewares/noCache');
 
+
 //SIGNUP 
 router.get('/signup', loggedInUserRedirect, authController.loadSignup);
 router.post('/signup', loggedInUserRedirect, authController.signupUser);

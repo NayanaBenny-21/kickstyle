@@ -27,7 +27,7 @@ const loadCheckOutPage = async (req, res) => {
   .populate('items.variantId', 'color size image sku')
   .lean();
 
-// 🔴 CHECK PRODUCT AVAILABILITY
+//  CHECK PRODUCT AVAILABILITY
 const unavailableItem = cart.items.find(
   item => !item.productId || item.productId.isActive === false
 );
@@ -195,12 +195,40 @@ const placeOrder = async (req, res) => {
 
     const cart = await Cart.findOne({ user_id: userId }).populate('items.productId items.variantId').lean();
     if (!cart || !cart.items.length) return res.status(400).json({ success: false, message: 'Cart is empty' });
+    // ---------- Check availability ----------
+    const removedItems = [];
+    const availableItems = [];
+
+    for (const item of cart.items) {
+      if (!item.productId || !item.productId.isActive) {
+        removedItems.push(item.productId?.product_name || "Unknown Product");
+      } else {
+        availableItems.push(item);
+      }
+    }
+
+    if (removedItems.length) {
+      // Update cart in DB to remove unavailable items
+      await Cart.findByIdAndUpdate(cart._id, { items: availableItems });
+
+      return res.json({
+        success: false,
+        removedItems,
+        message: "Some products were unavailable and removed from your cart"
+      });
+    }
 
     const subtotal = cart.items.reduce((a, item) => a + item.productId.final_price * item.quantity, 0);
     const deliveryCharge = subtotal >= 1000 ? 0 : 40;
     const platformFee = 7;
     const couponDiscount = req.session.coupon?.discount || 0;
     const totalPrice = subtotal + deliveryCharge + platformFee - couponDiscount;
+        if (paymentMethod === 'cod' && totalPrice > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: "COD is not allowed for orders above ₹1000."
+      });
+    }
 
     const generateOrderId = () => "ORD-" + Math.random().toString(36).substring(2, 10).toUpperCase();
     let orderId = generateOrderId();
@@ -413,11 +441,41 @@ order_id: order._id
 };
 
 
+const checkAvailability = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.session.userId;
+    if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const cart = await Cart.findOne({ user_id: userId }).populate('items.productId').lean();
+    if (!cart || !cart.items.length)
+      return res.json({ success: true, removedItems: [] });
+
+    const removedItems = [];
+    const availableItems = [];
+
+    for (const item of cart.items) {
+      if (!item.productId || item.productId.isActive === false) {
+        removedItems.push(item.productId?.product_name || "Unknown Product");
+      } else {
+        availableItems.push(item);
+      }
+    }
+
+    if (removedItems.length > 0) {
+      await Cart.findByIdAndUpdate(cart._id, { items: availableItems });
+      return res.json({ success: false, removedItems });
+    }
+
+    return res.json({ success: true, removedItems: [] });
+  } catch (err) {
+    console.error("Check availability error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 
 
 
 
 
-
-module.exports = { loadCheckOutPage, getAvailableCoupons , applyCoupon, placeOrder,checkWalletBalance ,createWalletOrder  };
+module.exports = { loadCheckOutPage, getAvailableCoupons , applyCoupon, placeOrder,checkWalletBalance ,createWalletOrder, checkAvailability };

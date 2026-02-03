@@ -56,6 +56,15 @@ item.formattedDeliveryDate = item.deliveryDate
 
 
           const orderedItems = await OrderedItem.find({ orderId }).lean();
+
+    const activeItems = orderedItems.filter(it =>
+      !["cancelled", "returned"].includes(it.status)
+    );
+
+    // SINGLE PRODUCT ORDER FLAG FOR RETURN/CANCEL
+    const isSingleItemOrder = activeItems.length === 1;
+    item.isSingleItemOrder = isSingleItemOrder;
+
           const hasInvoiceEligibleItems = orderedItems.some(item =>
          !["cancelled", "returned"].includes(item.status)
           );
@@ -70,7 +79,6 @@ item.formattedDeliveryDate = item.deliveryDate
     const platformFee = 7;
     const couponDiscount = order.couponApplied ? order.couponApplied.discount : 0;
     const grandTotal = subTotal;
-    
 
     // ================= BUTTON VISIBILITY LOGIC =================
 
@@ -79,10 +87,16 @@ item.canCancel =
   order.orderStatus !== "payment_failed" &&
   !["delivered", "cancelled", "returned", "return_requested"].includes(item.status);
 
-// Return button should be visible ONLY if:
-item.canReturn =
+const returnDeclined = order.returnDeclined === true || order.returnDeclined === "true";
+
+item.canReturn = Boolean(
   order.orderStatus !== "payment_failed" &&
-  item.status === "delivered";
+  item.status === "delivered" &&
+  !returnDeclined
+);
+
+console.log("item.canReturn:", item.canReturn, "returnDeclined:", returnDeclined);
+
 
     // Render single item page
     res.render("user/orderDetailsPage", {
@@ -90,7 +104,8 @@ item.canReturn =
       address: order.shippingAddressId,
       summary: { sellingPrice, shipping: delivery, marketplaceFee: platformFee, grandTotal },
       item,
-      canDownloadInvoice: hasInvoiceEligibleItems
+      canDownloadInvoice: hasInvoiceEligibleItems,
+      returnDeclined
     });
 
   } catch (err) {
@@ -398,18 +413,18 @@ const returnOrderedItem = async (req, res) => {
       });
     }
 
-    // 🔍 Find full order
+    //  Find full order
     const order = await Order.findById(item.orderId);
     if (!order) {
       return res.json({ success: false, message: "Order not found" });
     }
 
-    // 1️⃣ Coupon validation
+    // Coupon validation
     if (order.couponApplied) {
       const coupon = await Coupon.findById(order.couponApplied);
 
       if (coupon?.minOrderAmount) {
-        // Other active items (exclude THIS item)
+      
         const otherItems = await OrderedItem.find({
           orderId: order._id,
           _id: { $ne: item._id },
@@ -430,7 +445,7 @@ const returnOrderedItem = async (req, res) => {
       }
     }
 
-    // 2️⃣ If coupon still valid → mark item return_requested
+    //If coupon still valid → mark item return_requested
     item.status = "return_requested";
     item.returnReason = reason;
     item.returnRequestedAt = new Date();

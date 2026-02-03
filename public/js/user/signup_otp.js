@@ -1,15 +1,15 @@
 console.log("OTP JS loaded");
-console.log("otpSent:", window.otpSent, "remainingTime:", window.remainingTime);
 
 document.addEventListener("DOMContentLoaded", () => {
+
     const resend = document.getElementById("resend");
     const timerElement = document.getElementById("timer");
 
     let countdown = parseInt(window.remainingTime) || 0;
     let interval;
- let toastShown = false;
+
     function showToast(icon, text) {
-        Swal.fire({
+        return Swal.fire({
             icon,
             text,
             toast: true,
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
             timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds} left`;
             countdown--;
 
-            if (countdown < 0) {
+            if (countdown <= 0) {
                 clearInterval(interval);
                 timerElement.textContent = "";
                 timerElement.style.display = "none";
@@ -52,13 +52,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    if (window.otpSent && countdown > 0 && !toastShown) {
-        showToast("success", "OTP sent to your email");
-        toastShown = true;
-        startTimer();
+    // ✅ SHOW OTP SENT ONLY FIRST TIME (PAGE SESSION)
+    if (window.otpSent && countdown > 0) {
+
+        if (!sessionStorage.getItem("otpInitialToast")) {
+            showToast("success", "OTP sent to your email");
+            sessionStorage.setItem("otpInitialToast", "true");
+        }
+
+        startTimer(); // ✅ ALWAYS START TIMER
     }
 
-    //Resend OTP
+    // 🔁 RESEND OTP
     resend.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
@@ -66,39 +71,44 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
 
             if (data.success) {
-                showToast("success", "OTP sent to your email");
-                countdown = 60; 
+                showToast("success", "OTP resent successfully");
+
+                countdown = 60; // reset timer
                 startTimer();
-            } else {
-                showToast("error", data.message || "Failed to resend OTP").then(() => {
-                    if (data.redirect) window.location.href = data.redirect;
-                });
+            } 
+            else {
+                showToast("error", data.message || "Failed to resend OTP");
+                if (data.redirect) window.location.href = data.redirect;
             }
+
         } catch (err) {
             console.error(err);
-            showToast("error", "Something went wrong. Try again.");
+            showToast("error", "Something went wrong");
         }
     });
 
-
-    // OTP input autofocus
+    // OTP INPUT AUTO MOVE
     const inputs = document.querySelectorAll(".otp-input");
+
     inputs.forEach(input => {
         input.addEventListener("input", e => {
             if (isNaN(e.target.value)) e.target.value = '';
-            else if (e.target.nextElementSibling && e.target.value !== '')input.nextElementSibling.focus();
+            else if (e.target.nextElementSibling && e.target.value !== '')
+                e.target.nextElementSibling.focus();
         });
+
         input.addEventListener("keydown", e => {
-             if (e.key === "Backspace" || e.key === "Delete") {
-                   e.preventDefault(); 
-            if (input.value !== '') {
-               input.value = '';
-            } else if (input.previousElementSibling) {
-                input.previousElementSibling.value = '';
-                input.previousElementSibling.focus();
+            if (e.key === "Backspace" || e.key === "Delete") {
+                e.preventDefault();
+                if (input.value !== '') {
+                    input.value = '';
+                } 
+                else if (input.previousElementSibling) {
+                    input.previousElementSibling.value = '';
+                    input.previousElementSibling.focus();
+                }
             }
-            
-        }
         });
     });
+
 });

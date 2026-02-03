@@ -121,9 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (newQty < 1) return;
       if (newQty > maxAllowed) newQty = maxAllowed;
 
-      qtyInput.value = newQty;
-      incBtn.disabled = newQty >= maxAllowed;
-      decBtn.disabled = newQty <= 1;
 
       // Update backend
       try {
@@ -133,6 +130,18 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify({ productId, variantId, quantity: newQty })
         });
         const data = await res.json();
+if (data.unlisted) {
+  return Swal.fire({
+    icon: "error",
+    title: "Product Unavailable",
+    text: data.message || "This product is no longer available",
+    confirmButtonText: "OK",
+    allowOutsideClick: false
+  }).then(() => location.reload());
+}
+      qtyInput.value = newQty;
+      incBtn.disabled = newQty >= maxAllowed;
+      decBtn.disabled = newQty <= 1;
 
         if (data.success) {
           updateTotals();
@@ -209,12 +218,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const res = await fetch("/cart/check-stock-before-order", { method: "POST" });
     const data = await res.json();
 
-    if (!data.success) {
+   // UNLISTED PRODUCTS
+    if (data.unlisted) {
       const msg = data.items
-        .map(i => `${i.productName}:  available stock ${i.available} only`)
-        .join("\n");
-      Swal.fire("Stock Alert", msg, "info");
-      return;
+        .map(i => `${i.productName} is no longer available`)
+        .join("<br>");
+
+      return Swal.fire({
+        icon: "error",
+        title: "Product Unavailable",
+        html: msg,
+        confirmButtonText: "OK",
+        allowOutsideClick: false
+      }).then(() => location.reload());
+    }
+
+    // STOCK ISSUE
+    if (data.stockIssue) {
+      const msg = data.items
+        .map(i => `${i.productName}: only ${i.available} left`)
+        .join("<br>");
+
+      return Swal.fire({
+        icon: "warning",
+        title: "Stock Alert",
+        html: msg
+      });
     }
 
     window.location.href = "/cart/select-address";

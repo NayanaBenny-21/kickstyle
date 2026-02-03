@@ -1,6 +1,24 @@
+<link rel="stylesheet" href="/css/profile.css">
+
 <div class="container-fluid">
   <div class="row">
-    {{> adminSidebar}}
+   <!-- Sidebar -->
+      <div class="col-2 sidebar">
+        <h4 class="mb-4 text-danger">KICKSTYLE</h4>
+  <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2">Dashboard</a>
+  <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
+  <a href="/admin/product-management" class="btn btn-danger w-100 mb-2">Products</a>
+  <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
+  <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
+  <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
+  <a href="/admin/category-management" class="btn btn-danger w-100 mb-2 active">Category</a>
+    <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
+
+  <button class="btn w-100 mt-3" id="signout_btn" style="background-color: rgb(225, 227, 230);">
+    Signout
+  </button>
+      </div>
+
 
     <div class="col-md-10 d-flex justify-content-center align-items-center py-5" style="background-color: #fffbee;">
       <div class="card shadow-sm p-5 w-75" style="border-radius: 15px;">

@@ -6,8 +6,6 @@ const sharp = require("sharp");
 const path = require('path');
 const fs = require('fs');
 
-
-
 //---------------USER PROFILE---------------
 const loadUserProfile = async (req, res) => {
     try {
@@ -112,13 +110,23 @@ if (req.body.croppedImage) {
   }
 };
 
-
-
 //---------------SEND EMAIL OTP------------
 const sendEmailOtp = async (req, res) => {
     try {
+          const userId = req.session.user; 
         const { newEmail } = req.body;
         if (!newEmail) return res.json({ success: false, message: "Email required" });
+            const existingUser = await User.findOne({
+      email: newEmail,
+      _id: { $ne: userId }
+    });
+
+    if (existingUser) {
+      return res.json({
+        success: false,
+        message: "This email is already registered"
+      });
+    }
         const otp = generateOTP();
         req.session.emailOtp = otp;
         req.session.newEmail = newEmail;
@@ -126,7 +134,7 @@ const sendEmailOtp = async (req, res) => {
         await sendOTPEmail(newEmail, otp);
         res.json({ success: true, message: "OTP sent successfully!" });
     } catch (error) {
-        console.error("Error sending email OTP:", err);
+        console.error("Error sending email OTP:", error);
         res.status(500).json({ success: false, message: "Failed to send OTP" });
     }
 };
@@ -168,7 +176,17 @@ const verifyEmailOtp = async (req, res) => {
     if (String(otp) !== String(req.session.emailOtp)) {
       return res.json({ success: false, message: "Invalid OTP" });
     }
+const existingUser = await User.findOne({
+  email: req.session.newEmail,
+  _id: { $ne: userId }
+});
 
+if (existingUser) {
+  return res.json({
+    success: false,
+    message: "Email already exists"
+  });
+}
     // Mark email verified
     req.session.emailVerified = true;
 
@@ -183,8 +201,6 @@ const verifyEmailOtp = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
 
 const loadChangePasswordPage = async (req, res) => {
   try {
@@ -262,7 +278,27 @@ const checkCurrentPassword = async (req, res) => {
   }
 };
 
+const checkEmailExists = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { email } = req.body;
+
+    const existingUser = await User.findOne({
+      email,
+      _id: { $ne: userId } 
+    });
+
+    if (existingUser) {
+      return res.json({ exists: true });
+    }
+
+    res.json({ exists: false });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ exists: false });
+  }
+};
 
 module.exports = { loadUserProfile, loadUserEditProfile, updateUserProfile, sendEmailOtp, verifyEmailOtp, resendEmailOtp,
-    loadChangePasswordPage, updatePassword, checkCurrentPassword
+    loadChangePasswordPage, updatePassword, checkCurrentPassword, checkEmailExists
  };

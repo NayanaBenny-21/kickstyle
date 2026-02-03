@@ -5,7 +5,7 @@ const validator = require('validator');
 const passport = require("../../config/passportAdmin");
 const { generateOTP, sendOTPEmail } = require('../../helpers/otp_email');
 
-//***Load login page***
+//----------Load login page----------
 const loadLoginPage = async (req, res) => {
   try {
     return res.render('admin/login');
@@ -14,6 +14,7 @@ const loadLoginPage = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
 const loginAdmin = async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -50,6 +51,7 @@ await sendOTPEmail(email, otp);
     return res.render('admin/login', { error: "Server error" });
   }
 };
+//----------------load login verification---------------
 const loadLoginVerify = async (req, res) => {
     try {
         const email = req.session.adminEmail;
@@ -73,7 +75,7 @@ const loadLoginVerify = async (req, res) => {
     }
 };
 
-//***Resend otp***
+//-----------------Resend otp------------
 
 const loginResendOtp = async (req, res) => {
     try {
@@ -102,7 +104,7 @@ const loginResendOtp = async (req, res) => {
     }
 
 };
-
+//----------------login verification----------------------
 const loginVerifyOtp = async (req, res) => {
     try {
         const email = req.session.adminEmail;
@@ -144,18 +146,14 @@ const loginVerifyOtp = async (req, res) => {
     });
 
 
-    req.session.adminEmail = null;
-    req.session.adminPendingId = null;
-    req.session.adminLoginOTP = null;
-    req.session.adminLoginOTPExpiresAt = null;
-    req.session.adminLoginOTPSent = false;
+// Clear OTP session
+delete req.session.adminEmail;
+delete req.session.adminPendingId;
+delete req.session.adminLoginOTP;
+delete req.session.adminLoginOTPExpiresAt;
+delete req.session.adminLoginOTPSent;
 
-    return res.render('admin/confirmWithOTP', {
-      email,
-      otpSent: false,
-      remainingTime: 0,
-      otpSuccess: true
-    });
+return res.redirect('/admin/dashboard');
 
   } catch (error) {
     console.error("Admin OTP verify error:", error);
@@ -163,7 +161,7 @@ const loginVerifyOtp = async (req, res) => {
   }
 };
 
-
+//-------------adminLogout------------
 const adminLogout = ((req, res)=>{
     try {
         res.clearCookie('admin_jwt'); 
@@ -209,7 +207,7 @@ const googleSuccess = async (req, res) => {
 console.log("Session adminId:", req.session.adminId);
 console.log("Cookies:", req.cookies);
 
-    res.redirect("/admin/product-management");
+    res.redirect("/admin/dashboard");
   } catch (err) {
     console.error("Google admin login error:", err);
     res.redirect("/adminAuth/login");

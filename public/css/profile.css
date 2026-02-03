@@ -33,3 +33,20 @@
   .card {
     border-radius: 15px;
   }
+
+  .sidebar .btn.active {
+    background-color:  #d7091e ; 
+    color: #f6f6f6  !important;
+}
+.sidebar .btn {
+    color: black !important; 
+    background-color: #d7091e ; 
+}
+.chart-wrapper {
+  height: 260px;
+}
+
+#salesChart {
+  width: 100% !important;
+  height: 100% !important;
+}

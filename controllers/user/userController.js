@@ -1,10 +1,26 @@
 const Product = require('../../models/productSchema');
 const { applyBestOfferToProduct } = require("../../helpers/offerHelper");
+const User = require("../../models/userSchema");
+
 
 const loadHomepage = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.redirect("/auth/login");
+ const user = await User.findById(userId);
+if (!user) {
+  req.logout(function (err) {
+    if (err) {
+      console.error("Logout error:", err);
+    }
+
+    req.session.destroy(() => {
+      return res.redirect("/auth/login");
+    });
+  });
+
+  return;
+}
 
     const featuredProducts = await Product.find({
       isActive: true,

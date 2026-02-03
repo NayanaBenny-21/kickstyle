@@ -65,80 +65,97 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Cancel item confirmation
-// Cancel item confirmation
-const cancelButtons = document.querySelectorAll(".cancel-item-btn");
-console.log("Cancel buttons found:", cancelButtons.length);
 
-cancelButtons.forEach(btn => {
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
+  // ---------------- CANCEL BUTTON ----------------
+  document.querySelectorAll(".cancel-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      e.preventDefault();
 
-    const url = btn.href;
+      const type = btn.dataset.type; // "order" or "item"
+      const id = btn.dataset.id || btn.getAttribute("href").split("/").pop();
 
-    Swal.fire({
-      title: "Cancel Item?",
-      text: "Do you really want to cancel this item?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#9ea3a6ff",
-      confirmButtonText: "Yes",
-      cancelButtonText: "No"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        fetch(url, { method: "POST" })
-          .then(response => response.json())
-          .then(data => {
-            if (!data.success && data.blocked) {
-              Swal.fire("Cannot Cancel", data.message, "error");
-            } else if (data.success) {
-              Swal.fire("Cancelled!", data.message, "success")
-                .then(() => location.reload());
+      Swal.fire({
+        title: type === "order" ? "Cancel entire order?" : "Cancel this item?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes",
+        cancelButtonText: "No"
+      }).then(async result => {
+        if (result.isConfirmed) {
+          const url = type === "order"
+            ? `/orders/cancel-order/${id}`
+            : `/orders/cancel-item/${id}`;
+
+          try {
+            const res = await fetch(url, { method: "POST" });
+            if (!res.ok) throw new Error(await res.text());
+
+            const data = await res.json();
+            if (data.success) {
+              Swal.fire("Cancelled!", data.message, "success").then(() =>
+                location.reload()
+              );
             } else {
               Swal.fire("Error!", data.message || "Could not cancel", "error");
             }
-          })
-          .catch(() => Swal.fire("Error!", "Something went wrong", "error"));
-      }
+          } catch (err) {
+            console.error("Cancel error:", err);
+            Swal.fire("Error!", "Something went wrong", "error");
+          }
+        }
+      });
     });
   });
-});
 
-  document.querySelectorAll('.return-item-btn').forEach(button => {
-  button.addEventListener('click', async () => {
-    const itemId = button.getAttribute('data-id');
+  // ---------------- RETURN BUTTON ----------------
+  document.querySelectorAll(".return-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const isSingleItemOrder = btn.dataset.type === "order"; // true if returning entire order
 
-    // Ask for reason
-    const { value: reason } = await Swal.fire({
-      title: 'Return Item',
-      input: 'textarea',
-      inputLabel: 'Reason for return',
-      inputPlaceholder: 'Type your reason here...',
-      showCancelButton: true,
-      confirmButtonText: 'Submit',
-      cancelButtonText: 'Cancel'
-    });
+      const { value: reason } = await Swal.fire({
+        title: isSingleItemOrder ? "Return entire order?" : "Return item?",
+        input: "textarea",
+        inputLabel: "Reason for return",
+        inputPlaceholder: "Type your reason here...",
+        showCancelButton: true,
+        confirmButtonText: "Submit",
+        cancelButtonText: "Cancel"
+      });
 
-    if (reason) {
+      if (!reason) return;
+
+      const url = isSingleItemOrder
+        ? `/orders/${id}/return-order`
+        : `/orders/return-item/${id}`;
+
       try {
-        const res = await fetch(`/return-order/${itemId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reason })
         });
 
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Return request failed:", text);
+          return Swal.fire("Error!", "Return request failed", "error");
+        }
+
         const data = await res.json();
         if (data.success) {
-          Swal.fire('Success!', data.message, 'success').then(() => location.reload());
+          Swal.fire("Success!", data.message, "success").then(() =>
+            location.reload()
+          );
         } else {
-          Swal.fire('Error!', data.message, 'error');
+          Swal.fire("Error!", data.message, "error");
         }
       } catch (err) {
         console.error(err);
-        Swal.fire('Error!', 'Something went wrong', 'error');
+        Swal.fire("Error!", "Something went wrong", "error");
       }
-    }
+    });
   });
-});
 });

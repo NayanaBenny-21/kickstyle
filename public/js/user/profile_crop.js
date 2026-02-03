@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ========================= ELEMENTS =========================
   const profileImageInput = document.getElementById("profileImageInput");
-  const profilePreview = document.querySelector("img[alt='Profile Image']");
+  const profilePreview = document.getElementById("profilePreview");
   const profileIcon = document.querySelector(".fa-user"); 
   const removeImageBtn = document.getElementById("removeImageBtn");
   const removeInput = document.getElementById("removeImage"); // hidden input to tell backend
@@ -68,8 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Update preview
     profilePreview.src = base64;
-    profilePreview.style.display = "block";
-    if (profileIcon) profileIcon.style.display = "none";
+  profilePreview.classList.remove("d-none");
+  profileIcon.classList.add("d-none");
 
     // Save to hidden input for backend
     croppedInput.value = base64;
@@ -81,18 +81,17 @@ document.addEventListener("DOMContentLoaded", () => {
     cropModal.hide();
   });
 
-  // ========================= REMOVE IMAGE =========================
-removeBtn.addEventListener("click", () => {
-    preview.src = "";
-    preview.style.display = "none";
+ // ========================= REMOVE IMAGE =========================
+  removeImageBtn.addEventListener("click", () => {
+    profilePreview.src = "";
+    profilePreview.classList.add("d-none");
+    profileIcon.classList.remove("d-none");
 
-    icon.style.display = "flex"; // show placeholder
-
-    input.value = "";
+    profileImageInput.value = "";
     croppedInput.value = "";
     removeInput.value = "true";
 
-    removeBtn.style.display = "none";
+    removeImageBtn.style.display = "none";
   });
 
 });

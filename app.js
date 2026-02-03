@@ -10,7 +10,9 @@ const exphbs = require("express-handlebars");
 
 // -------------------- MIDDLEWARES --------------------
 const setAuthStatus = require("./middlewares/setAuthStatus");        // user
-const adminAuthStatus = require("./middlewares/adminAuthStatus");    // admin
+const adminAuthStatus = require("./middlewares/adminAuthStatus"); 
+const checkActiveUser = require('./middlewares/checkActiveUserMiddleware');
+
 
 // -------------------- ROUTERS --------------------
 const userRouter = require("./routes/user/userRouter");
@@ -79,7 +81,7 @@ app.use(setAuthStatus);
 app.use(wishlistMiddleware);
 
 // -------------------- USER ROUTES --------------------
-app.use("/", userRouter);
+app.use("/", checkActiveUser, userRouter);
 app.use("/auth", authRouter);
 app.use("/search", searchRouter);
 

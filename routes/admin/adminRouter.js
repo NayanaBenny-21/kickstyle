@@ -19,6 +19,14 @@ const { getReportData } = require('../../controllers/admin/salesReportController
 const { generateSalesPdf } = require("../../controllers/utils/pdfGenerator");
 const { generateSalesExcel } = require("../../controllers/utils/excelGenerator");
 const {handleFullOrderReturn } = require("../../controllers/admin/order_managementontroller");
+const {loadDashboard,loadLedger} = require("../../controllers/admin/dashboardController");
+
+
+//===========DASHBOARD MANAGEMENT===========
+router.get("/dashboard", loadDashboard);
+
+
+
 
 // ========== USER MANAGEMENT ==========
 router.get('/user-management', userManagementController.loadUserManagement);
@@ -98,6 +106,8 @@ router.get("/sales-report/excel", async (req, res) => {
     res.status(500).send("Failed to download Excel");
   }
 });
+
+router.get("/ledger", loadLedger);
 
 
 

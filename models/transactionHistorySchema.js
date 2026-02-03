@@ -5,7 +5,7 @@ const transactionSchema = new mongoose.Schema({
   title: { type: String, enum: ['Order Payment', 'Refund', 'Failed Payment'], required: true },
   amount: { type: Number, required: true },
   status: { type: String, enum: ['success', 'pending', 'failed'], default: 'success' },
-  payment_method: { type: String, enum: ['upi', 'card', 'netbanking','razorpay'], required: true },
+  payment_method: { type: String, enum: ['upi', 'card', 'netbanking','razorpay', 'cod'], required: true },
   order_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
   refund_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Refund', default: null },
   transactionId: { type: String, unique: true, required: true }

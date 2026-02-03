@@ -69,8 +69,8 @@
      class="d-flex align-items-center justify-content-between mt-2 d-none"
      style="font-size: 15px;margin-right: 26px;">
 
-  <div id="couponWarning" class="text-warning  d-none" >
-    ⚠ Returns unavailable if this coupon is applied
+  <div id="couponWarning" class="text-warning  d-none" style=" width: 80%;   background: #fff5e5;">
+    ⚠  <span style="color: #ff9100;    background: #fff5e5;">Individual returns are unavailable if this coupon is applied or should return entire order</span>
   </div>
 
   <button type="button"
@@ -89,14 +89,15 @@
           <h5 class="fw-bold mb-3 text-center">Order Summary</h5>
 
           <!-- Cart Items -->
-        {{#each cart.items}}
+{{#each cart.items}}
 <div class="d-flex justify-content-between small mb-2 cart-item"
      data-price="{{this.price}}"
      data-quantity="{{this.quantity}}">
-  <span>{{this.productName}} x {{this.quantity}}</span>
+  <span class="productName">{{this.productName}}</span> x {{this.quantity}}
   <span>₹{{multiply this.price this.quantity}}</span>
 </div>
 {{/each}}
+
 
 
           <div class="d-flex justify-content-between small mb-2">

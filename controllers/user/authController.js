@@ -5,6 +5,8 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const { generateOTP, sendOTPEmail } = require('../../helpers/otp_email');
+const generateReferralCode = require('../../helpers/generateReferralCode');
+
 //***********SIGNUP NEW USER***********
 // ***Load signup page***
 const loadSignup = async (req, res) => {
@@ -36,7 +38,7 @@ const signupUser = async (req, res) => {
     referralCode = referralCode?.trim();
 
   let general_error = null;
-
+const myReferralCode = generateReferralCode(name);
     const nameRegex = /^[A-Za-z\s]+$/;
       const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$/;
 
@@ -98,7 +100,7 @@ if (!pending) {
     email,
     password: hashedPassword,
     otp,
-    referralCode: referralCode || null,
+    referralCode: myReferralCode,
     referredBy: referredByUser?._id || null
   });
 
@@ -111,7 +113,7 @@ else {
     name, 
     password: hashedPassword, 
     otp, 
-    referralCode: referralCode || null,
+    referralCode: myReferralCode,
     referredBy: referredByUser?._id || null,
     createdAt: Date.now() 
   },

@@ -6,8 +6,11 @@ const Cart = require("../../models/cartSchema");
 
 exports.loadWalletPage = async (req, res) => {
   try {
-    const userId = req.user._id;
+const userId = req.user ? req.user._id : req.session.userId;
+    if (!userId) {
 
+      return res.redirect("/auth/login");
+    }
     let wallet = await Wallet.findOne({ userId }).lean();
 
     if (!wallet) {

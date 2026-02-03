@@ -229,4 +229,9 @@ text-decoration: underline;
     color: black;
 }
 
+#stockWarning {
+  font-weight: 500;
+  color: #d9534f; /* red warning color */
+}
+
 

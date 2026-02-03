@@ -52,5 +52,6 @@ includes: function (array, value) {
         });
     },
     json: (context) => JSON.stringify(context),
+    plusOne : (v) => v+1,
 
 };

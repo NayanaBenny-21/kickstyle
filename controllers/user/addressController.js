@@ -26,6 +26,8 @@ const addAddress = async (req, res) => {
     if (!userId) {
       return res.redirect('/auth/login');
     }const { name, mobile, pincode, locality, addressLine, city, state, landmark, addressType, isDefault, from } = req.body;
+
+    
     const nameRegex = /^[A-Za-z ]{3,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
     const pincodeRegex = /^[1-9][0-9]{5}$/;
@@ -62,11 +64,16 @@ const addAddress = async (req, res) => {
       isDefault: Boolean(isDefault),
     });
     await newAddress.save();
-    if(from === 'checkout' ) {
-      return res.redirect('/cart/select-address')
-    } else {
-      res.redirect('/address')
-    }
+    console.log("From : ", from);
+    
+
+    const redirectUrl =
+      from === "checkout" ? "/cart/select-address" : "/address";
+    console.log("Addaddress from value :", redirectUrl);
+    return res.json({
+      success: true,
+      redirectUrl
+    });
     } catch (error) {
           console.error(" Error saving address:", error);
     res.status(500).json({ success: false, message: "Failed to save address" });
@@ -103,6 +110,7 @@ const loadEditAddress = async (req, res) => {
       return res.status(404).send("Address not found");
     }
 const from = req.query.from || 'profile';
+   console.log("loadEditAddress → from query:", req.query.from);
 res.render("user/editAddress", { address, from, user: req.session.user });
   } catch (error) {
     console.error(error);
@@ -134,6 +142,7 @@ const updateAddress = async (req, res) => {
         error: "Invalid Mobile Number. Enter a valid 10-digit mobile number starting with 6-9."
       });
     }
+console.log("On edit page : ", from);
 
     // Pincode validation
     if (!pincodeRegex.test(pincode)) {
@@ -230,14 +239,14 @@ let appliedCoupon = null;
             color: item.variantId.color
           } : null,
           quantity: item.quantity,
-          price: item.price,         // already best offer
+          price: item.price,       
           totalPrice: item.totalPrice
         });
 
         subTotal = item.totalPrice;
       }
     } else {
-      // 🤝 FULL CART CHECKOUT
+      //  FULL CART CHECKOUT
       const cart = await Cart.findOne({ user_id: userId })
         .populate('items.productId', 'product_name')
         .populate('items.variantId', 'size color')
@@ -245,7 +254,7 @@ let appliedCoupon = null;
 
       if (cart && cart.items.length > 0) {
         cart.items.forEach(item => {
-          subTotal += item.totalPrice; // already best price
+          subTotal += item.totalPrice; 
         });
 
         cartItems = cart.items.map(item => ({

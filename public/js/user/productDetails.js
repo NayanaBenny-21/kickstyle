@@ -5,6 +5,8 @@ let stockForSelectedVariant = 0;
 let quantityInput = null;
 let curretCartQtyMap
 
+
+
 function updateSizesForColor(color) {
   const allButtons = document.querySelectorAll('.size-btn');
   allButtons.forEach(btn => {
@@ -172,70 +174,81 @@ fetchCartCount();
   });
 
 
+
   // Add to Cart
-  addToCartBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
+ addToCartBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
 
-    const productId = addToCartBtn.dataset.productId;
-    const quantity = quantityInput?.value || 1;
+  const productId = addToCartBtn.dataset.productId;
+  const quantity = parseInt(quantityInput.value) || 1;
 
-    if (!selectedColor || !selectedSize) {
-      Swal.fire({
-        icon: 'warning',
-        text: 'Please select color and size before adding to cart.',
-        toast: true,
-        position: "bottom",
-        timer: 2500,
-        showConfirmButton: false,
-      });
-      return;
-    }
+  if (!selectedColor || !selectedSize) {
+    return Swal.fire({
+      icon: 'warning',
+      text: 'Please select color and size before adding to cart.',
+      toast: true,
+      position: "bottom",
+      timer: 2500,
+      showConfirmButton: false
+    });
+  }
 
-    try {
-      const res = await fetch('/add-to-cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, variantId: selectedVariantId, quantity }),
-        credentials: 'include'
-      });
-      const data = await res.json();
-      console.log('Server response:', data);
+  try {
+    const res = await fetch('/add-to-cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, variantId: selectedVariantId, quantity }),
+      credentials: 'include'
+    });
 
-      if (data.success) {
-  Swal.fire({
-    icon: 'success',
-    text: 'Added to cart!',
-    toast: true,
-    position: "bottom",
-    timer: 1500,
-    showConfirmButton: false,
-    width: 350,
-    padding: '0.5em 1em',
-    customClass: { popup: 'small-toast' }
-  });
+    const data = await res.json();
+    console.log("Server response:", data);
 
-  // -----------------------------
-  // Update navbar cart badge
-  const cartBadge = document.getElementById('cartCount'); // make sure your badge has this ID
-  if (cartBadge) {
-    cartBadge.innerText = data.cartCount;  // use cartCount returned from server
-    cartBadge.classList.remove('d-none');  // show badge if hidden
-  }
-  // -----------------------------
-}
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      Swal.fire({
-        icon: 'error',
-        title: 'Failed',
-        text: 'Could not add to cart. Please try again.',
-        toast: true,
-        position: "bottom",
-        timer: 2500,
-        showConfirmButton: false,
-      });
-    }
-  });
+    // PRODUCT UNLISTED
+    if (data.unlisted) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Product Unavailable',
+        text: data.message || "This product is currently unavailable",
+        confirmButtonText: 'OK',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      }).then(() => {
+        location.reload();
+      });
+    }
+
+    // SUCCESS
+    if (data.success) {
+      Swal.fire({
+        icon: 'success',
+        text: 'Added to cart!',
+        toast: true,
+        position: "bottom",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+      const cartBadge = document.getElementById('cartCount');
+      if (cartBadge) {
+        cartBadge.innerText = data.cartCount;
+        cartBadge.classList.remove('d-none');
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire({
+      icon: 'error',
+      text: 'Could not add to cart.',
+      toast: true,
+      position: "bottom",
+      timer: 2500,
+      showConfirmButton: false
+    });
+  }
+});
+
 
  document.getElementById("buyNowBtn").addEventListener("click", async () => {
   const productId = document.getElementById("productId").value;
@@ -285,7 +298,25 @@ fetchCartCount();
       credentials: 'include'
     });
     const data = await res.json();
-
+    if (data.unlisted) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Product Unavailable',
+        text: data.message || "This product is currently unavailable",
+        confirmButtonText: 'OK',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      }).then(() => {
+        location.reload();
+      });
+    }
+        if (!data.success) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.message || "Failed to add to cart. Please try again."
+      });
+    }
     if (data.success) {
       // Update cart badge
       const cartBadge = document.getElementById('cartCount');
@@ -305,10 +336,10 @@ fetchCartCount();
 
   } catch (err) {
     console.error(err);
-    Swal.fire({
-      icon: 'error',
-      text: "Error adding to cart. Please try again.",
-    });
+    Swal.fire({
+      icon: 'error',
+      text: "Server error. Please try again."
+    });
   }
 });
 

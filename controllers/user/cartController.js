@@ -21,8 +21,13 @@ const addToCart = async (req, res) => {
   try {
     let product = await Product.findById(productId);
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-  if (!product.isActive) 
-      return res.render('user/unavailable', { message: 'This product is currently unavailable' });
+if (!product.isActive) {
+  return res.json({
+    success: false,
+    message: "This product is currently unavailable",
+    unlisted: true
+  });
+}
 
     const variant = await Variant.findById(variantId);
     if (!variant) return res.status(404).json({ success: false, message: 'Variant not found' });
@@ -93,9 +98,9 @@ const loadCart = async (req, res) => {
       const variant = item.variantId;
 
       return (
-        product &&                     // product exists
-        product.isActive === true &&   // product active
-        variant                        // variant exists
+        product &&                  
+        product.isActive === true &&   
+        variant                       
       );
     });
 
@@ -124,7 +129,7 @@ const loadCart = async (req, res) => {
         size: variant?.size,
         color: variant?.color,
         quantity: item.quantity,
-        price: item.price,       // ✅ Use cart's price (with best offer)
+        price: item.price,      
         totalPrice
       };
     });
@@ -164,7 +169,13 @@ const updateQuantity = async (req, res) => {
   let product = await Product.findById(productId);
     const variant = await Variant.findById(variantId);
     if (!product || !variant) return res.json({ success: false, message: 'Product or variant not found' });
-
+if (!product.isActive) {
+  return res.json({
+    success: false,
+    message: "This product is currently unavailable",
+    unlisted: true
+  });
+}
     // Check stock & max limit
     const maxAllowed = Math.min(variant.stock, 5);
     if (qty > maxAllowed) return res.json({
@@ -265,29 +276,63 @@ const getCartCount = async (req, res) => {
 const checkStockBeforeOrder = async (req, res) => {
   try {
     const userId = req.session.userId;
-    const cart = await Cart.findOne({ user_id: userId })  .populate("items.variantId")
-  .populate("items.productId");
+    const cart = await Cart.findOne({ user_id: userId })
+      .populate("items.variantId")
+      .populate("items.productId");
 
     if (!cart || cart.items.length === 0) {
       return res.json({ success: false, message: "Cart is empty" });
     }
 
-    const insufficientStock = cart.items
-      .filter(item => item.quantity > item.variantId.stock)
-      .map(item => ({
-        productName: item.productId.product_name,
-        requested: item.quantity,
-        available: item.variantId.stock
-      }));
+    let unlistedItems = [];
+    let insufficientStock = [];
 
-    if (insufficientStock.length > 0) {
-      return res.json({ success: false, items: insufficientStock, message: "Some items exceed available stock" });
+    for (let item of cart.items) {
+      const product = item.productId;
+      const variant = item.variantId;
+
+      // 🔴 PRODUCT UNLISTED / INACTIVE
+      if (!product || !product.isActive) {
+        unlistedItems.push({
+          productName: product?.product_name || "Unknown product"
+        });
+        continue;
+      }
+
+      // 🔴 STOCK ISSUE
+      if (!variant || item.quantity > variant.stock) {
+        insufficientStock.push({
+          productName: product.product_name,
+          requested: item.quantity,
+          available: variant ? variant.stock : 0
+        });
+      }
     }
 
-    res.json({ success: true });
+    // If any unlisted products
+    if (unlistedItems.length > 0) {
+      return res.json({
+        success: false,
+        unlisted: true,
+        items: unlistedItems
+      });
+    }
+
+    // If stock issues
+    if (insufficientStock.length > 0) {
+      return res.json({
+        success: false,
+        stockIssue: true,
+        items: insufficientStock
+      });
+    }
+
+    return res.json({ success: true });
+
   } catch (err) {
-    console.error(err);
+    console.error("checkStockBeforeOrder error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 module.exports = { addToCart, loadCart, updateQuantity, removeItem, getCartCount, checkStockBeforeOrder };

@@ -28,6 +28,8 @@
             <h6 class="mb-1" style="font-size:20px;">{{item.productName}}</h6>
             <p class="text-muted small mb-1">Size: {{item.size}}, Color: {{item.color}}</p>
             <p class="text-muted small mb-1">Qty: {{item.quantity}}</p>
+            <div id="stockWarning" class="text-danger mt-1" style="display:none;"></div>
+
             <p class="fw-bold text-danger mb-2" style="font-size:16px;">
               ₹{{item.finalPrice}}
             </p>
@@ -87,28 +89,51 @@
           {{/if}}
         </div>
 
-       <!-- ================= CANCEL BUTTON ================= -->
-   {{#if item.canCancel}}
-<div class="card p-2 shadow-sm text-center" style="margin-top:20px;" id="cancel-btn-{{item._id}}">
-  <a href="/orders/cancel-item/{{item._id}}" 
-     class="cancel-item-btn btn btn-outline-danger fw-bold btn-sm" 
-     style="width:120px; display:inline-block; margin:0 auto;">
-    Cancel order
-  </a>
+<!-- ================= CANCEL BUTTON ================= -->
+{{#if item.canCancel}}
+<div class="card p-2 shadow-sm text-center mt-3">
+  {{#if item.isSingleItemOrder}}
+    <!-- ORDER LEVEL -->
+    <a href="/orders/cancel-order/{{order._id}}"
+       class="btn btn-outline-danger fw-bold btn-sm cancel-btn"
+       data-type="order">
+      Cancel Order
+    </a>
+  {{else}}
+    <!-- ITEM LEVEL -->
+    <a href="/orders/cancel-item/{{item._id}}"
+       class="btn btn-outline-danger fw-bold btn-sm cancel-btn"
+       data-type="item">
+      Cancel Item
+    </a>
+  {{/if}}
 </div>
 {{/if}}
 
 
-        <!-- ================= RETURN BUTTON ================= -->
-        {{#if (and (eq item.status "delivered") (neq order.status "payment_failed"))}}
-        <div class="card p-2 shadow-sm text-center mt-3" id="return-btn-{{item._id}}">
-          <button class="return-item-btn btn btn-outline-primary fw-bold btn-sm"
-                  style="width:120px;"
-                  data-id="{{item._id}}">
-            Return order
-          </button>
-        </div>
-        {{/if}}
+
+
+       <!-- ================= RETURN BUTTON ================= -->
+{{#if item.canReturn}}
+<div class="card p-2 shadow-sm text-center mt-3">
+  {{#if item.isSingleItemOrder}}
+    <button class="btn btn-outline-primary fw-bold btn-sm return-btn"
+            data-type="order"
+            data-id="{{order._id}}">
+      Return Order
+    </button>
+  {{else}}
+    <button class="btn btn-outline-primary fw-bold btn-sm return-btn"
+            data-type="item"
+            data-id="{{item._id}}">
+      Return Item
+    </button>
+  {{/if}}
+</div>
+{{/if}}
+
+
+
 
     <div class="mb-3" style="margin-top: 1%;">
       <hr style="margin:5px 0;">

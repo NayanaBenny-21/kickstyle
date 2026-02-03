@@ -185,12 +185,27 @@ nameInput.addEventListener("blur", () => {
 
       const data = await res.json();
 
-      if (data.success) {
-        showToast("success", data.message);
-        startOtpTimer();
-      } else {
-        showToast("error", data.message);
-      }
+if (data.success) {
+  showToast("success", data.message);
+  startOtpTimer();
+} else {
+
+  await Swal.fire({
+    icon: "error",
+    title: "Email Already Exists",
+    text: data.message || "This email is already registered",
+    confirmButtonColor: "#dc3545",
+    confirmButtonText: "OK"
+  });
+
+
+  newEmailInput.value = "";
+  emailOtpInput.value = "";
+  emailErrorModal.textContent = "";
+
+  emailModal.hide();
+}
+
     } catch {
       showToast("error", "Server error");
     }

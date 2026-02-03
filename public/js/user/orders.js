@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================== RETRY PAYMENT ==================
   document.querySelectorAll(".retry-payment-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
-      e.stopPropagation(); // Prevent row click
+      e.stopPropagation(); 
       e.preventDefault();
 
       const orderId = btn.dataset.orderId;

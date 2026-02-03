@@ -1,7 +1,6 @@
 const express =require('express');
 const router = express.Router();
 const Product = require('../../models/productSchema');
-
 const userController = require('../../controllers/user/userController');
 const productController = require ('../../controllers/user/productController');
 const { uploadUserImage, processUserImage } = require('../../middlewares/userImageMiddleware');
@@ -21,16 +20,19 @@ const userAuthMiddleware = require('../../middlewares/userAuthMiddleware');
 const { createRazorPayOrder, verifyPayment, paymentFailed,retryPayment,verifyRetryPayment } = require('../../controllers/user/razorpayController'); // path to your controller
 const walletController = require("../../controllers/user/walletController");
 const {getCouponsPage, getAvailableCoupons} = require('../../controllers/user/couponController');
+const checkActiveUser = require('../../middlewares/checkActiveUserMiddleware');
+const {loadCategoryProducts} =  require('../../controllers/user/ProductListingController');
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 router.get('/',authMiddleware, userController.loadHomepage );
 router.get('/products',authMiddleware, productController.loadProductsPage);
 router.get('/product/:productId/get-stock/:variantId',authMiddleware, productController.getVariantStock);
 router.get('/stock/:productId/:variantId',authMiddleware, productController.getLiveStock);
-
-
-
 router.get('/product/:productId',authMiddleware, productController.LoadProductDetailsPage);
 router.post('/add-to-cart', authMiddleware, cartController.addToCart)
+router.get("/products/:category", loadCategoryProducts);
 
+//--------------------CART&CHEKOUT------------------------------------------------------------------------------------------------------------
 router.get('/cart',cartController.loadCart);
 router.patch("/cart/update-quantity", cartController.updateQuantity);
 router.delete("/cart/remove-item", cartController.removeItem);
@@ -41,10 +43,10 @@ router.get('/checkout/select-address', addressController.loadSelectAddressPage);
 router.post('/checkout/select-address', addressController.selectAddress);
 router.get('/cart/count', cartController.getCartCount);
 router.post("/cart/check-stock-before-order", cartController.checkStockBeforeOrder);
+router.get('/get-cart-count', userAuthMiddleware, cartController.getCartCount); 
 router.get("/available-coupons",  getAvailableCoupons);
 
-
-
+//-----------------------PROFILE-----------------------------------------------------------------------------------------------------------
 router.get('/profile', userAuthMiddleware, userProfileController.loadUserProfile);
 router.get('/profile/edit-profile', userProfileController.loadUserEditProfile);
 router.post('/profile/edit-profile',uploadUserImage.single('image'), processUserImage, userProfileController.updateUserProfile);
@@ -54,6 +56,7 @@ router.post('/profile/edit-profile/resend-email-otp', userProfileController.rese
 router.get('/profile/change-password', userProfileController.loadChangePasswordPage);
 router.post('/profile/change-password', userProfileController.updatePassword);
 router.post("/check-current-password", userAuthMiddleware, userProfileController.checkCurrentPassword);
+router.post("/check-email-exists", userProfileController.checkEmailExists);
 router.get('/address',  addressController.loadAddressPage)
 router.get('/address/add',  addressController.loadAddAddressPage);
 router.post('/address/add',  addressController.addAddress);
@@ -61,16 +64,15 @@ router.get('/address/edit/:id', addressController.loadEditAddress)
 router.put("/address/edit/:id", addressController.updateAddress);
 router.delete("/address/delete/:id", addressController.deleteAddress);
 
+//--------------------CHEKOUT------------------------------------------------------------------------------------------------------------
 
 router.get('/checkout', userAuthMiddleware, checkoutController.loadCheckOutPage);
 router.post('/checkout/apply-coupon', userAuthMiddleware, checkoutController.applyCoupon);
 router.post('/checkout/place-order', userAuthMiddleware, checkoutController.placeOrder);
 router.get("/checkout/available-coupons", userAuthMiddleware, checkoutController.getAvailableCoupons);
-// userRouter.js
-router.get('/get-cart-count', userAuthMiddleware, cartController.getCartCount); 
+router.post('/checkout/check-availability', checkoutController.checkAvailability);
 
-
-
+//--------------------ORDERS------------------------------------------------------------------------------------------------------------
 
 router.get('/orders', orderController.loadOrdersPage);
 router.get("/order-success/:id", orderController.loadOrderSuccessPage);
@@ -86,6 +88,9 @@ router.post("/return-order/:itemId", returnOrderedItem)
 router.post('/orders/:orderId/return-order', orderController.returnEntireOrder)
 
 
+router.post('/orders/return-item/:itemId', returnOrderedItem);
+//--------------------WHISHLIST------------------------------------------------------------------------------------------------------------
+
 router.get('/wishlist', wishlistController.loadWishlistPage)
 router.get("/wishlist/all", wishlistController.getAllWishlist);
 router.post("/wishlist/toggle/:productId", wishlistController.toggleWishlist);
@@ -96,36 +101,21 @@ router.delete(
   wishlistController.removeWishlistItem
 );
 
-//RAZORPAY
+//--------------------RAZORPAY------------------------------------------------------------------------------------------------------------
+
 // router.post('/razorpay/create-order', createRazorPayOrder);
 // router.post('/razorpay/verify-payment', verifyPayment);
 // router.post("/razorpay/payment-failed", paymentFailed);
-router.post(
-  '/razorpay/verify-payment',
-  userAuthMiddleware,
-  verifyPayment
-);
-
-router.post(
-  '/razorpay/create-order',
-  userAuthMiddleware,
-  createRazorPayOrder
-);
+router.post('/razorpay/verify-payment',userAuthMiddleware, verifyPayment);
+router.post('/razorpay/create-order',userAuthMiddleware,createRazorPayOrder);
 router.post("/razorpay/payment-failed", paymentFailed);
-
 router.post("/razorpay/retry-payment", retryPayment);          
 router.post("/razorpay/verify-retry-payment", verifyRetryPayment); 
-
-
-
 
 //WALLET
 router.get("/wallet",walletController.loadWalletPage);
 router.post("/checkout/wallet-order", checkoutController.createWalletOrder);
 router.post("/wallet/check-balance", userAuthMiddleware, checkoutController.checkWalletBalance);
-
-
-
 
 //COUPON
 router.get('/coupons',getCouponsPage);

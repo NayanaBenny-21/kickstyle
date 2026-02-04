@@ -15,7 +15,7 @@ const adminAuthRouter = require('./routes/admin/adminAuthRouter');
 const adminRouter = require('./routes/admin/adminRouter');
 const hbsHelpers = require('./helpers/hbsHelpers'); 
 const searchRouter = require('./routes/search');
-connectDB();
+
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URL }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   cookie: {
     secure: false,
     httpOnly: true,
@@ -69,8 +69,12 @@ app.use('/search', searchRouter);
 
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+
+connectDB().then(() => {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
+
 
 module.exports = app;

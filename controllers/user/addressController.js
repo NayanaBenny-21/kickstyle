@@ -134,7 +134,7 @@ const updateAddress = async (req, res) => {
       name, mobile, pincode, locality, addressLine, 
       city, state, landmark, addressType, isDefault, from 
     } = req.body;
-
+console.log("REQ BODY:", req.body);
     // Mobile validation
     if (!mobileRegex.test(mobile)) {
       return res.status(400).json({
@@ -306,14 +306,63 @@ const selectAddress = async (req, res) => {
     const { addressId } = req.body;
 
     const address = await Address.findOne({ _id: addressId, userId });
-    if (!address) return res.json({ success: false });
+    if (!address) return res.json({ success: false, message: "Address not found" });
 
+    // Save selected address in session
     req.session.selectedAddress = addressId;
 
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error selecting address:', error);
-    res.json({ success: false });
+    // ---- Check cart stock ----
+    const cart = await Cart.findOne({ user_id: userId })
+      .populate("items.productId")
+      .populate("items.variantId");
+
+    if (!cart || cart.items.length === 0) {
+      return res.json({ success: false, message: "Cart is empty" });
+    }
+
+    let unlistedItems = [];
+    let stockIssues = [];
+
+    for (let item of cart.items) {
+      const product = item.productId;
+      const variant = item.variantId;
+
+      // Product inactive/unlisted
+      if (!product || !product.isActive) {
+        unlistedItems.push({ productName: product?.product_name || "Unknown Product" });
+        continue;
+      }
+
+      const reservedStock = variant.reservedStock || 0;
+      const availableStock = Math.max(variant.stock - reservedStock, 0);
+console.log("Available Stock:", availableStock, "Cart Qty:", item.quantity, "Reserved:", variant?.reservedStock);
+      if (item.quantity > availableStock) {
+        stockIssues.push({
+          productName: product.product_name,
+          requested: item.quantity,
+          available: availableStock,
+          reserved: reservedStock
+        });
+      }
+    }
+
+    // 5️⃣ Return unlisted products
+    if (unlistedItems.length > 0) {
+      return res.json({ success: false, unlisted: true, items: unlistedItems });
+    }
+
+    // 6️⃣ Return stock issues
+    if (stockIssues.length > 0) {
+      return res.json({ success: false, stockIssue: true, items: stockIssues });
+    }
+
+    // ✅ All good
+    return res.json({ success: true });
+
+
+  } catch (err) {
+    console.error("Error in selectAddress:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

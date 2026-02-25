@@ -16,7 +16,7 @@ const getOrderDetails = async (req, res) => {
   try {
     const userId = req.user?._id || req.session.userId;
     const orderId = req.params.orderId;
-    const itemId = req.params.itemId; // make sure your route has /orders/:orderId/item/:itemId
+    const itemId = req.params.itemId;
 
     if (!userId) return res.redirect("/auth/login");
 
@@ -35,27 +35,26 @@ const getOrderDetails = async (req, res) => {
     // Fetch the order for summary and address
     const order = await Order.findOne({ _id: orderId, user_id: userId })
       .lean()
-      .populate("shippingAddressId")
       .populate("couponApplied");
     if (!order) return res.status(404).send("Order not found");
 
     // Format expected delivery date for display
-let expectedDeliveryDate;
-if (order.expectedDeliveryDate) {
-  expectedDeliveryDate = formatLocalDate(order.expectedDeliveryDate);
-} else {
-  const expected = new Date(order.createdAt);
-  expected.setDate(expected.getDate() + 10);
-  expectedDeliveryDate = formatLocalDate(expected);
-}
+    let expectedDeliveryDate;
+    if (order.expectedDeliveryDate) {
+      expectedDeliveryDate = formatLocalDate(order.expectedDeliveryDate);
+    } else {
+      const expected = new Date(order.createdAt);
+      expected.setDate(expected.getDate() + 10);
+      expectedDeliveryDate = formatLocalDate(expected);
+    }
 
-item.formattedDeliveryDate = item.deliveryDate
-  ? formatLocalDate(item.deliveryDate)
-  : null;
+    item.formattedDeliveryDate = item.deliveryDate
+      ? formatLocalDate(item.deliveryDate)
+      : null;
 
 
 
-          const orderedItems = await OrderedItem.find({ orderId }).lean();
+    const orderedItems = await OrderedItem.find({ orderId }).lean();
 
     const activeItems = orderedItems.filter(it =>
       !["cancelled", "returned"].includes(it.status)
@@ -65,15 +64,15 @@ item.formattedDeliveryDate = item.deliveryDate
     const isSingleItemOrder = activeItems.length === 1;
     item.isSingleItemOrder = isSingleItemOrder;
 
-          const hasInvoiceEligibleItems = orderedItems.some(item =>
-         !["cancelled", "returned"].includes(item.status)
-          );
+    const hasInvoiceEligibleItems = orderedItems.some(item =>
+      !["cancelled", "returned"].includes(item.status)
+    );
 
     const fullOrderSubtotal = orderedItems.reduce((acc, it) => {
       return acc + it.finalPrice * it.quantity;
     }, 0);
     // Summary calculation for this single item
-    const sellingPrice = item.finalPrice ;
+    const sellingPrice = item.finalPrice;
     const subTotal = item.finalPrice * item.quantity;
     const delivery = fullOrderSubtotal >= 1000 ? 0 : 40;
     const platformFee = 7;
@@ -82,26 +81,26 @@ item.formattedDeliveryDate = item.deliveryDate
 
     // ================= BUTTON VISIBILITY LOGIC =================
 
-// Cancel button should be visible ONLY if:
-item.canCancel =
-  order.orderStatus !== "payment_failed" &&
-  !["delivered", "cancelled", "returned", "return_requested"].includes(item.status);
+    // Cancel button should be visible ONLY if:
+    item.canCancel =
+      order.orderStatus !== "payment_failed" &&
+      !["delivered", "cancelled", "returned", "return_requested"].includes(item.status);
 
-const returnDeclined = order.returnDeclined === true || order.returnDeclined === "true";
+    const returnDeclined = order.returnDeclined === true || order.returnDeclined === "true";
 
-item.canReturn = Boolean(
-  order.orderStatus !== "payment_failed" &&
-  item.status === "delivered" &&
-  !returnDeclined
-);
+    item.canReturn = Boolean(
+      order.orderStatus !== "payment_failed" &&
+      item.status === "delivered" &&
+      !returnDeclined
+    );
 
-console.log("item.canReturn:", item.canReturn, "returnDeclined:", returnDeclined);
+    console.log("item.canReturn:", item.canReturn, "returnDeclined:", returnDeclined);
 
 
     // Render single item page
     res.render("user/orderDetailsPage", {
-      order: { ...order, expectedDeliveryDate},
-      address: order.shippingAddressId,
+      order: { ...order, expectedDeliveryDate },
+      address: order.shippingAddress,
       summary: { sellingPrice, shipping: delivery, marketplaceFee: platformFee, grandTotal },
       item,
       canDownloadInvoice: hasInvoiceEligibleItems,
@@ -119,7 +118,7 @@ const rateProduct = async (req, res) => {
     const { itemId, rating } = req.body;
     const userId = req.user?._id || req.session.userId;
 
-console.log("Getting rating : ", rating);
+    console.log("Getting rating : ", rating);
 
 
     if (!itemId || !rating) return res.json({ success: false, message: "Invalid data" });
@@ -135,7 +134,7 @@ console.log("Getting rating : ", rating);
     // Update the rating field
     item.rating = rating;
     await item.save();
- console.log("Rating saved:", rating, "for item:", itemId);
+    console.log("Rating saved:", rating, "for item:", itemId);
     return res.json({ success: true, message: "Rating saved successfully" });
 
   } catch (err) {
@@ -154,13 +153,13 @@ const cancelOrderedItem = async (req, res) => {
     const order = await Order.findById(item.orderId);
     if (!order) return res.status(404).send("Order not found");
 
-   if (
-  ["delivered", "cancelled", "returned", "return_requested"].includes(item.status)
-) {
-  return res
-    .status(400)
-    .send("This item cannot be cancelled");
-}
+    if (
+      ["delivered", "cancelled", "returned", "return_requested"].includes(item.status)
+    ) {
+      return res
+        .status(400)
+        .send("This item cannot be cancelled");
+    }
 
 
     item.status = "cancelled";
@@ -176,12 +175,12 @@ const cancelOrderedItem = async (req, res) => {
 
     if (remaining === 0) {
       order.orderStatus = "cancelled";
-            order.deliveryCharge = 0;
+      order.deliveryCharge = 0;
       order.platformFee = 0;
       order.couponDiscount = 0;
       await order.save();
     }
- return res.redirect(`/orders/${item.orderId}/item/${item._id}`);
+    return res.redirect(`/orders/${item.orderId}/item/${item._id}`);
 
 
   } catch (err) {
@@ -198,7 +197,6 @@ const generateInvoice = async (req, res) => {
     // Fetch order with coupon and shipping address
     const order = await Order.findOne({ orderId, user_id: userId })
       .populate("couponApplied")
-      .populate("shippingAddressId")
       .lean();
 
     if (!order) return res.status(404).send("Order not found");
@@ -213,7 +211,7 @@ const generateInvoice = async (req, res) => {
 
     if (!items || items.length === 0) return res.status(404).send("No items found");
 
-    const address = order.shippingAddressId;
+  const address = order.shippingAddress;
 
     // Create PDF
     const doc = new PDFDocument({ margin: 40 });
@@ -254,13 +252,18 @@ New Delhi 110044`,
     doc.moveTo(40, 180).lineTo(560, 180).stroke();
 
     // Billing info
-    doc.moveDown();
-    doc.fontSize(12).font("Helvetica-Bold").text("Bill To / Ship To :", 40);
-    doc.fontSize(10).font("Helvetica")
-      .text(address.name)
-      .text(address.house)
-      .text(`${address.city}, ${address.state}, ${address.pincode}`)
-      .text(`Phone: ${address.mobile || address.phone}`);
+doc.moveDown();
+doc.fontSize(12).font("Helvetica-Bold").text("Bill To / Ship To :", 40);
+
+if (address) {
+  doc.fontSize(10).font("Helvetica")
+    .text(address.name || "N/A")
+    .text(address.addressLine || address.house || "N/A")
+    .text(`${address.city || ""}, ${address.state || ""}, ${address.pincode || ""}`)
+    .text(`Phone: ${address.mobile || "N/A"}`);
+} else {
+  doc.text("Shipping Address Not Available");
+}
 
     doc.moveDown();
     doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
@@ -383,7 +386,7 @@ For queries, contact: support@kickstyle.com`,
     res.status(500).send("Error generating invoice");
   }
 };
-  
+
 
 
 
@@ -424,7 +427,7 @@ const returnOrderedItem = async (req, res) => {
       const coupon = await Coupon.findById(order.couponApplied);
 
       if (coupon?.minOrderAmount) {
-      
+
         const otherItems = await OrderedItem.find({
           orderId: order._id,
           _id: { $ne: item._id },
@@ -464,4 +467,4 @@ const returnOrderedItem = async (req, res) => {
 
 
 
-module.exports = { getOrderDetails, rateProduct, cancelOrderedItem, generateInvoice, returnOrderedItem};
+module.exports = { getOrderDetails, rateProduct, cancelOrderedItem, generateInvoice, returnOrderedItem };

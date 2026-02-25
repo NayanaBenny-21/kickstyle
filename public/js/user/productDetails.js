@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 }
 
-// Call it on page load
+
 fetchCartCount();
 
   //-------------------------------------
@@ -200,6 +200,25 @@ fetchCartCount();
       body: JSON.stringify({ productId, variantId: selectedVariantId, quantity }),
       credentials: 'include'
     });
+ if (res.status === 401) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please login to continue purchase.',
+       showCancelButton: true,
+        confirmButtonText: "Login",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#aaa"
+      }).then((result) => {
+    if (result.isConfirmed) {
+      const currentUrl = window.location.pathname;
+      window.location.href =
+        `/auth/login?redirect=${encodeURIComponent(currentUrl)}`;
+    }
+
+  });
+}
 
     const data = await res.json();
     console.log("Server response:", data);
@@ -297,6 +316,26 @@ fetchCartCount();
       body: JSON.stringify({ productId, variantId, quantity }),
       credentials: 'include'
     });
+if (res.status === 401) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please login to continue purchase.',
+       showCancelButton: true,
+        confirmButtonText: "Login",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#aaa"
+      }).then((result) => {
+    if (result.isConfirmed) {
+      const currentUrl = window.location.pathname;
+      window.location.href =
+        `/auth/login?redirect=${encodeURIComponent(currentUrl)}`;
+    }
+
+  });
+}
+
     const data = await res.json();
     if (data.unlisted) {
       return Swal.fire({

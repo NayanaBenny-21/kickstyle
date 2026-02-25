@@ -23,7 +23,7 @@ const loadSignupVerify = async (req, res) => {
     res.render('user/confirmWithOTP_signup', {
         email,
         otpSent: remainingTime > 0,
-        remainingTime
+        remainingTime, hideHeader: true
     });
 };
 
@@ -71,7 +71,8 @@ const signupVerifyOtp = async (req, res) => {
         email,
         error: "OTP invalid or expired",
         otpSent: remainingTime > 0,
-        remainingTime
+        remainingTime,
+        hideHeader: true
       });
     }
 
@@ -129,7 +130,7 @@ const signupVerifyOtp = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.render('user/confirmWithOTP_signup', { error: 'Server error' });
+    res.render('user/confirmWithOTP_signup', { error: 'Server error', hideHeader: true });
   }
 };
 
@@ -150,7 +151,8 @@ const loadLoginVerify = async (req, res) => {
             otpSent: true,
             showToast: true,
             remainingTime,
-            otpSuccess: false
+            otpSuccess: false,
+            hideHeader: true
         });
 
     } catch (error) {
@@ -195,66 +197,106 @@ const loginResendOtp = async (req, res) => {
 };
 
 const loginVerifyOtp = async (req, res) => {
-    try {
-        const email = req.session.loginEmail;
-        const { otp } = req.body;
-        const remainingTime = req.session.loginOTPExpiresAt ? Math.floor((req.session.loginOTPExpiresAt - Date.now()) / 1000) : 0;
+  try {
+    const email = req.session.loginEmail;
+    const storedOtp = req.session.loginOTP;
+    const expiresAt = req.session.loginOTPExpiresAt;
+    const { otp } = req.body;
 
-        if (!req.session.loginOTPExpiresAt || Date.now() > req.session.loginOTPExpiresAt) {
-            return res.json({
-                success : false,
-                message: "OTP invalid or expired",
-                otpSent: false,
-                showResend: true,
-                showToast: false,
-                remainingTime : 0
-            });
-        }
-if (otp !== req.session.loginOTP) {
-    const now = Date.now();
-    const remainingTime = req.session.loginOTPExpiresAt
-        ? Math.max(0, Math.floor((req.session.loginOTPExpiresAt - now) / 1000))
-        : 0;
-
-    return res.json({
-        success : false,
-        message: 'Invalid OTP',
-        otpSent: remainingTime > 0,
-        showResend: remainingTime <= 0,  
-        remainingTime ,
-        otpSuccess: false,
-        showToast: false
-    });
-}
-        const user = await User.findOne({ email });
-        const payload = { id: user._id, email: user.email, role: 'user' };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-       res.cookie('user_jwt', token, {
-       httpOnly: true,
-       secure: false,
-         maxAge: 60 * 60 * 1000,
-          path: '/'
-});
-        req.session.userId = req.session.loginUserId;
-        req.session.loginEmail = null;
-        req.session.loginUserId = null;
-        req.session.loginOTP = null;
-        req.session.loginOTPExpiresAt = null;
-        req.session.loginOTPSent = false;
-        return res.json({ 
-            success: true, 
-            message : 'Login Successfull!',
-            otpSent:false,
-             remainingTime : 0,
-             showToast : true,
-            otpSuccess :true,
-            redirect : '/'
-        });
-    } catch (error) {
-        console.error("Login OTP verify error:", error);
-        res.json({success: false, message: "Server error, try again" });
+    // 1️⃣ Session check
+    if (!email || !storedOtp || !expiresAt) {
+      return res.status(400).json({
+        success: false,
+        message: "Session expired. Please login again.",
+        redirect: "/auth/login"
+      });
     }
 
-}
+    // 2️⃣ Expiry check
+    if (Date.now() > expiresAt) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please resend OTP.",
+        showResend: true
+      });
+    }
+
+    // 3️⃣ OTP match check
+    if (otp !== storedOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      });
+    }
+
+    // 4️⃣ Fetch user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is blocked"
+      });
+    }
+
+    // 5️⃣ Generate JWT
+    const token = jwt.sign(
+      { id: user._id, role: "user" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+// 6️⃣ Set secure cookie
+res.cookie("user_jwt", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  maxAge: 60 * 60 * 1000
+});
+
+// ✅ Save userId in session
+req.session.userId = user._id;
+
+const redirectUrl = req.session.returnTo || "/";
+
+// Clear temp login session values
+delete req.session.loginEmail;
+delete req.session.loginUserId;
+delete req.session.loginOTP;
+delete req.session.loginOTPExpiresAt;
+delete req.session.loginOTPSent;
+delete req.session.returnTo;
+
+// 🔥 IMPORTANT: Force session save before sending response
+req.session.save((err) => {
+  if (err) {
+    console.error("Session save error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Session error"
+    });
+  }
+
+  return res.json({
+    success: true,
+    message: "Login successful",
+    redirect: redirectUrl
+  });
+});
+
+  } catch (error) {
+    console.error("Login OTP verify error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again."
+    });
+  }
+};
 
 module.exports = { loadSignupVerify, signupResendOtp, signupVerifyOtp, loadLoginVerify, loginResendOtp, loginVerifyOtp };

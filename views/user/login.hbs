@@ -3,6 +3,9 @@
 
 <div class="card shadow-sm mx-auto" style="max-width: 400px;">
   <div class="card-body">
+<a href="/">
+  <img src="/images/logo.jpg" alt="KickStyle Admin" height="35" class="d-block mx-auto mb-2">
+</a>
     <h3 class="text-center text-danger mb-3">Welcome Back</h3>
 
 {{!-- <a href="/auth/google" class="btn btn-google w-100 mb-3">
@@ -13,9 +16,6 @@
   <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2"> 
   Login with Google
 </a>
-
-
-
 
     <p class="text-center text-muted">or</p>
 {{#if general_error}}
@@ -80,54 +80,26 @@
     
   }) 
 </script>
-<script>
-window.history.pushState(null, "", window.location.href);
-window.addEventListener("popstate", function () {
-  window.location.href = "/";
-});
-</script>
 
 <script>
-  window.addEventListener('pageshow', function(event) {
-    if (event.persisted || window.performance && window.performance.navigation.type === 2) {
-      // Page is loaded from bfcache (back/forward)
-      window.location.href = '/'; // Redirect to home
-    }
-  });
-</script>
+document.getElementById('google-login-btn').addEventListener("click", function (e) {
+  e.preventDefault();
 
+  // Get the page user originally tried to access
+  const redirectUrl = window.location.pathname;
 
+  const popup = window.open(
+    "/auth/google?redirect=" + encodeURIComponent(redirectUrl),
+    "Google Login",
+    "width=500,height=600"
+  );
 
+  window.addEventListener("message", function (event) {
+    if (event.origin !== window.location.origin) return;
 
-<script>
-document.getElementById('google-login-btn').addEventListener('click', function(e) {
-  e.preventDefault(); // Prevent full page redirect
-
-  const width = 600;
-  const height = 700;
-  const left = (screen.width - width) / 2;
-  const top = (screen.height - height) / 2;
-
-  const popup = window.open('/auth/google', 'popup', 'width=600,height=700,top=100,left=100,scrollbars=no,resizable=no');
-
-
-  window.addEventListener('message', function handleMessage(e) {
-    if (e.origin !== window.location.origin) return;
-
-    const data = e.data;
-    if (data.type === 'google-auth-success') {
-      window.location.replace('/');  // Redirect main window to home
-      window.removeEventListener('message', handleMessage);
-    } else if (data.type === 'google-auth-failure') {
-      Swal.fire({
-        icon: 'error',
-        text: 'Google login failed!',
-        toast: true,
-        position: "bottom",
-        timer: 3000,
-        showConfirmButton: false,
-      });
-      window.removeEventListener('message', handleMessage);
+    if (event.data.type === "google-auth-success") {
+      const redirectUrl = event.data.returnTo || "/";
+      window.location.href = redirectUrl;
     }
   });
 });

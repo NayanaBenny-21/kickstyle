@@ -234,15 +234,22 @@ if (data.unlisted) {
     }
 
     // STOCK ISSUE
-    if (data.stockIssue) {
+ if (data.stockIssue) {
       const msg = data.items
-        .map(i => `${i.productName}: only ${i.available} left`)
+        .map(i => {
+          if (i.available === 0) {
+            return `${i.productName} is Out of Stock`;
+          } else {
+            return `${i.productName}: requested ${i.requested}, available ${i.available}, reserved ${i.reserved}`;
+          }
+        })
         .join("<br>");
 
       return Swal.fire({
         icon: "warning",
         title: "Stock Alert",
-        html: msg
+        html: msg,
+        confirmButtonText: "OK"
       });
     }
 

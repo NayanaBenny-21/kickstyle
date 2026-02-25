@@ -4,7 +4,7 @@ const Coupon = require('../../models/couponSchema');
 const CouponUsage = require('../../models/couponUsageSchema');
 const Order = require('../../models/orderSchema');
 const OrderedItem = require('../../models/orderedItemSchema');
-const { decreaseStock } = require('../../helpers/stockController');
+const { decreaseStock ,reserveStock,confirmStock, checkStock} = require('../../helpers/stockController');
 const TransactionHistory = require('../../models/transactionHistorySchema');
 const Wallet = require("../../models/walletSchema");
 const WalletTransaction = require("../../models/walletTransactionSchema");
@@ -196,27 +196,45 @@ const placeOrder = async (req, res) => {
     const cart = await Cart.findOne({ user_id: userId }).populate('items.productId items.variantId').lean();
     if (!cart || !cart.items.length) return res.status(400).json({ success: false, message: 'Cart is empty' });
     // ---------- Check availability ----------
-    const removedItems = [];
-    const availableItems = [];
+   const removedItems = [];
+const availableItems = [];
 
-    for (const item of cart.items) {
-      if (!item.productId || !item.productId.isActive) {
-        removedItems.push(item.productId?.product_name || "Unknown Product");
-      } else {
-        availableItems.push(item);
-      }
+for (const item of cart.items) {
+  if (!item.productId || !item.productId.isActive) {
+    removedItems.push(item.productId?.product_name || 'Unknown Product');
+    continue;
+  }
+
+  if (item.variantId) {
+    const stockAvailable = await checkStock(item.variantId._id, item.quantity); 
+    if (!stockAvailable) {
+      removedItems.push(item.productId?.product_name || 'Out of stock');
+    } else {
+      availableItems.push(item); 
     }
+  } else {
+    availableItems.push(item);
+  }
+}
 
-    if (removedItems.length) {
-      // Update cart in DB to remove unavailable items
-      await Cart.findByIdAndUpdate(cart._id, { items: availableItems });
+// Single-item cart unavailable
+if (cart.items.length === 1 && removedItems.length === 1) {
+  return res.json({
+    success: false,
+    message: `${removedItems[0]} is out of stock!`,
+    redirect: '/cart'
+  });
+}
 
-      return res.json({
-        success: false,
-        removedItems,
-        message: "Some products were unavailable and removed from your cart"
-      });
-    }
+// Multi-item cart: remove unavailable items
+if (removedItems.length > 0) {
+  await Cart.findByIdAndUpdate(cart._id, { items: availableItems });
+  return res.json({
+    success: false,
+    removedItems,
+    message: 'Some products were removed as they are out of stock'
+  });
+}
 
     const subtotal = cart.items.reduce((a, item) => a + item.productId.final_price * item.quantity, 0);
     const deliveryCharge = subtotal >= 1000 ? 0 : 40;
@@ -237,16 +255,41 @@ const placeOrder = async (req, res) => {
     const expectedDelivery = new Date();
     expectedDelivery.setDate(expectedDelivery.getDate() + 10);
 
+//     for (const item of cart.items) {
+//   if (item.variantId) {
+//     const reserved = await reserveStock(item.variantId._id, item.quantity);
+
+//     if (!reserved) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `${item.productId.product_name} is out of stock`
+//       });
+//     }
+//   }
+// }
+
     const order = await Order.create({
       orderId,
       user_id: userId,
       transactionId: transactionId || null,
       couponApplied: req.session.coupon?.couponId || null,
-      shippingAddressId: selectedAddress._id,
+        shippingAddress: {
+    name: selectedAddress.name,
+    mobile: selectedAddress.mobile,
+    pincode: selectedAddress.pincode,
+    locality: selectedAddress.locality,
+    addressLine: selectedAddress.addressLine,
+    city: selectedAddress.city,
+    state: selectedAddress.state,
+    landmark: selectedAddress.landmark,
+    addressType: selectedAddress.addressType
+  },
+
       totalPrice,
       paymentMethod,
       deliveryCharge,
       paymentStatus: paymentMethod === 'cod' ? 'pending' : 'success',
+      expiresAt: paymentMethod === 'cod'? new Date(Date.now() + 15 * 60 * 1000): null, // 15 minutes expiry
       orderStatus: 'pending',
       deliveryDate: expectedDelivery
     });
@@ -271,9 +314,7 @@ const placeOrder = async (req, res) => {
 
     await OrderedItem.insertMany(orderedItems);
 
-    // Reduce stock
-    for (const item of cart.items) if (item.variantId) await decreaseStock(item.variantId._id, item.quantity);
-
+   
     // Record coupon usage
     if (req.session.coupon?.couponId) {
       await CouponUsage.create({ user_id: userId, coupon_id: req.session.coupon.couponId, usedAt: new Date() });
@@ -340,9 +381,43 @@ const createWalletOrder = async (req, res) => {
     const { shippingAddressId } = req.body;
 
     if (!userId) return res.status(401).json({ success: false, message: "User not authenticated" });
-    if (!shippingAddressId) return res.status(400).json({ success: false, message: "Shipping address is required" });
+    // if (!shippingAddressId) return res.status(400).json({ success: false, message: "Shipping address is required" });
+const address = await Address.findOne({
+  _id: shippingAddressId,
+  userId: userId
+});
 
-    const cart = await Cart.findOne({ user_id: userId }).populate("items.productId items.variantId");
+if (!address) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid shipping address"
+  });
+}
+
+   const validation = await validateCart(userId);
+
+    // 🔴 Single item & out of stock
+    if (validation.singleItemOut) {
+      return res.json({
+        success: false,
+        message: `${validation.removedItems[0]} is out of stock`,
+        redirect: "/cart"
+      });
+    }
+
+    // 🔴 Multi items removed
+    if (validation.removedItems?.length) {
+      return res.json({
+        success: false,
+        removedItems: validation.removedItems,
+        message: "Some products were removed"
+      });
+    }
+
+    const cart = validation.cart;
+
+
+    //const cart = await Cart.findOne({ user_id: userId }).populate("items.productId items.variantId");
     if (!cart || cart.items.length === 0) return res.status(400).json({ success: false, message: "Cart is empty" });
 
     const subtotal = cart.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
@@ -363,6 +438,31 @@ const createWalletOrder = async (req, res) => {
     const expectedDelivery = new Date();
     expectedDelivery.setDate(expectedDelivery.getDate() + 10);
 
+    for (const item of cart.items) {
+  if (item.variantId) {
+    const reserved = await reserveStock(item.variantId._id, item.quantity);
+
+    if (!reserved) {
+      return res.status(400).json({
+        success: false,
+        message: `${item.productId.product_name} is out of stock`
+      });
+    }
+  }
+}
+
+const shippingAddressSnapshot = {
+  name: address.name,
+  mobile: address.mobile,
+  pincode: address.pincode,
+  locality: address.locality,
+  addressLine: address.addressLine,
+  city: address.city,
+  state: address.state,
+  landmark: address.landmark,
+  addressType: address.addressType
+};
+
     // ✅ Include shippingAddressId and transactionId
     const order = await Order.create({
       orderId: "ORD-" + Date.now(),
@@ -372,7 +472,7 @@ const createWalletOrder = async (req, res) => {
       paymentStatus: "success",
       orderStatus: "pending",
       deliveryCharge,
-      shippingAddressId,
+      shippingAddress: shippingAddressSnapshot,
       transactionId: "WALLET-" + Date.now(), 
       couponApplied: req.session.coupon?.couponId || null,
       couponCode: req.session.coupon?.code || null,
@@ -399,11 +499,13 @@ const createWalletOrder = async (req, res) => {
     }));
     await OrderedItem.insertMany(orderedItems);
 
-    // Decrease stock
     for (const item of cart.items) {
-      if (item.variantId) await decreaseStock(item.variantId._id, item.quantity);
-    }
+  if (item.variantId) {
+    await confirmStock(item.variantId._id, item.quantity);
+  }
+}
 
+   
     // Wallet transaction
     await WalletTransaction.create({
       userId,
@@ -444,35 +546,68 @@ order_id: order._id
 const checkAvailability = async (req, res) => {
   try {
     const userId = req.user?.id || req.session.userId;
-    if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    const cart = await Cart.findOne({ user_id: userId }).populate('items.productId').lean();
-    if (!cart || !cart.items.length)
+    const cart = await Cart.findOne({ user_id: userId })
+      .populate("items.productId")
+      .lean();
+
+    if (!cart || !cart.items.length) {
       return res.json({ success: true, removedItems: [] });
+    }
 
-    const removedItems = [];
-    const availableItems = [];
+    let removedItems = [];
+    let availableItems = [];
 
     for (const item of cart.items) {
-      if (!item.productId || item.productId.isActive === false) {
+      if (!item.productId || !item.productId.isActive) {
         removedItems.push(item.productId?.product_name || "Unknown Product");
+        continue;
+      }
+
+      if (item.variantId) {
+        const inStock = await checkStock(item.variantId, item.quantity);
+
+        if (!inStock) {
+          removedItems.push(item.productId.product_name);
+        } else {
+          availableItems.push(item);
+        }
       } else {
         availableItems.push(item);
       }
     }
 
-    if (removedItems.length > 0) {
-      await Cart.findByIdAndUpdate(cart._id, { items: availableItems });
-      return res.json({ success: false, removedItems });
+    // 🔥 IMPORTANT LOGIC
+    if (cart.items.length === 1 && removedItems.length === 1) {
+      // Only one product and it is out of stock
+      return res.json({
+        success: false,
+        redirectToCart: true,
+        message: "Product is out of stock"
+      });
     }
 
-    return res.json({ success: true, removedItems: [] });
+    // Remove unavailable products if more than one
+    if (removedItems.length > 0) {
+      await Cart.updateOne(
+        { user_id: userId },
+        { $set: { items: availableItems } }
+      );
+    }
+
+    return res.json({
+      success: true,
+      removedItems
+    });
+
   } catch (err) {
     console.error("Check availability error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 
 

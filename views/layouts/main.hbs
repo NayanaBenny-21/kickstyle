@@ -13,11 +13,15 @@
 </head>
 
 <body>
+{{#unless hideHeader}}
   {{#if isUserLoggedIn}}
-  {{> user/header}}
-{{else if isAdminLoggedIn}}
-{{> admin/header}}
-{{/if}}
+    {{> user/header}}
+  {{else if isAdminLoggedIn}}
+    {{> admin/header}}
+  {{else}}
+    {{> guest/header}}
+  {{/if}}
+{{/unless}}
   <main class="container-fluid my-5">
     {{{body}}}
   </main>

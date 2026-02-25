@@ -1,4 +1,6 @@
 require("dotenv").config();
+require("./helpers/stockExpiryCron");
+
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
@@ -7,6 +9,7 @@ const MongoStore = require("connect-mongo");
 const passport = require("./config/passport");
 const connectDB = require("./config/db");
 const exphbs = require("express-handlebars");
+
 
 // -------------------- MIDDLEWARES --------------------
 const setAuthStatus = require("./middlewares/setAuthStatus");        // user
@@ -67,6 +70,8 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: false,
+      secure: false,        // true ONLY in HTTPS production
+      sameSite: "lax",      // 🔥 ADD THIS LINE
       maxAge: 72 * 60 * 60 * 1000,
     },
   })
@@ -81,10 +86,10 @@ app.use(setAuthStatus);
 app.use(wishlistMiddleware);
 
 // -------------------- USER ROUTES --------------------
-app.use("/", checkActiveUser, userRouter);
+
 app.use("/auth", authRouter);
 app.use("/search", searchRouter);
-
+app.use("/", checkActiveUser, userRouter);
 // -------------------- ADMIN SESSION --------------------
 app.use(
   "/admin",

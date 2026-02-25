@@ -4,6 +4,7 @@ if(!token) return next();
 try{
     jwt.verify(token, process.env.JWT_SECRET)
     return res.redirect('/');
+    
 } catch(err) {
     return next();
 }

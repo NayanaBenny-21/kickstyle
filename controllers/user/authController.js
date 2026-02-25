@@ -11,7 +11,7 @@ const generateReferralCode = require('../../helpers/generateReferralCode');
 // ***Load signup page***
 const loadSignup = async (req, res) => {
   try {
-    return res.render('user/signup');
+    return res.render('user/signup',{hideHeader: true});
   } catch (error) {
     console.log('Signup page not loading', error);
     res.status(500).send('Server Error');
@@ -123,17 +123,28 @@ else {
       console.log('Pending user saved:', pending);
 
     }
-req.session.otp = otp;
-req.session.otpSent = true;
-req.session.otpExpiresAt = Date.now() + 60 * 1000; 
 req.session.pendingEmail = email;
-    req.session.pendingUserId = pending._id;
-    // Send OTP email
-    await sendOTPEmail(email, otp);
+req.session.pendingUserId = pending._id;
+req.session.otp = otp;
+req.session.otpExpiresAt = Date.now() + 60 * 1000;
+req.session.otpSent = true;
 
+try {
+  await sendOTPEmail(email, otp);
+  console.log("OTP sent successfully");
+} catch (err) {
+  console.log("OTP send error:", err);
+}
 
-    return res.redirect('/auth/signup/verify-otp');
+req.session.save((err) => {
+  if (err) {
+    console.log("Session save failed:", err);
+    return res.redirect('/auth/signup');
+  }
 
+  console.log("Session saved. Redirecting now...");
+  res.redirect('/auth/signup/verify-otp');
+});
   } catch (error) {
     console.error("Signup error:", error);
     return res.status(500).render('user/signup', {
@@ -147,7 +158,7 @@ req.session.pendingEmail = email;
 const loadLoginPage = async (req, res) => {
   try {
       res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
-    return res.render('user/login');
+    return res.render('user/login',{hideHeader: true});
   } catch (error) {
     console.log('Login page not loading', error);
     res.status(500).send('Server Error');
@@ -159,7 +170,7 @@ const loginUser = async (req, res) => {
   console.log("req.body in login :", req.body);
   if (req.method !== "POST" || !req.body) {
     return res.status(400).render('user/login', {
-      general_error: "Invalid request", name: "", email: ""
+      general_error: "Invalid request", name: "", email: "", hideHeader: true
     });
   }
   let { email, password } = req.body;
@@ -170,23 +181,23 @@ const loginUser = async (req, res) => {
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$/;
   if (!passwordRegex.test(password)) general_error = "Password must include at least one letter, one number, and one special character.";
  if (general_error) {
-    return res.render("user/login", { general_error, email });
+    return res.render("user/login", { general_error, email, hideHeader: true });
   } 
   try {
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       console.log("swal_error: No account found");
-      return res.render("user/login", { swal: { text: "No account found with this email", icon: "error" } });
+      return res.render("user/login", { swal: { text: "No account found with this email", icon: "error" },  hideHeader: true });
     }
     if (existingUser.isBlocked) {
       console.log("swal_error: User blocked");
-      return res.render("user/login", { swal: { text: "Your account is blocked", icon: "warning" } });
+      return res.render("user/login", { swal: { text: "Your account is blocked", icon: "warning" },  hideHeader: true });
     }
     const isMatch = await bcrypt.compare(password, existingUser.password);
     if (!isMatch) {
       return res.render("user/login", {
         general_error: "Incorrect password",
-        email
+        email,  hideHeader: true
       });
     }
     const otp = generateOTP();
@@ -203,7 +214,7 @@ req.session.loginOTPSent = true;
     console.error("Login error:", error);
     return res.render("user/login", {
       email,
-      swal: { text: "Something went wrong. Please try again later", icon: "error" }
+      swal: { text: "Something went wrong. Please try again later", icon: "error",  hideHeader: true }
     });
   } 
 }
@@ -256,7 +267,7 @@ const logout = (req, res, next) => {
 
 
 const googleSuccess = (req, res) => {
-  if (!req.user) return res.send('<script>window.close();</script>'); // close popup if no user
+  if (!req.user) return res.send('<script>window.close();</script>'); 
 
   req.session.userId = req.user._id;
 

@@ -143,14 +143,16 @@ const loadOrderedItemDetailsPage = async (req, res) => {
   try {
     const { itemId } = req.params;
 
-    const item = await OrderedItem.findById(itemId)
-      .populate("productId")
-      .populate("variantId")
-      .populate({
-        path: "orderId",
-        populate: { path: "shippingAddressId user_id" }
-      })
-      .lean();
+ const item = await OrderedItem.findById(itemId)
+  .populate("productId")
+  .populate("variantId")
+  .populate({
+    path: "orderId",
+    populate: { path: "user_id" } // only populate user
+  })
+  .lean();
+
+const shippingAddress = item.orderId?.shippingAddress || null;
 
     if (!item) {
       return res.render("admin/orderedItemDetails", {
@@ -188,7 +190,7 @@ const loadOrderedItemDetailsPage = async (req, res) => {
     ...item.orderId,
     formattedDate: formattedOrderDate   
   },
-  address: item.orderId?.shippingAddressId || null,
+    address: shippingAddress,
   totalAmount
 });
 

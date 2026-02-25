@@ -8,7 +8,7 @@ const { generateOTP, sendOTPEmail } = require('../../helpers/otp_email');
 //----------Load login page----------
 const loadLoginPage = async (req, res) => {
   try {
-    return res.render('admin/login');
+    return res.render('admin/login',{hideHeader: true});
   } catch (error) {
     console.log('Login page not loading', error);
     res.status(500).send('Server Error');
@@ -25,16 +25,16 @@ const loginAdmin = async (req, res) => {
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$/;
   if (!passwordRegex.test(password)) error = "Password must include at least one letter, one number, and one special character.";
  if (error) {
-    return res.render("admin/login", { error, email });
+    return res.render("admin/login", { error, email,hideHeader: true });
   } 
     const admin = await Admin.findOne({ email });
     if (!admin) {
-      return res.render('admin/login', { error: "No admin found" });
+      return res.render('admin/login', { error: "No admin found", hideHeader: true });
     }
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.render('admin/login', { error: "Incorrect password" });
+      return res.render('admin/login', { error: "Incorrect password", hideHeader: true });
     }
     const otp = generateOTP(); 
     req.session.adminLoginOTP = otp;
@@ -48,7 +48,7 @@ await sendOTPEmail(email, otp);
 
   } catch (err) {
     console.error("Admin login error:", err);
-    return res.render('admin/login', { error: "Server error" });
+    return res.render('admin/login', { error: "Server error", hideHeader: true });
   }
 };
 //----------------load login verification---------------
@@ -66,7 +66,8 @@ const loadLoginVerify = async (req, res) => {
             otpSent: true,
             showToast: true,
             remainingTime,
-            otpSuccess: false
+            otpSuccess: false,
+            hideHeader: true
         });
 
     } catch (error) {
@@ -118,7 +119,8 @@ const loginVerifyOtp = async (req, res) => {
                 error: "OTP invalid or expired",
                 otpSent: false,
                 showToast: false,
-                remainingTime
+                remainingTime,
+                hideHeader: true
             });
         }
         if (otp !== req.session.adminLoginOTP) {
@@ -128,12 +130,15 @@ const loginVerifyOtp = async (req, res) => {
                 otpSent: false,
                 remainingTime,
                 showToast : false,
-                 otpSuccess: false
+                 otpSuccess: false,
+                 hideHeader: true
             });
         }
       const admin = await Admin.findOne({ email });
     if (!admin) {
-      return res.render('admin/confirmWithOTP', { error: "Admin not found" });
+      return res.render('admin/confirmWithOTP', { error: "Admin not found",
+        hideHeader: true
+       });
     }
 
     const payload = { id: admin._id, email: admin.email, role: 'admin' };
@@ -157,7 +162,7 @@ return res.redirect('/admin/dashboard');
 
   } catch (error) {
     console.error("Admin OTP verify error:", error);
-    res.render('admin/confirmWithOTP', { error: 'Server error' });
+    res.render('admin/confirmWithOTP', { error: 'Server error', hideHeader: true });
   }
 };
 

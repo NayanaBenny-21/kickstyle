@@ -28,6 +28,7 @@ const loadUserProfile = async (req, res) => {
 const loadUserEditProfile = async (req, res) => {
     try {
         const userId = req.user ? req.user.id : req.session.userId;
+        console.log("userId in profile : ",userId)
         if (!userId) return res.redirect('/auth/login');
 
         const user = await User.findById(userId).lean();

@@ -142,12 +142,19 @@ function editAddress(id) {
   window.location.href = '/address/edit/' + id + '?from=checkout';
 }
 
-document.getElementById('nextBtn').addEventListener('click', () => {
+{{!-- document.getElementById('nextBtn').addEventListener('click', () => {
   const selected = document.querySelector('input[name="selectedAddress"]:checked');
-  if (!selected) {
-    alert('Please select a delivery address');
-    return;
-  }
+    if (!selected) {
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Please select a delivery address'
+      });
+
+      return;
+    }
+
   window.location.href = '/checkout?address=' + selected.value + '&buyNow={{buyNow}}';
 });
-</script>
+</script> --}}

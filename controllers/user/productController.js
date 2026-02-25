@@ -13,8 +13,7 @@ const loadProductsPage = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 4;
     const skip = (page - 1) * limit;
-    const userId = req.user?.id;
-    if (!userId) return res.redirect("/auth/login");
+
     // ---------- Variant filtering ----------
     const variantFilter = {};
     if (req.query.color)
@@ -36,31 +35,35 @@ const loadProductsPage = async (req, res) => {
     if (req.query.brand)
       productFilter.brand = { $in: [].concat(req.query.brand) };
 
-    const totalProducts = await Product.countDocuments(productFilter);
-    const totalPages = Math.ceil(totalProducts / limit);
+    // ✅ 1️⃣ GET ALL FILTERED PRODUCTS (NO skip, NO limit)
+    let allProducts = await Product.find(productFilter).lean();
 
-    const dbProducts = await Product.find(productFilter)
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    // Apply offer 
+    // ✅ 2️⃣ APPLY OFFER TO ALL
     let productsWithOffers = await Promise.all(
-      dbProducts.map(p => applyBestOfferToProduct(p))
+      allProducts.map(p => applyBestOfferToProduct(p))
     );
 
-    // ---------- Sorting AFTER offer calculation ----------
+    // ✅ 3️⃣ SORT ALL PRODUCTS GLOBALLY
     if (sortQuery === "priceLowHigh") {
       productsWithOffers.sort((a, b) => a.final_price - b.final_price);
-    } else if (sortQuery === "priceHighLow") {
+    } 
+    else if (sortQuery === "priceHighLow") {
       productsWithOffers.sort((a, b) => b.final_price - a.final_price);
-    } else {
+    } 
+    else {
       productsWithOffers.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
     }
 
-    const products = productsWithOffers.map(p => ({
+    // ✅ 4️⃣ NOW PAGINATE AFTER SORTING
+    const totalProducts = productsWithOffers.length;
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    const paginatedProducts = productsWithOffers.slice(skip, skip + limit);
+
+    // ✅ 5️⃣ MAP FOR FRONTEND
+    const products = paginatedProducts.map(p => ({
       _id: p._id,
       name: p.product_name,
       brand: p.brand,
@@ -99,10 +102,9 @@ const LoadProductDetailsPage = async (req, res) => {
   try {
     const productId = req.params.productId;
     const userId = req.user?.id;
-    if (!userId) return res.redirect("/auth/login");
 let product = await Product.findOne({ 
   _id: productId,
-  isActive: true // only active products
+  isActive: true 
 }).lean();
 
     if (!product) {
@@ -111,7 +113,7 @@ let product = await Product.findOne({
       });
     }
 
-    // 🔥 Apply offer (base_price → final_price)
+    //  Apply offer (base_price → final_price)
     product = await applyBestOfferToProduct(product);
 
     // --- Description ---
@@ -132,7 +134,7 @@ let product = await Product.findOne({
     const sizesWithStock = variants.map(v => ({
       size: v.size,
       color: v.color,
-      stock: v.stock,
+      stock: Math.max(v.stock - (v.reservedStock || 0), 0),
       variantId: v._id
     }));
 

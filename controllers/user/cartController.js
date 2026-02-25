@@ -6,11 +6,18 @@ const { applyBestOfferToProduct } = require("../../helpers/offerHelper");
 
 // ----- ADD TO CART -----
 const addToCart = async (req, res) => {
-  const userId = req.user?.id;
-  if (!userId) return res.status(401).json({ success: false, message: 'User not found' });
+   const userId = req.user?.id || req.session.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      message: "Please login first"
+    });
+  }
+
 
   const { productId, variantId, quantity } = req.body;
-   console.log("🟦 Add to Cart Request Body:", req.body); 
+   console.log("🟦ZZ Add to Cart Request Body:", req.body); 
   if (!productId || !variantId || !quantity)
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   if (!variantId) return res.json({ success: false, message: "Variant not selected" });
@@ -187,7 +194,7 @@ product = await applyBestOfferToProduct(product);
     // Update quantity, price AND totalPrice
     item.quantity = qty;
     item.price = product.final_price;
-    item.totalPrice = product.final_price * qty; // <-- NEW: store price*qty in DB
+    item.totalPrice = product.final_price * qty; 
 
     // Mark items array as modified because of _id: false
     cart.markModified('items');
@@ -196,7 +203,7 @@ product = await applyBestOfferToProduct(product);
     // Recalculate totals for frontend
     let subTotal = 0;
     cart.items.forEach(ci => {
-      subTotal += ci.totalPrice; // <-- use totalPrice now
+      subTotal += ci.totalPrice; 
     });
 
     const shippingCharge = subTotal >= 1000 ? 0 : 40;
@@ -215,7 +222,7 @@ product = await applyBestOfferToProduct(product);
       success: true,
       message: 'Quantity updated successfully',
       quantity: item.quantity,
-      itemTotal: item.totalPrice, // <-- use totalPrice
+      itemTotal: item.totalPrice, 
       subTotal,
       shippingCharge,
       platformFee,
@@ -260,7 +267,7 @@ const removeItem = async (req, res) => {
 const getCartCount = async (req, res) => {
   try {
     const userId = req.user?._id || req.session.userId;
-    if (!userId) return res.json({ success: true, count: 0 }); // always JSON
+    if (!userId) return res.json({ success: true, count: 0 }); 
 
     const cart = await Cart.findOne({ user_id: userId });
     const count = cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
@@ -299,12 +306,16 @@ const checkStockBeforeOrder = async (req, res) => {
         continue;
       }
 
-      // 🔴 STOCK ISSUE
-      if (!variant || item.quantity > variant.stock) {
+      // 🔴 STOCK ISSUE WITH RESERVED STOCK
+      const reservedStock = variant?.reservedStock || 0;
+      const availableStock = variant ? Math.max(variant.stock - reservedStock, 0) : 0;
+
+      if (!variant || item.quantity > availableStock) {
         insufficientStock.push({
           productName: product.product_name,
           requested: item.quantity,
-          available: variant ? variant.stock : 0
+          available: availableStock,
+          reserved: reservedStock
         });
       }
     }
@@ -327,6 +338,7 @@ const checkStockBeforeOrder = async (req, res) => {
       });
     }
 
+    // All good
     return res.json({ success: true });
 
   } catch (err) {

@@ -47,9 +47,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const data = await res.json();
 
                 if (data.loginRequired) {
-                    return window.location.href = "/login";
-                }
+    Swal.fire({
+        title: "Login Required",
+        text: "Please login to add items to your wishlist",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Login",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#aaa"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "auth/login";
+        }
+    });
 
+    return;
+}
                 if (data.success) {
                     if (data.action === "added") {
                         icon.classList.remove("fa-regular");

@@ -6,21 +6,22 @@ const User = require("../../models/userSchema");
 const loadHomepage = async (req, res) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.redirect("/auth/login");
+    console.log(" Home userId", userId)
+   // if (!userId) return res.redirect("/auth/login");
  const user = await User.findById(userId);
-if (!user) {
-  req.logout(function (err) {
-    if (err) {
-      console.error("Logout error:", err);
-    }
+// if (!user) {
+//   req.logout(function (err) {
+//     if (err) {
+//       console.error("Logout error:", err);
+//     }
 
-    req.session.destroy(() => {
-      return res.redirect("/auth/login");
-    });
-  });
+//     req.session.destroy(() => {
+//       return res.redirect("/auth/login");
+//     });
+//   });
 
-  return;
-}
+//   return;
+// }
 
     const featuredProducts = await Product.find({
       isActive: true,

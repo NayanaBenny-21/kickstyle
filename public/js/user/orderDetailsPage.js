@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           try {
             const res = await fetch(url, { method: "POST" });
-            if (!res.ok) throw new Error(await res.text());
+    
 
             const data = await res.json();
             if (data.success) {

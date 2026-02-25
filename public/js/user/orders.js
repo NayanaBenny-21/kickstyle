@@ -38,21 +38,20 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation(); 
       e.preventDefault();
 
-      const orderId = btn.dataset.orderId;
-      const shippingAddressId = btn.dataset.shippingId;
+const orderId = btn.dataset.orderId;
 
-      if (!orderId || !shippingAddressId) {
-        return Swal.fire("Error", "Cannot retry payment: missing order info", "error");
-      }
+if (!orderId) {
+  return Swal.fire("Error", "Cannot retry payment: missing order ID", "error");
+}
 
       try {
-        console.log("Retry payment clicked:", orderId, shippingAddressId);
+        console.log("Retry payment clicked:", orderId);
 
         // Step 1: Call backend to create Razorpay order
         const res = await fetch("/razorpay/retry-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId, shippingAddressId })
+        body: JSON.stringify({ orderId })
         });
         const data = await res.json();
 
@@ -83,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
                   originalOrderId: orderId,
-                  shippingAddressId
+
                 })
               });
               const verifyData = await verifyRes.json();

@@ -58,27 +58,71 @@ document.querySelectorAll('.address-list .card').forEach(card => {
   })
 })
 
-document.getElementById('nextBtn').addEventListener('click', () => {
+document.getElementById('nextBtn').addEventListener('click', async () => {
   const selected = document.querySelector('input[name="selectedAddress"]:checked');
-  if (!selected) return alert('Please select an address');
-console.log('Next button clicked, selected address:', selected?.value);
+  if (!selected) {
+    return Swal.fire({
+      icon: 'warning',
+      title: 'Oops...',
+      text: 'Please select a delivery address'
+    });
+  }
 
-  fetch('/cart/select-address', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ addressId: selected.value })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) { 
-      console.log('Response from /cart/select-address:', data);
+  try {
+    const res = await fetch('/cart/select-address', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ addressId: selected.value })
+    });
 
-      window.location.href = '/checkout';
-    } else {
-      alert('Failed to select address.');
+    const data = await res.json();
+    console.log('Response from /cart/select-address:', data);
+
+ 
+
+    // ----- UNLISTED PRODUCTS -----
+    if (data.unlisted && data.items?.length > 0) {
+      const msg = data.items
+        .map(i => `${i.productName} is no longer available`)
+        .join('<br>');
+      return Swal.fire({
+        icon: 'error',
+        title: 'Product Unavailable',
+        html: msg,
+        allowOutsideClick: false
+      }).then(() => {
+        window.location.href = '/cart';
+      });
     }
-  });
-});
 
+    // ----- STOCK ISSUES -----
+    if (data.stockIssue && data.items?.length > 0) {
+      const msg = data.items
+        .map(i => i.available === 0 
+          ? `${i.productName} is Out of Stock` 
+          : `${i.productName}: only ${i.available} left (Reserved: ${i.reserved || 0})`)
+        .join("<br>");
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Stock Alert',
+        html: msg
+      }).then(() => {
+      
+        window.location.href = '/cart';
+      });
+    }
+
+      // ----- SUCCESS -----
+      if (data.success) {
+        window.location.href = "/checkout";
+      } else {
+        Swal.fire("Error", data.message || "Failed to select address.", "error");
+      }
+
+  } catch (err) {
+    console.error('Error selecting address:', err);
+    Swal.fire('Error', 'Something went wrong. Try again.', 'error');
+  }
+});
 });
 

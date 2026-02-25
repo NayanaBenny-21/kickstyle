@@ -38,7 +38,49 @@ try {
     console.error("Error restoring stock:", err);
   }
 }
+async function reserveStock(variantId, quantity) {
+  const variant = await Variant.findOneAndUpdate(
+    {
+      _id: variantId,
+      $expr: {
+        $gte: [
+          {
+            $subtract: [
+              { $ifNull: ["$stock", 0] },
+              { $ifNull: ["$reservedStock", 0] }
+            ]
+          },
+          quantity
+        ]
+      }
+    },
+    { $inc: { reservedStock: quantity } },
+    { new: true }
+  );
 
+  return !!variant;
+}
 
-module.exports = { decreaseStock, increaseStock };
+async function confirmStock(variantId, quantity) {
+  await Variant.findByIdAndUpdate(variantId, {
+    $inc: {
+      stock: -quantity,
+      reservedStock: -quantity
+    }
+  });
+}
+
+async function releaseStock(variantId, quantity) {
+  await Variant.findByIdAndUpdate(variantId, {
+    $inc: { reservedStock: -quantity }
+  });
+}
+
+const checkStock = async (variantId, quantity) => {
+  const variant = await Variant.findById(variantId).lean();
+  if (!variant) return false; // variant not found
+  const availableStock = (variant.stock || 0) - (variant.reservedStock || 0);
+  return availableStock >= quantity;
+};
+module.exports = { decreaseStock, increaseStock,reserveStock,confirmStock,releaseStock , checkStock};
 

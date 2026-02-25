@@ -22,18 +22,34 @@ const walletController = require("../../controllers/user/walletController");
 const {getCouponsPage, getAvailableCoupons} = require('../../controllers/user/couponController');
 const checkActiveUser = require('../../middlewares/checkActiveUserMiddleware');
 const {loadCategoryProducts} =  require('../../controllers/user/ProductListingController');
-
+const apiUserAuth = require('../../middlewares/apiUserAuth');
+const storeReturnTo = require('../../middlewares/returnToRoute');
+//const { isLoggedIn } = require("../../middlewares/Auth");
 //--------------------------------------------------------------------------------------------------------------------------------------------------
-router.get('/',authMiddleware, userController.loadHomepage );
-router.get('/products',authMiddleware, productController.loadProductsPage);
-router.get('/product/:productId/get-stock/:variantId',authMiddleware, productController.getVariantStock);
-router.get('/stock/:productId/:variantId',authMiddleware, productController.getLiveStock);
-router.get('/product/:productId',authMiddleware, productController.LoadProductDetailsPage);
-router.post('/add-to-cart', authMiddleware, cartController.addToCart)
+router.get('/', userController.loadHomepage );
+//  router.get('/', optionalAuth, userController.loadHomepage);
+
+
+// router.get('/auth/post-google-redirect', (req, res) => {
+//   const redirectUrl = req.session.returnTo || "/";
+//   delete req.session.returnTo;
+//   res.redirect(redirectUrl);
+// });
+
+router.get('/auth/post-google-redirect', (req, res) => {
+  const redirectUrl = req.session.returnTo || "/";
+  delete req.session.returnTo;
+  res.redirect(redirectUrl);
+});
+router.get('/products', productController.loadProductsPage);
+router.get('/product/:productId/get-stock/:variantId', productController.getVariantStock);
+router.get('/stock/:productId/:variantId', productController.getLiveStock);
+router.get('/product/:productId',  productController.LoadProductDetailsPage);
+router.post('/add-to-cart',apiUserAuth,cartController.addToCart)
 router.get("/products/:category", loadCategoryProducts);
 
 //--------------------CART&CHEKOUT------------------------------------------------------------------------------------------------------------
-router.get('/cart',cartController.loadCart);
+router.get('/cart',userAuthMiddleware,cartController.loadCart);
 router.patch("/cart/update-quantity", cartController.updateQuantity);
 router.delete("/cart/remove-item", cartController.removeItem);
 router.get('/cart/select-address', addressController.loadSelectAddressPage);
@@ -68,13 +84,13 @@ router.delete("/address/delete/:id", addressController.deleteAddress);
 
 router.get('/checkout', userAuthMiddleware, checkoutController.loadCheckOutPage);
 router.post('/checkout/apply-coupon', userAuthMiddleware, checkoutController.applyCoupon);
-router.post('/checkout/place-order', userAuthMiddleware, checkoutController.placeOrder);
+router.post('/checkout/place-order', apiUserAuth, checkoutController.placeOrder);
 router.get("/checkout/available-coupons", userAuthMiddleware, checkoutController.getAvailableCoupons);
 router.post('/checkout/check-availability', checkoutController.checkAvailability);
 
 //--------------------ORDERS------------------------------------------------------------------------------------------------------------
 
-router.get('/orders', orderController.loadOrdersPage);
+router.get('/orders', userAuthMiddleware,orderController.loadOrdersPage);
 router.get("/order-success/:id", orderController.loadOrderSuccessPage);
 router.post('/orders/cancel-order/:orderId', orderController.cancelEntireOrder);
 router.post('/orders/cancel-item/:itemId', orderController.cancelOrderedItem);
@@ -91,9 +107,9 @@ router.post('/orders/:orderId/return-order', orderController.returnEntireOrder)
 router.post('/orders/return-item/:itemId', returnOrderedItem);
 //--------------------WHISHLIST------------------------------------------------------------------------------------------------------------
 
-router.get('/wishlist', wishlistController.loadWishlistPage)
+router.get('/wishlist', userAuthMiddleware,wishlistController.loadWishlistPage)
 router.get("/wishlist/all", wishlistController.getAllWishlist);
-router.post("/wishlist/toggle/:productId", wishlistController.toggleWishlist);
+router.post("/wishlist/toggle/:productId", apiUserAuth,wishlistController.toggleWishlist);
 
 router.delete(
   "/wishlist/remove/:productId",
@@ -116,6 +132,9 @@ router.post("/razorpay/verify-retry-payment", verifyRetryPayment);
 router.get("/wallet",walletController.loadWalletPage);
 router.post("/checkout/wallet-order", checkoutController.createWalletOrder);
 router.post("/wallet/check-balance", userAuthMiddleware, checkoutController.checkWalletBalance);
+
+
+
 
 //COUPON
 router.get('/coupons',getCouponsPage);

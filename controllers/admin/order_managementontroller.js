@@ -115,7 +115,6 @@ exports.getOrderlevelPage = async (req, res) => {
 
     const order = await Order.findOne({ orderId })
       .populate("user_id", "name")
-      .populate("shippingAddressId")
       .lean();
 
     if (!order) return res.status(404).send("Order not found");
@@ -149,7 +148,7 @@ const fullOrderReturnRequested =
         paymentMethod: order.paymentMethod,
         paymentStatus: order.paymentStatus,
  orderStatus: order.orderStatus,         deliveryDate: order.deliveryDate,
-        shippingAddress: order.shippingAddressId
+     shippingAddress: order.shippingAddress
       },
       orderedItems: itemsForView,
       fullOrderReturnRequested

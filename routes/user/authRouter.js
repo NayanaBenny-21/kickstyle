@@ -9,21 +9,21 @@ const noCache = require('../../middlewares/noCache');
 
 //SIGNUP 
 router.get('/signup', loggedInUserRedirect, authController.loadSignup);
-router.post('/signup', loggedInUserRedirect, authController.signupUser);
-router.get('/signup/verify-otp',loggedInUserRedirect, otpController.loadSignupVerify);
-router.post('/signup/resend-otp', loggedInUserRedirect,otpController.signupResendOtp);
-router.post('/signup/verify-otp', loggedInUserRedirect,otpController.signupVerifyOtp);
+router.post('/signup', authController.signupUser);
+router.get('/signup/verify-otp', otpController.loadSignupVerify);
+router.post('/signup/resend-otp', otpController.signupResendOtp);
+router.post('/signup/verify-otp', otpController.signupVerifyOtp);
 
 //LOGIN
 router.get('/login', loggedInUserRedirect, authController.loadLoginPage);
-router.post('/login', loggedInUserRedirect, authController.loginUser);
+router.post('/login', authController.loginUser);
 router.get('/login/verify-otp', loggedInUserRedirect, otpController.loadLoginVerify);
 router.post('/login/verify-otp', loggedInUserRedirect, otpController.loginVerifyOtp);
 router.post('/login/resend-otp', loggedInUserRedirect, otpController.loginResendOtp);
 
 //FORGOT PASSWORD
 router.get('/forgot-password', loggedInUserRedirect, forgotPasswordController.loadForgotPassword );
-router.post('/forgot-password', loggedInUserRedirect, forgotPasswordController.forgotPassword);
+router.post('/forgot-password', forgotPasswordController.forgotPassword);
 router.get('/forgot-password/verify-otp',loggedInUserRedirect, forgotPasswordController.loadResetVerify);
 router.post('/forgot-password/verify-otp', loggedInUserRedirect, forgotPasswordController.resetVerifyOtp);
 router.post('/forgot-password/resend-otp',  loggedInUserRedirect,forgotPasswordController.resetResendOtp);

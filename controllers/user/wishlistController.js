@@ -7,7 +7,10 @@ const Variant = require("../../models/variantSchema");
    GET USER ID (COMMON FUNCTION)
 ======================================================= */
 function getUserId(req) {
-  return req.user ? req.user.id : req.session.userId;
+
+  return req.user?._id || req.user?.id || null;
+
+  
 }
 
 
@@ -78,7 +81,15 @@ const getAllWishlist = async (req, res) => {
 const toggleWishlist = async (req, res) => {
   try {
     const userId = getUserId(req);
-    if (!userId) return res.redirect('/auth/login');
+    console.log("toggle wishlist : ", userId);
+    
+  if (!userId) {
+return res.status(401).json({
+  success: false,
+  loginRequired: true,
+  message: "Please login to add items to your wishlist"
+});
+}
 
     const productId = req.params.productId;
 

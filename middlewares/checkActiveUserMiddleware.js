@@ -1,8 +1,8 @@
 // middlewares/checkActiveUserMiddleware.js
 module.exports = async function checkActiveUser(req, res, next) {
   try {
-    const user = req.user; // Passport sets req.user
-    if (!user) return next(); // Not logged in, proceed
+    const user = req.user; 
+    if (!user) return next(); 
 
     if (user.isBlocked) {
       // Clear EVERYTHING
@@ -23,7 +23,7 @@ module.exports = async function checkActiveUser(req, res, next) {
       res.locals.isAdminLoggedIn = false;
       res.locals.user = null;
 
-      return res.render('user/blocked');
+      return res.render('user/blocked',{hideHeader: true});
     }
 
     next();

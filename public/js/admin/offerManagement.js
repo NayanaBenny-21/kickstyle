@@ -78,4 +78,31 @@ document.querySelectorAll('.delete-offer').forEach(btn => {
     }
   });
 });
+
+// SEARCH CLEAR 
+const searchInput = document.getElementById("searchInput");
+
+if (searchInput) {
+
+  function clearSearchIfEmpty() {
+    if (searchInput.value === "") {
+
+      const url = new URL(window.location.href);
+
+      // remove only search + reset page
+      url.searchParams.delete("search");
+      url.searchParams.delete("page");
+
+      // keep other filters (status, offerType, etc.)
+      window.location.href = url.toString();
+    }
+  }
+
+  // while typing
+  searchInput.addEventListener("input", clearSearchIfEmpty);
+
+  // when clicking clear
+  searchInput.addEventListener("search", clearSearchIfEmpty);
+}
+
 });

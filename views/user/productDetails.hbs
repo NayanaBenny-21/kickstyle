@@ -8,68 +8,67 @@
     <div class="col-md-6">
 
       <!-- Main Image with Zoom -->
-<div class="main-image position-relative text-center mb-3">
-  <div class="zoom-container" 
-       style="width:100%; height:400px; overflow:hidden; position:relative;">
-    <img src="{{{product.images.main}}}" 
-         alt="{{product.product_name}}" 
-         class="img-fluid rounded shadow-sm zoom-image" 
-         id="mainProductImage"
-         style="width:100%; height:100%; object-fit:contain; transition: transform 0.2s ease;">
-  </div>
-<button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" 
-        data-product-id="{{product._id}}">
-{{#if (includes wishlistProductIds product._id)}}
-    <i class="fa-solid fa-heart red-heart"></i>
-{{else}}
-    <i class="fa-regular fa-heart"></i>
-{{/if}}
-
-</button>
-
-
-</div>
-
-<div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-  {{#each product.images.gallery}}
-    <img src="{{{this}}}" alt="thumbnail" 
-         class="img-thumbnail small-thumb" 
-         style="width:80px; height:80px; cursor:pointer;"
-         onclick="changeMainImage('{{{this}}}')">
-  {{/each}}
-</div>
-
-    </div>
-
-   <!-- Product Info Section -->
-<div class="col-md-6">
-  <h3 class="fw-bold">{{product.product_name}}</h3>
-
-  <!-- Price -->
-  <div class="mb-3">
-    <h4 class="fw-bold  d-inline">₹{{product.final_price}}</h4>
-    {{#if product.base_price}}
-      <span class="text-decoration-line-through text-muted ms-2">₹{{product.base_price}}</span>
-                    <span class="badge bg-danger">-{{product.discount_percentage}}%</span>
-    {{/if}}
-  </div>
-  <!-- Colors with images -->
-  <div class="colors mb-3">
-    <p class="fw-semibold mb-1">Colors:</p>
-    <div class="d-flex gap-2 flex-wrap">
-      {{#each product.colors}}
-        <div class="text-center">
-          <p class="small mb-0">{{this}}</p>
-          <img src="{{lookup ../product.colorImages this}}" 
-               alt="{{this}}" 
-               class="img-thumbnail color-thumb mb-1 {{#if (eq this ../selectedColor)}}border-dark selected{{/if}}"  
-               style="width:50px; height:50px; cursor:pointer;" data-color="{{this}}"
-                 onclick="selectColor('{{this}}', '{{lookup ../product.colorImages this}}')">
-          
+      <div class="main-image position-relative text-center mb-3">
+        <div class="zoom-container" style="width:100%; height:400px; overflow:hidden; position:relative;">
+          <img src="{{{product.images.main}}}" alt="{{product.product_name}}"
+            class="img-fluid rounded shadow-sm zoom-image" id="mainProductImage"
+            style="width:100%; height:100%; object-fit:contain; transition: transform 0.2s ease;">
         </div>
-      {{/each}}
+        <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" data-product-id="{{product._id}}">
+          {{#if (includes wishlistProductIds product._id)}}
+          <i class="fa-solid fa-heart red-heart"></i>
+          {{else}}
+          <i class="fa-regular fa-heart"></i>
+          {{/if}}
+
+        </button>
+
+
+      </div>
+
+      <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+        {{#each product.images.gallery}}
+        <img src="{{{this}}}" alt="thumbnail" class="img-thumbnail small-thumb"
+          style="width:80px; height:80px; cursor:pointer;" onclick="changeMainImage('{{{this}}}')">
+        {{/each}}
+      </div>
+
     </div>
-  </div>
+
+    <!-- Product Info Section -->
+    <div class="col-md-6">
+      <h3 class="fw-bold">{{product.product_name}}</h3>
+
+      <!-- Price -->
+      <div class="mb-3">
+        <h4 class="fw-bold d-inline">₹{{product.final_price}}</h4>
+
+        {{#if (gt product.discount_percentage 0)}}
+        <span class="text-decoration-line-through text-muted ms-2">
+          ₹{{product.base_price}}
+        </span>
+
+        <span class="badge bg-danger ms-2">
+          -{{product.discount_percentage}}%
+        </span>
+        {{/if}}
+      </div>
+      <!-- Colors with images -->
+      <div class="colors mb-3">
+        <p class="fw-semibold mb-1">Colors:</p>
+        <div class="d-flex gap-2 flex-wrap">
+          {{#each product.colors}}
+          <div class="text-center">
+            <p class="small mb-0">{{this}}</p>
+            <img src="{{lookup ../product.colorImages this}}" alt="{{this}}"
+              class="img-thumbnail color-thumb mb-1 {{#if (eq this ../selectedColor)}}border-dark selected{{/if}}"
+              style="width:50px; height:50px; cursor:pointer;" data-color="{{this}}"
+              onclick="selectColor('{{this}}', '{{lookup ../product.colorImages this}}')">
+
+          </div>
+          {{/each}}
+        </div>
+      </div>
 
 
 
@@ -78,129 +77,139 @@
         <p class="fw-semibold mb-1">Size:</p>
         <div class="d-flex flex-wrap gap-2" id="sizeButtons">
           {{#each product.sizesWithStock}}
-            <div class="text-center">
-              <button 
-                class="btn btn-sm size-btn {{#if (eq this.stock 0)}}{{else}}btn-outline-dark{{/if}}"
-                data-size="{{this.size}}" data-color="{{this.color}}"
-                data-variant-id="{{this.variantId}}" data-stock="{{this.stock}}"
-                {{#if (eq this.stock 0)}}disabled{{/if}}>
-                {{this.size}}
-              </button>
+          <div class="text-center">
+            <button class="btn btn-sm size-btn {{#if (eq this.stock 0)}}{{else}}btn-outline-dark{{/if}}"
+              data-size="{{this.size}}" data-color="{{this.color}}" data-variant-id="{{this.variantId}}"
+              data-stock="{{this.stock}}" {{#if (eq this.stock 0)}}disabled{{/if}}>
+              {{this.size}}
+            </button>
 
-              {{#if (gt this.stock 0)}}
-                {{#if (lte this.stock 2)}}
-                  <!-- Stock message, hidden by default -->
-                  <p class="text-danger small mb-1 stock-msg" data-color="{{this.color}}" style="display: none;">
-                    {{this.stock}} left
-                  </p>
-                {{/if}}
-              {{/if}}
-            </div>
+            {{#if (gt this.stock 0)}}
+            {{#if (lte this.stock 2)}}
+            <!-- Stock message, hidden by default -->
+            <p class="text-danger small mb-1 stock-msg" data-color="{{this.color}}" style="display: none;">
+              {{this.stock}} left
+            </p>
+            {{/if}}
+            {{/if}}
+          </div>
           {{/each}}
         </div>
       </div>
 
-  <!-- Quantity -->
-  <div class="mb-3">
-    <label for="quantity" class="fw-semibold">Quantity:</label>
-    <input type="number" id="quantity" name="quantity" min="1" value="1" class="form-control w-25 d-inline ms-2" style="width: 15% !important;">
-  </div>
-
-  <!-- Stock Status -->
-  {{#if (eq product.stock 0)}}
-    <p class="text-danger fw-semibold">✖ Out of Stock</p>
-  {{/if}}
-  <input type="hidden" id="productId" value="{{product._id}}">
-<input type="hidden" id="variantId" value="{{selectedVariant._id}}">
-
-
-  <!-- Buttons -->
-<div class="d-flex flex-column gap-2 mt-4 ">
-  <button class="addToCartBtn btn btn-light px-4 py-2 w-50 text-black fw-bold" data-product-id="{{product._id}}" {{#unless (gt product.stock 0)}}disabled{{/unless}}>ADD TO CART</button>
-  <button id="buyNowBtn" class="btn btn-warning px-4 py-2 w-50 text-white fw-bold" {{#unless (gt product.stock 0)}}disabled{{/unless}}>BUY IT NOW</button>
-</div>
-  <small class="d-block mt-2 text-muted fw-semibold">Customer Safe Checkout</small>
-</div>
-
-  <hr class="my-5">
-
-  <!-- Description Section -->
-  <div class="mt-4">
-    <h5 class="fw-bold mb-3">Description</h5>
-    <ul class="list-unstyled">
-      {{#each product.description}}
-        <li class="mb-1">• {{this}}</li>
-      {{/each}}
-    </ul>
-  </div>
-<div class="alert text-danger mt-4 p-3 rounded-3 shadow-sm">
-    <span class="fs-5">🚚 <strong>Pre-order Notice:</strong></span>
-    <p class="mb-0 mt-1 small">
-      All pre-orders will be shipped within <strong>3 weeks</strong> after placing your order.<br>
-      Thank you for your patience and continued support!
-    </p>
-  </div>
-  
-  <hr class="my-5">
-
-  <!-- Similar Products Section -->
- <h4 class="fw-bold mb-4">You May Also Like</h4>
-<div class="row g-4">
-  {{#each similarProducts}}
-  <div class="col-6 col-md-4 col-lg-3 mb-4">
-          <div class="card h-100 shadow-sm">
-        <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" data-product-id="{{this._id}}">
-{{#if (includes wishlistProductIds product._id)}}
-    <i class="fa-solid fa-heart red-heart"></i>
-{{else}}
-    <i class="fa-regular fa-heart"></i>
-{{/if}}
-        </button>
-    <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
-
-
-        <img src="{{this.images.main}}" class="card-img-top" style="height: 300px; object-fit: cover;" alt="{{this.product_name}}">
-        <div class="card-body p-2">
-          <h6 class="card-title fw-bold mb-1">{{this.brand}}</h6>
-          <p class="mb-1" style="font-size: small;">{{this.product_name}}</p>
-          <div class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
-            <p class="fw-bold mb-0" style="font-size: small;">₹{{this.final_price}}</p>
-            <p class="mb-0 text-muted" style="font-size: small;"><s>₹{{this.base_price}}</s></p>
-          </div>
-          {{#if this.discount_percentage}}
-            <span class="badge bg-danger">-{{this.discount_percentage}}%</span>
-          {{/if}}
-        </div>
+      <!-- Quantity -->
+      <div class="mb-3">
+        <label for="quantity" class="fw-semibold">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" value="1" class="form-control w-25 d-inline ms-2"
+          style="width: 15% !important;">
       </div>
-    </a>
+
+      <!-- Stock Status -->
+      {{#if (eq product.stock 0)}}
+      <p class="text-danger fw-semibold">✖ Out of Stock</p>
+      {{/if}}
+      <input type="hidden" id="productId" value="{{product._id}}">
+      <input type="hidden" id="variantId" value="{{selectedVariant._id}}">
+
+
+      <!-- Buttons -->
+      <div class="d-flex flex-column gap-2 mt-4 ">
+        <button class="addToCartBtn btn btn-light px-4 py-2 w-50 text-black fw-bold" data-product-id="{{product._id}}"
+          {{#unless (gt product.stock 0)}}disabled{{/unless}}>ADD TO CART</button>
+        <button id="buyNowBtn" class="btn btn-warning px-4 py-2 w-50 text-white fw-bold" {{#unless (gt product.stock
+          0)}}disabled{{/unless}}>BUY IT NOW</button>
+      </div>
+      <small class="d-block mt-2 text-muted fw-semibold">Customer Safe Checkout</small>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- Description Section -->
+    <div class="mt-4">
+      <h5 class="fw-bold mb-3">Description</h5>
+      <ul class="list-unstyled">
+        {{#each product.description}}
+        <li class="mb-1">• {{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+    <div class="alert text-danger mt-4 p-3 rounded-3 shadow-sm">
+      <span class="fs-5">🚚 <strong>Pre-order Notice:</strong></span>
+      <p class="mb-0 mt-1 small">
+        All pre-orders will be shipped within <strong>3 weeks</strong> after placing your order.<br>
+        Thank you for your patience and continued support!
+      </p>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- Similar Products Section -->
+    <h4 class="fw-bold mb-4">You May Also Like</h4>
+    <div class="row g-4">
+      {{#each similarProducts}}
+      <div class="col-6 col-md-4 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm">
+          <button class="btn btn-light position-absolute top-0 end-0 m-2 wishlist-btn" data-product-id="{{this._id}}">
+            {{#if (includes wishlistProductIds product._id)}}
+            <i class="fa-solid fa-heart red-heart"></i>
+            {{else}}
+            <i class="fa-regular fa-heart"></i>
+            {{/if}}
+          </button>
+          <a href="/product/{{this._id}}" class="text-decoration-none text-dark">
+
+
+            <img src="{{this.images.main}}" class="card-img-top" style="height: 300px; object-fit: cover;"
+              alt="{{this.product_name}}">
+            <div class="card-body p-2">
+              <h6 class="card-title fw-bold mb-1">{{this.brand}}</h6>
+              <p class="mb-1" style="font-size: small;">{{this.product_name}}</p>
+              <div class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
+                <p class="fw-bold mb-0" style="font-size: small;">₹{{this.final_price}}</p>
+
+                {{#if (gt this.discount_percentage 0)}}
+                <p class="mb-0 text-muted" style="font-size: small;">
+                  <s>₹{{this.base_price}}</s>
+                </p>
+                {{/if}}
+              </div>
+
+              {{#if (gt this.discount_percentage 0)}}
+              <span class="badge bg-danger">
+                -{{this.discount_percentage}}%
+              </span>
+              {{/if}}
+            </div>
+        </div>
+        </a>
+      </div>
+      {{/each}}
+
+    </div>
   </div>
-  {{/each}}
 
-</div>
-</div>
+  <!--  Zoom & Image Change Script -->
+  <script>
+    function changeMainImage(src) {
+      document.getElementById('mainProductImage').src = src;
+    }
 
-<!--  Zoom & Image Change Script -->
-<script>
-  function changeMainImage(src) {
-    document.getElementById('mainProductImage').src = src;
-  }
+    // Zoom functionality
+    const zoomContainer = document.querySelector('.zoom-container');
+    const zoomImage = document.querySelector('.zoom-image');
 
-  // Zoom functionality
-  const zoomContainer = document.querySelector('.zoom-container');
-  const zoomImage = document.querySelector('.zoom-image');
+    zoomContainer.addEventListener('mousemove', function (e) {
+      const rect = zoomContainer.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      zoomImage.style.transformOrigin = `${x}% ${y}%`;
+      zoomImage.style.transform = "scale(2)";
+    });
 
-  zoomContainer.addEventListener('mousemove', function(e) {
-    const rect = zoomContainer.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    zoomImage.style.transformOrigin = `${x}% ${y}%`;
-    zoomImage.style.transform = "scale(2)";
-  });
+    zoomContainer.addEventListener('mouseleave', function () {
+      zoomImage.style.transform = "scale(1)";
+    });
+  </script>
 
-  zoomContainer.addEventListener('mouseleave', function() {
-    zoomImage.style.transform = "scale(1)";
-  });
-</script>
-
-<script src="/js/user/productDetails.js"></script>
-<script src="/js/user/wishlist.js"></script>
+  <script src="/js/user/productDetails.js"></script>
+  <script src="/js/user/wishlist.js"></script>

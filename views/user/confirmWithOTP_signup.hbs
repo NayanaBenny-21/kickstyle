@@ -1,4 +1,3 @@
-
 <div class="otp-box text-center">
   <h5 class="fw-bold">Verify Your Email</h5>
 
@@ -6,7 +5,7 @@
   <p class="text-danger">{{error}}</p>
   {{/if}}
 
-  <form action="/auth/signup/verify-otp" method="POST">
+  <form id="otpForm">
     <input type="hidden" name="email" value="{{email}}">
     <div class="d-flex justify-content-center mb-3 gap-2">
       <input type="text" inputmode="numeric" maxlength="1" name="otp1" class="otp-input" required>
@@ -15,7 +14,7 @@
       <input type="text" inputmode="numeric" maxlength="1" name="otp4" class="otp-input" required>
     </div>
 
-    <p class="text-danger small mb-2" id="timer" >1:00 left</p>
+    <p class="text-danger small mb-2" id="timer"></p>
 
     <button id="resend" type="button" style="display:none">Resend OTP</button>
 
@@ -30,9 +29,9 @@
 </div>
 
 <script>
-    window.remainingTime = {{remainingTime}};
-  window.otpSent = {{#if otpSent}}true{{else}}false{{/if}}; 
-
+  window.remainingTime = {{ remainingTime }};
+  window.otpSent = {{ #if otpSent }}true{ {else } } false{ {/if } };
+  window.otpExpired = {{ #if otpExpired }}true{ {else } } false{ {/if } };
 </script>
- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/user/signup_otp.js"></script>

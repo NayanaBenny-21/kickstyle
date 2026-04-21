@@ -149,30 +149,97 @@ const loadAddCouponPage = async (req, res) => {
 
 const addNewCoupon = async (req, res) => {
   try {
-    const data = {
-      couponName: req.body.name,
-      couponCode: req.body.couponCode,
-      description: req.body.description,
-      discountType: req.body.discountType,
-      discountValue: req.body.discountValue,
-      minOrderAmount: req.body.minOrder,
-      maxDiscountAmount: req.body.maxDiscount,
-      usageLimit: req.body.limit,
-      perUserLimit: req.body.perUserLimit,
-      startDate: req.body.startDate,
-      expiryDate: req.body.expiryDate,
-      terms: req.body.termsAndConditions || [],
-      isActive: req.body.isActive === "true" ? true : false
-    };
+    const {
+      name,
+      couponCode,
+      description,
+      discountType,
+      discountValue,
+      minOrder,
+      maxDiscount,
+      limit,
+      perUserLimit,
+      startDate,
+      expiryDate,
+      termsAndConditions,
+      isActive
+    } = req.body;
 
+    const errors = {};
 
-    await Coupon.create(data);
+    // ===== VALIDATIONS =====
+    if (!name || name.trim() === "") {
+      errors.name = "Coupon name is required";
+    }
 
- 
-    res.redirect('/admin/coupon-management');
+    if (!couponCode || couponCode.trim() === "") {
+      errors.couponCode = "Coupon code is required";
+    }
+
+    if (!discountType) {
+      errors.discountType = "Select discount type";
+    }
+
+    // 🔥 FLAT VALIDATION
+    if (discountType === "flat") {
+      if (!discountValue || discountValue <= 0) {
+        errors.discountValue = "Flat discount must be greater than 0";
+      }
+
+      if (Number(discountValue) >= Number(minOrder)) {
+        errors.discountValue = "Flat discount should be lower than minimum order amount";
+      }
+    }
+
+    // 🔥 PERCENTAGE VALIDATION
+    if (discountType === "percentage") {
+      if (!discountValue || discountValue <= 0 || discountValue > 100) {
+        errors.discountValue = "Percentage must be between 1–100";
+      }
+
+      if (!maxDiscount || maxDiscount <= 0) {
+        errors.maxDiscount = "Max discount required";
+      }
+    }
+
+    // ===== ERROR RESPONSE (FOR SWAL) =====
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: Object.values(errors)[0] // 👈 first error
+      });
+    }
+
+    // ===== CREATE =====
+    await Coupon.create({
+      couponName: name,
+      couponCode,
+      description,
+      discountType,
+      discountValue,
+      minOrderAmount: minOrder,
+      maxDiscountAmount: discountType === "flat" ? null : maxDiscount,
+      usageLimit: limit,
+      perUserLimit,
+      startDate,
+      expiryDate,
+      terms: termsAndConditions || [],
+      isActive: isActive === "true"
+    });
+
+    // ===== SUCCESS RESPONSE =====
+    return res.status(200).json({
+      success: true,
+      message: "Coupon added successfully"
+    });
+
   } catch (error) {
     console.error("Adding new coupon error:", error);
-    res.status(500).send("Something went wrong");
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong"
+    });
   }
 };
 

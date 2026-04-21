@@ -1,6 +1,7 @@
 const Product = require('../../models/productSchema');
 const Variant = require('../../models/variantSchema');
 const Category = require('../../models/categorySchema');
+const Brand = require("../../models/brandSchema");
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
@@ -9,11 +10,16 @@ const { deleteImage } = require('../../helpers/fileHelper');
 // LOAD ADD PRODUCT PAGE
 const loadAddProduct = async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true }).lean();
-    res.render('admin/addProduct', { categories });
+    const categories = await Category
+      .find({ isActive: true, isDeleted: { $ne: true } })
+      .sort({ category: 1 })
+      .lean();
+    const brands = await Brand.find({ isActive: true }).sort({ name: 1 }).lean();
+
+    res.render('admin/addProduct', { categories, brands });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    return res.redirect('/admin/product-management?error=Server error');
   }
 };
 
@@ -21,8 +27,16 @@ const loadAddProduct = async (req, res) => {
 const addProduct = async (req, res) => {
   try {
     const { main, gallery, variants } = req.body.processedImages || {};
-    if (!main) return res.status(400).send("Main image is required");
-    if (!gallery || gallery.length < 3) return res.status(400).send("Please upload at least 3 gallery images");
+    if (!main)
+      return res.status(400).json({
+        success: false,
+        message: "Main image is required"
+      });
+    if (!gallery || gallery.length < 3)
+      return res.status(400).json({
+        success: false,
+        message: "Please upload at least 3 gallery images"
+      });
 
     const { product_name, brand, description, category_id, base_price, discount_percentage, isActive } = req.body;
 
@@ -35,11 +49,14 @@ const addProduct = async (req, res) => {
         total_stock += v.stock;
       });
     }
+    const normalizedBrand =
+      brand.trim().charAt(0).toUpperCase() +
+      brand.trim().slice(1).toLowerCase();
 
     const product = new Product({
       category_id,
       product_name,
-      brand,
+      brand: normalizedBrand,
       description,
       images: { main, gallery },
       base_price: parseFloat(base_price) || 0,
@@ -68,7 +85,10 @@ const addProduct = async (req, res) => {
     res.redirect("/admin/product-management");
   } catch (error) {
     console.error("Add product error:", error);
-    res.status(500).send("Failed to add product");
+    res.status(500).json({
+      success: false,
+      message: "Failed to add product"
+    });
   }
 };
 
@@ -79,8 +99,10 @@ const loadEditProduct = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(productId)) return res.status(400).send("Invalid product ID");
 
     const product = await Product.findById(productId).lean();
-    if (!product) return res.status(404).send("Product not found");
-product.category_id = product.category_id?.toString();
+    if (!product) {
+      return res.redirect('/admin/product-management?error=Product not found');
+    }
+    product.category_id = product.category_id?.toString();
 
     // Ensure images exist
     product.images = product.images || { main: '', gallery: [] };
@@ -99,7 +121,10 @@ product.category_id = product.category_id?.toString();
     }
 
     // Categories
-    const categories = await Category.find({ isActive: true }).lean();
+    const categories = await Category
+      .find({ isActive: true, isDeleted: { $ne: true } })
+      .sort({ category: 1 })
+      .lean();
     categories.forEach(cat => cat._id = cat._id.toString());
 
     // Variants
@@ -110,105 +135,155 @@ product.category_id = product.category_id?.toString();
       img = img && fs.existsSync(imgPath) ? '/' + img.replace(/^\/?/, '') : '';
       return { ...v, image: img };
     });
+    const brands = [
+      "Nike",
+      "Adidas",
+      "Puma",
+      "Reebok",
+      "New Balance",
+      "Converse",
+      "Vans"
+    ];
 
-    res.render('admin/editProduct', { product, categories });
+    res.render('admin/editProduct', { product, categories, brands });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server error");
+    return res.redirect('/admin/product-management?error=Server error');
   }
 };
 
 // EDIT PRODUCT
+
+
 const editProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
+
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).send("Product not found");
+    if (!product) {
+      return res.json({ success: false, message: "Product not found" });
+    }
+    console.log("BODY VARIANTS:", JSON.stringify(req.body.variants, null, 2));
+    console.log("FILES:", req.files);
+    const {
+      product_name,
+      brand,
+      description,
+      category_id,
+      base_price,
+      discount_percentage,
+      isActive,
+    } = req.body;
 
-    const { product_name, brand, description, category_id, base_price, discount_percentage, isActive, variants } = req.body;
-
-    // Update product fields
+    // UPDATE PRODUCT
     product.product_name = product_name;
-    product.brand = brand;
+    product.brand =
+      brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
     product.description = description;
     product.category_id = category_id;
     product.base_price = parseFloat(base_price) || 0;
     product.discount_percentage = parseFloat(discount_percentage) || 0;
-    product.final_price = product.base_price - (product.base_price * (product.discount_percentage || 0) / 100);
-    product.isActive = isActive === 'on';
 
-    const processed = req.body.processedImages || {};
+    product.final_price =
+      product.base_price -
+      (product.base_price * product.discount_percentage) / 100;
 
-    // Main image replacement
-    if (processed.main && processed.main !== product.images.main) {
-      if (product.images.main) deleteImage(product.images.main);
-      product.images.main = processed.main;
-    }
-
-    // Gallery image replacement
-    if (processed.gallery?.length) {
-      processed.gallery.forEach(img => {
-        const existingIndex = product.images.gallery.findIndex(g => g === img);
-        if (existingIndex !== -1) {
-          deleteImage(product.images.gallery[existingIndex]);
-          product.images.gallery.splice(existingIndex, 1);
-        }
-      });
-      product.images.gallery.push(...processed.gallery);
-    }
-
-    // Remove deleted gallery images
-    if (req.body.removedImages) {
-      const removed = JSON.parse(req.body.removedImages);
-      product.images.gallery = product.images.gallery.filter(img => !removed.includes(img));
-      removed.forEach(img => deleteImage(img));
-    }
+    product.isActive = isActive === "on";
 
     await product.save();
 
-    // Map variant images by color to preserve position
-    const variantList = Array.isArray(variants) ? variants : Object.values(variants || {});
-    const processedVariantsMap = {};
-    if (processed.variants && Array.isArray(processed.variants)) {
-      variantList.forEach((v, idx) => {
-        processedVariantsMap[v.color] = processed.variants[idx] || v.existingImage || '';
-      });
-    }
+    const processedVariants = req.body.processedImages?.variants || {};
 
-    // Update / insert variants and remove old variant images if replaced
-    for (const v of variantList) {
-      const variantQuery = { color: v.color, size: v.size, product_id: productId };
-      const existingVariant = await Variant.findOne(variantQuery);
+    for (const key in req.body.variants) {
+      const v = req.body.variants[key];
 
-      const newImage = processedVariantsMap[v.color] || v.existingImage || '';
-      if (existingVariant && existingVariant.image && existingVariant.image !== newImage) {
-        deleteImage(existingVariant.image);
+      let imagePath = Array.isArray(v.existingImage)
+        ? v.existingImage[0]
+        : v.existingImage || null;
+
+      //  USE PROCESSED IMAGE FROM MIDDLEWARE
+      if (processedVariants[key]) {
+        imagePath = processedVariants[key];
+
+        if (v.existingImage) deleteImage(v.existingImage);
       }
 
-      await Variant.findOneAndUpdate(
-        variantQuery,
-        {
-          color: v.color,
-          size: v.size,
-          stock: parseInt(v.stock) || 0,
-          image: newImage,
-          isActive: true,
-        },
-        { upsert: true, new: true }
-      );
+      const data = {
+        sku: v.sku,
+        color: v.color,
+        size: v.size,
+        stock: parseInt(v.stock) || 0,
+        image: imagePath,
+        isActive: true
+      };
+
+      if (v._id) {
+        await Variant.findByIdAndUpdate(v._id, data);
+      } else {
+        await Variant.create({ ...data, product_id: productId });
+      }
     }
 
-    // Recalculate total stock
+
+    //  UPDATE TOTAL STOCK
     const allVariants = await Variant.find({ product_id: productId });
-    product.total_stock = allVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+
+    product.total_stock = allVariants.reduce(
+      (sum, v) => sum + (v.stock || 0),
+      0
+    );
+
+    const processedImages = req.body.processedImages || {};
+
+    // ===== MAIN IMAGE =====
+    if (processedImages.main) {
+      // delete old
+      if (product.images.main) {
+        deleteImage(product.images.main);
+      }
+
+      product.images.main = processedImages.main;
+    }
+    let existingGallery = req.body.existingGallery || [];
+    // normalize
+    if (!Array.isArray(existingGallery)) {
+      existingGallery = existingGallery ? [existingGallery] : [];
+    }
+
+    // NEW IMAGES (FROM SHARP)
+    const newGalleryImages = processedImages.gallery || [];
+
+    // DELETE REMOVED IMAGES
+    if (Array.isArray(product.images.gallery)) {
+      product.images.gallery.forEach(oldImg => {
+        if (!existingGallery.includes(oldImg)) {
+          deleteImage(oldImg);
+        }
+      });
+    }
+
+    //  FINAL MERGE
+    product.images.gallery = [
+      ...existingGallery,
+      ...newGalleryImages
+    ];
+
     await product.save();
 
-    res.redirect('/admin/product-management');
+    res.json({
+      success: true,
+      message: "Product updated successfully",
+    });
   } catch (err) {
-    console.error("Edit product error:", err);
-    res.status(500).send("Server error");
+    console.error(err);
+
+    res.json({
+      success: false,
+      message: err.message,
+    });
   }
 };
+// Helper: delete image from server
 
 // REMOVE GALLERY IMAGE
 const removeGalleryImage = async (req, res) => {

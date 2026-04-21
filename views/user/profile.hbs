@@ -3,7 +3,7 @@
 
 <div class="container my-5" style="margin-left: 0px;">
   <div class="row">
-    
+
     <!-- Sidebar -->
     <div class="col-md-3">
       <div class="p-3 shadow-sm bg-white rounded">
@@ -15,36 +15,28 @@
           <a href="/wishlist" class="list-group-item border-0 list-group-item-action">Wishlist</a>
           <a href="/wallet" class="list-group-item border-0 list-group-item-action">Wallet</a>
           <a href="/coupons" class="list-group-item border-0 list-group-item-action">Coupons</a>
-          <a href="/auth/logout" class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
+          <a href="/auth/logout"
+            class="list-group-item border-0 list-group-item-action text-danger fw-semibold">Logout</a>
         </div>
       </div>
       <!-- Referral Code -->
-<div class="mt-4 p-3 border rounded text-center bg-light">
-  <h6 class="fw-bold text-dark mb-2">
-    <i class="fa fa-gift me-1 text-danger"></i> Referral Code
-  </h6>
+      <div class="mt-4 p-3 border rounded text-center bg-light">
+        <h6 class="fw-bold text-dark mb-2">
+          <i class="fa fa-gift me-1 text-danger"></i> Referral Code
+        </h6>
 
-  <div class="d-flex justify-content-center align-items-center gap-2">
-    <input
-      type="text"
-      class="form-control form-control-sm text-center fw-semibold"
-      style="max-width: 140px;"
-      value="{{user.referralCode}}"
-      readonly
-      id="referralCode"
-    />
-    <button
-      class="btn btn-sm btn-outline-danger"
-      onclick="copyReferralCode()"
-    >
-      Copy
-    </button>
-  </div>
+        <div class="d-flex justify-content-center align-items-center gap-2">
+          <input type="text" class="form-control form-control-sm text-center fw-semibold" style="max-width: 140px;"
+            value="{{user.referralCode}}" readonly id="referralCode" />
+          <button class="btn btn-sm btn-outline-danger" onclick="copyReferralCode()">
+            Copy
+          </button>
+        </div>
 
-  <small class="text-muted d-block mt-2">
-    Share & earn rewards 
-  </small>
-</div>
+        <small class="text-muted d-block mt-2">
+          Share & earn rewards
+        </small>
+      </div>
 
     </div>
 
@@ -53,35 +45,41 @@
       <div class="card border-0 shadow-sm p-4 w-100" style="max-width: 500px;">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="fw-bold text-dark mb-0">Profile Details</h5>
-          <a href="/profile/change-password" class="text-danger small text-decoration-none fw-semibold">Change Password</a>
+          <a href="/profile/change-password" class="text-danger small text-decoration-none fw-semibold">Change
+            Password</a>
         </div>
 
         <!-- Profile Image -->
         <div class="text-center mb-4">
           {{#if user.image}}
-            <img src="{{user.image}}" alt="Profile Image" class="rounded-circle border" width="120" height="120" style="object-fit: cover;">
+          <img src="{{user.image}}" alt="Profile Image" class="rounded-circle border" width="120" height="120"
+            style="object-fit: cover;">
           {{else}}
-            <div class="rounded-circle border d-flex align-items-center justify-content-center bg-light" style="width: 120px; height: 120px;">
-              <i class="fa fa-user fa-3x text-secondary"></i>
-            </div>
+          <div class="rounded-circle border d-flex align-items-center justify-content-center bg-light"
+            style="width: 120px; height: 120px;">
+            <i class="fa fa-user fa-3x text-secondary"></i>
+          </div>
           {{/if}}
         </div>
 
         <!-- Profile Info -->
         <div class="mb-3 text-center">
           <label class="form-label fw-semibold text-muted text-start w-100">Full Name</label>
-          <input type="text" class="form-control form-control-sm mx-auto" style="max-width: 300px;" value="{{user.name}}" readonly>
+          <input type="text" class="form-control form-control-sm mx-auto" style="max-width: 300px;"
+            value="{{user.name}}" readonly>
         </div>
 
         <div class="mb-3 text-center">
           <label class="form-label fw-semibold text-muted text-start w-100">Gender</label>
           <div class="d-flex justify-content-center gap-4 mt-1">
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="gender" id="male" value="Male" {{#if (eq user.gender "Male")}}checked{{/if}} disabled>
+              <input class="form-check-input" type="radio" name="gender" id="male" value="Male" {{#if (eq
+                user.gender "Male" )}}checked{{/if}} disabled>
               <label class="form-check-label" for="male">Male</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="gender" id="female" value="Female" {{#if (eq user.gender "Female")}}checked{{/if}} disabled>
+              <input class="form-check-input" type="radio" name="gender" id="female" value="Female" {{#if (eq
+                user.gender "Female" )}}checked{{/if}} disabled>
               <label class="form-check-label" for="female">Female</label>
             </div>
           </div>
@@ -89,12 +87,14 @@
 
         <div class="mb-3 text-center">
           <label class="form-label fw-semibold text-muted text-start w-100">Email ID</label>
-          <input type="email" class="form-control form-control-sm mx-auto" style="max-width: 300px;" value="{{user.email}}" readonly>
+          <input type="email" class="form-control form-control-sm mx-auto" style="max-width: 300px;"
+            value="{{user.email}}" readonly>
         </div>
 
         <div class="mb-3 text-center">
           <label class="form-label fw-semibold text-muted text-start w-100">Mobile Number</label>
-          <input type="text" class="form-control form-control-sm mx-auto" style="max-width: 300px;" value="{{user.phone}}" readonly>
+          <input type="text" class="form-control form-control-sm mx-auto" style="max-width: 300px;"
+            value="{{user.phone}}" readonly>
         </div>
 
         <div class="text-center mt-4">
@@ -126,4 +126,3 @@
     });
   }
 </script>
-

@@ -13,7 +13,7 @@ const exphbs = require("express-handlebars");
 
 // -------------------- MIDDLEWARES --------------------
 const setAuthStatus = require("./middlewares/setAuthStatus");        // user
-const adminAuthStatus = require("./middlewares/adminAuthStatus"); 
+const adminAuthStatus = require("./middlewares/adminAuthStatus");
 const checkActiveUser = require('./middlewares/checkActiveUserMiddleware');
 
 
@@ -24,7 +24,7 @@ const adminAuthRouter = require("./routes/admin/adminAuthRouter");
 const adminRouter = require("./routes/admin/adminRouter");
 const searchRouter = require("./routes/search");
 const hbsHelpers = require("./helpers/hbsHelpers");
-const wishlistMiddleware =  require('./middlewares/wishlistMiddleware');
+const wishlistMiddleware = require('./middlewares/wishlistMiddleware');
 // -------------------- DATABASE --------------------
 connectDB();
 
@@ -70,8 +70,8 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: false,
-      secure: false,        // true ONLY in HTTPS production
-      sameSite: "lax",      // 🔥 ADD THIS LINE
+      secure: false,
+      sameSite: "lax",
       maxAge: 72 * 60 * 60 * 1000,
     },
   })

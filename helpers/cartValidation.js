@@ -1,6 +1,7 @@
-const Product = require('../../models/productSchema');
-const Variant = require('../../models/variantSchema');
-const Cart = require('../../models/cartSchema');
+const Product = require('../models/productSchema');
+const Variant = require('../models/variantSchema');
+const Cart = require('../models/cartSchema');
+const { checkStock } = require('../helpers/stockController');
 
 const validateCart = async (userId) => {
   const cart = await Cart.findOne({ user_id: userId })

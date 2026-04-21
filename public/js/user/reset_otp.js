@@ -1,5 +1,3 @@
-console.log("OTP JS loaded");
-console.log("otpSent:", window.otpSent, "remainingTime:", window.remainingTime);
 
 document.addEventListener("DOMContentLoaded", () => {
     const resend = document.getElementById("resend");
@@ -7,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let countdown = parseInt(window.remainingTime) || 0;
     let interval;
- let toastShown = false;
+    let toastShown = false;
     function showToast(icon, text, redirect = null) {
         Swal.fire({
             icon,
@@ -19,8 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
             width: 350,
             padding: '0.5em 1em',
             customClass: { popup: 'small-toast' }
-        }).then(()=>{
-            if (redirect){
+        }).then(() => {
+            if (redirect) {
                 window.location.href = redirect;
             }
         })
@@ -56,13 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-if (countdown > 0) {
-    if (window.showOtpSentToast === true && !toastShown) {
-        showToast("success", "OTP sent to your email");
-        toastShown = true;
+    if (countdown > 0) {
+        if (window.showOtpSentToast === true && !toastShown) {
+            showToast("success", "OTP sent to your email");
+            toastShown = true;
+        }
+        startTimer();
     }
-    startTimer();
-}
 
 
     // Resend OTP
@@ -74,7 +72,7 @@ if (countdown > 0) {
 
             if (data.success) {
                 showToast("success", "OTP sent to your email");
-                countdown = 60; 
+                countdown = 60;
                 startTimer();
             } else {
                 showToast("error", data.message || "Failed to resend OTP").then(() => {
@@ -93,19 +91,19 @@ if (countdown > 0) {
     inputs.forEach(input => {
         input.addEventListener("input", e => {
             if (isNaN(e.target.value)) e.target.value = '';
-            else if (e.target.nextElementSibling && e.target.value !== '')input.nextElementSibling.focus();
+            else if (e.target.nextElementSibling && e.target.value !== '') input.nextElementSibling.focus();
         });
         input.addEventListener("keydown", e => {
-             if (e.key === "Backspace" || e.key === "Delete") {
-                   e.preventDefault(); 
-            if (input.value !== '') {
-               input.value = '';
-            } else if (input.previousElementSibling) {
-                input.previousElementSibling.value = '';
-                input.previousElementSibling.focus();
+            if (e.key === "Backspace" || e.key === "Delete") {
+                e.preventDefault();
+                if (input.value !== '') {
+                    input.value = '';
+                } else if (input.previousElementSibling) {
+                    input.previousElementSibling.value = '';
+                    input.previousElementSibling.focus();
+                }
+
             }
-            
-        }
         });
     });
 

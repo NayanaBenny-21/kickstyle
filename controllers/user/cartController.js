@@ -17,7 +17,6 @@ const addToCart = async (req, res) => {
 
 
   const { productId, variantId, quantity } = req.body;
-   console.log("🟦ZZ Add to Cart Request Body:", req.body); 
   if (!productId || !variantId || !quantity)
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   if (!variantId) return res.json({ success: false, message: "Variant not selected" });
@@ -61,7 +60,7 @@ if (!product.isActive) {
     if (existingIndex >= 0) {
       const newQty = cart.items[existingIndex].quantity + qty;
       if (newQty > maxQty) {
-        return res.json({ success: false, message: `You can only add max ${maxQty} of this product` });
+        return res.json({ success: false,title: "Limit Reached", message: `You can only add max ${maxQty} of this product` });
       }
       if (newQty > variant.stock) {
         return res.json({ success: false, message: `Only ${variant.stock} item(s) available` });
@@ -74,7 +73,7 @@ if (!product.isActive) {
     }
 
     await cart.save();
-
+delete req.session.coupon;
     const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
     return res.json({ success: true, message: 'Added to cart', cartCount });
 
@@ -199,7 +198,7 @@ product = await applyBestOfferToProduct(product);
     // Mark items array as modified because of _id: false
     cart.markModified('items');
     await cart.save();
-
+delete req.session.coupon;
     // Recalculate totals for frontend
     let subTotal = 0;
     cart.items.forEach(ci => {
@@ -254,7 +253,7 @@ const removeItem = async (req, res) => {
       i => !(i.productId.toString() === productId && i.variantId.toString() === variantId)
     );
     await cart.save();
-
+delete req.session.coupon;
     return res.json({ success: true, message: 'Item removed successfully' });
 
   } catch (err) {

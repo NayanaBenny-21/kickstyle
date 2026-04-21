@@ -5,8 +5,8 @@
     </p>
 
     {{#if general_error}}
-  <p class="text-danger">{{general_error}}</p>
-{{/if}}
+    <p class="text-danger">{{general_error}}</p>
+    {{/if}}
 
     <form action="/auth/forgot-password/verify-otp" method="POST">
         <input type="hidden" name="email" value="{{email}}">
@@ -33,11 +33,11 @@
 </div>
 
 <script>
-  
-  window.otpSent = {{#if otpSent}}true{{else}}false{{/if}};
-  window.remainingTime = {{#if remainingTime}}{{remainingTime}}{{else}}0{{/if}};
-      window.showOtpSentToast = {{#if showOtpSentToast}}true{{else}}false{{/if}};
-      console.log("DEBUG:", window.otpSent, window.remainingTime, window.otpError);
+
+    window.otpSent = {{ #if otpSent }}true{ {else } } false{ {/if } };
+    window.remainingTime = {{ #if remainingTime }}{ { remainingTime } } { {else } } 0{ {/if } };
+    window.showOtpSentToast = {{ #if showOtpSentToast }}true{ {else } } false{ {/if } };
+    console.log("DEBUG:", window.otpSent, window.remainingTime, window.otpError);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/user/reset_otp.js"></script>

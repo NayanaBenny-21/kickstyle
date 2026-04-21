@@ -1,75 +1,80 @@
 <div class="d-flex justify-content-center align-items-center ">
   <div class="card p-4 shadow-sm" style="max-width: 500px; width: 100%;">
-          <img src="/images/logo.jpg" href="/" alt="KickStyle Admin" height="35" class="d-block mx-auto mb-2">
+    <img src="/images/logo.jpg" href="/" alt="KickStyle Admin" height="35" class="d-block mx-auto mb-2">
 
-      <h3 class="text-center text-danger mb-3">Registration</h3>
+    <h3 class="text-center text-danger mb-3">Registration</h3>
     <p class="text-muted text-center mb-4">
       Please fill in the details to sign up.
     </p>
-{{#if general_error}}
-  <p class="text-danger">{{general_error}}</p>
-{{/if}}
-    <form action="/auth/signup" method="POST">
-      
+    {{#if general_error}}
+    <p class="text-danger">{{general_error}}</p>
+    {{/if}}
+    <form action="/auth/signup" method="POST" novalidate>
+
       <div class="form-group mb-3">
         <label class="form-label">Full Name <span class="text-danger">*</span></label>
-        <input type="text" name="name" id="name" class="form-control" placeholder="Enter full name" required value="{{name}}">
-      <p class="error" id="nameError"></p>
+        <p class="error" id="nameError"></p>
+        <input type="text" name="name" id="name" class="form-control" placeholder="Enter full name" required
+          value="{{name}}">
+
       </div>
 
-     
+
       <div class="form-group mb-3">
         <label class="form-label">Email <span class="text-danger">*</span></label>
-        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required value="{{email}}">
-      <p class="error" id="emailError"></p>
+        <p class="error text-danger" id="emailError"></p>
+
+        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required
+          value="{{email}}">
       </div>
 
-    <div class="form-group mb-3 position-relative">
-  <label class="form-label">Password <span class="text-danger">*</span></label>
+      <div class="form-group mb-3 position-relative">
+        <label class="form-label">Password <span class="text-danger">*</span></label>
+        <p class="error text-danger mt-1" id="passwordError">
+          {{passwordError}}
+        </p>
 
-  <div class="position-relative">
-    <input type="password" name="password"   id="password"   class="form-control pr-5"  placeholder="Enter password"  required  pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters and include at least one letter, one number, and one special character.">
+        <div class="position-relative">
+          <input type="password" name="password" id="password" class="form-control pr-5" placeholder="Enter password"
+            required pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}"
+            title="Password must be 8–12 characters and include at least one letter, one number, and one special character.">
 
-    <button type="button"  id="togglePasswordBtn"  class="btn p-0 position-absolute"  style="top: 50%; right: 12px; transform: translateY(-50%); border: none; background: transparent;">
-      <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
-    </button>
-  </div>
+          <button type="button" id="togglePasswordBtn" class="btn p-0 position-absolute"
+            style="top: 50%; right: 12px; transform: translateY(-50%); border: none; background: transparent;">
+            <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+          </button>
+        </div>
 
-  <p class="error text-danger mt-1" id="passwordError"></p>
-</div>
+      </div>
 
-<div class="form-group mb-3">
-  <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+      <div class="form-group mb-3">
+        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+        <p class="error text-danger mt-1" id="confirmError">
+          {{confirmError}}
+        </p>
+        <div class="position-relative">
+          <input type="password" name="confirmPassword" id="confirmPassword" class="form-control"
+            placeholder="Enter confirm password" required>
 
-  <div class="position-relative">
-    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Enter confirm password" required>
+          <button type="button" id="toggleConfirmBtn" class="btn position-absolute"
+            style="top: 50%; right: 15px; transform: translateY(-50%); border: none; background: transparent;">
+            <i class="fa-solid fa-eye" id="toggleConfirmIcon"></i>
+          </button>
+        </div>
 
-    <button type="button" id="toggleConfirmBtn"
-      class="btn position-absolute"
-      style="top: 50%; right: 15px; transform: translateY(-50%); border: none; background: transparent;">
-      <i class="fa-solid fa-eye" id="toggleConfirmIcon"></i>
-    </button>
-  </div>
+      </div>
+      <div class="form-group mb-3">
+        <label class="form-label">
+          Referral Code <span class="text-muted">(optional)</span>
+        </label>
 
-  <p class="error" id="confirmError"></p>
-</div>
-<div class="form-group mb-3">
-  <label class="form-label">
-    Referral Code <span class="text-muted">(optional)</span>
-  </label>
+        <input type="text" name="referralCode" class="form-control" placeholder="Enter referral code (if any)"
+          value="{{referralCode}}">
 
-  <input
-    type="text"
-    name="referralCode"
-    class="form-control"
-    placeholder="Enter referral code (if any)"
-    value="{{referralCode}}"
-  >
-
-  {{#if referralError}}
-    <p class="text-danger mt-1">{{referralError}}</p>
-  {{/if}}
-</div>
+        {{#if referralError}}
+        <p class="text-danger mt-1">{{referralError}}</p>
+        {{/if}}
+      </div>
 
 
       <div class="d-flex justify-content-center">
@@ -82,21 +87,21 @@
     </div>
   </div>
 </div>
- <script src="/js/user/signupValidation.js"></script>
+<script src="/js/user/signupValidation.js"></script>
 
- <script>
-      //toggle password
-  document.getElementById('togglePasswordBtn').addEventListener('click', function(){
-        const passwordField = document.getElementById('password');
-        const icon = document.getElementById('togglePasswordIcon');
-        if(passwordField.type === 'password'){
-            passwordField.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        }else{
-            passwordField.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye')
-        }
-    
+<script>
+  //toggle password
+  document.getElementById('togglePasswordBtn').addEventListener('click', function () {
+    const passwordField = document.getElementById('password');
+    const icon = document.getElementById('togglePasswordIcon');
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      passwordField.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye')
+    }
+
   });
 
   document.getElementById('toggleConfirmBtn').addEventListener('click', function () {
@@ -112,3 +117,9 @@
     }
   });
 </script>
+
+<style>
+  .error {
+    font-size: 15px;
+  }
+</style>

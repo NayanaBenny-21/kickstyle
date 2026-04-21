@@ -20,14 +20,8 @@
 
             <!-- RADIO -->
             <div class="form-check">
-              <input 
-                class="form-check-input" 
-                type="radio" 
-                name="selectedAddress" 
-                id="address-{{@index}}" 
-                value="{{_id}}" 
-                {{#if isDefault}}checked{{/if}}
-              >
+              <input class="form-check-input" type="radio" name="selectedAddress" id="address-{{@index}}"
+                value="{{_id}}" {{#if isDefault}}checked{{/if}}>
 
               <label class="form-check-label" for="address-{{@index}}">
                 <strong>{{name}}</strong><br>
@@ -41,8 +35,8 @@
 
             <!-- TYPE BADGE -->
             <span class="badge bg-light text-dark border text-uppercase">
-              {{#if (eq addressType "home")}}Home 
-              {{else if (eq addressType "work")}}Office 
+              {{#if (eq addressType "home")}}Home
+              {{else if (eq addressType "work")}}Office
               {{else}}Other{{/if}}
             </span>
 
@@ -64,69 +58,69 @@
         <a href="/address/add?from=checkout" class="btn btn-outline-dark px-4">Add New Address</a>
       </div>
 
-{{#unless buyNow}}
-<div class="text-end mb-3">
-  <button class="btn btn-danger px-4" id="nextBtn">Next</button>
-</div>
-{{/unless}}
+      {{#unless buyNow}}
+      <div class="text-end mb-3">
+        <button class="btn btn-danger px-4" id="nextBtn">Next</button>
+      </div>
+      {{/unless}}
 
     </div>
 
 
 
     {{#if buyNow}}
-<!-- ORDER SUMMARY -->
-<div class="col-lg-4">
-  <div class="card shadow-sm border-0 p-3 rounded-3 order-summary">
+    <!-- ORDER SUMMARY -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 p-3 rounded-3 order-summary">
 
-    <h5 class="fw-bold mb-3">Order Summary</h5>
-    <ul class="list-unstyled mb-3" id="summaryList">
+        <h5 class="fw-bold mb-3">Order Summary</h5>
+        <ul class="list-unstyled mb-3" id="summaryList">
 
-      {{#each cartItems}}
-      <li id="summary-item-{{this.productId._id}}-{{#if this.variantId}}{{this.variantId._id}}{{/if}}"
-          class="d-flex justify-content-between small mb-2">
+          {{#each cartItems}}
+          <li id="summary-item-{{this.productId._id}}-{{#if this.variantId}}{{this.variantId._id}}{{/if}}"
+            class="d-flex justify-content-between small mb-2">
 
-        <span id="summary-name-{{this.productId._id}}-{{#if this.variantId}}{{this.variantId._id}}{{/if}}">
-          {{this.productId.product_name}}
-          {{#if this.variantId}} (Size: {{this.variantId.size}} | Color: {{this.variantId.color}}){{/if}}
-          x{{this.quantity}}
-        </span>
+            <span id="summary-name-{{this.productId._id}}-{{#if this.variantId}}{{this.variantId._id}}{{/if}}">
+              {{this.productId.product_name}}
+              {{#if this.variantId}} (Size: {{this.variantId.size}} | Color: {{this.variantId.color}}){{/if}}
+              x{{this.quantity}}
+            </span>
 
-   <span id="summary-total-{{this.productId._id}}-{{#if this.variantId}}{{this.variantId._id}}{{/if}}">
-  ₹{{this.totalPrice}}
-</span>
+            <span id="summary-total-{{this.productId._id}}-{{#if this.variantId}}{{this.variantId._id}}{{/if}}">
+              ₹{{this.totalPrice}}
+            </span>
 
 
-      </li>
-      {{/each}}
+          </li>
+          {{/each}}
 
-    </ul>
+        </ul>
 
-    <hr>
-    <div class="d-flex justify-content-between fw-semibold">
-      <span>Subtotal</span> 
-      <span id="subTotal">₹{{subTotal}}</span>
+        <hr>
+        <div class="d-flex justify-content-between fw-semibold">
+          <span>Subtotal</span>
+          <span id="subTotal">₹{{subTotal}}</span>
+        </div>
+        <div class="d-flex justify-content-between text-muted small">
+          <span>Shipping</span> <span id="shippingCharge">₹{{shippingCharge}}</span>
+        </div>
+        <div class="d-flex justify-content-between text-muted small">
+          <span>Platform Fee</span> <span id="platformFee">₹{{platformFee}}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold">
+          <span>Total</span> <span id="grandTotal">₹{{total}}</span>
+        </div>
+
+        <div class="mt-4 text-center">
+          <button class="btn btn-warning fw-bold text-white w-100" id="nextBtn">
+            Place Order
+          </button>
+        </div>
+
+      </div>
     </div>
-    <div class="d-flex justify-content-between text-muted small">
-      <span>Shipping</span> <span id="shippingCharge">₹{{shippingCharge}}</span>
-    </div>
-    <div class="d-flex justify-content-between text-muted small">
-      <span>Platform Fee</span> <span id="platformFee">₹{{platformFee}}</span>
-    </div>
-    <hr>
-    <div class="d-flex justify-content-between fw-bold">
-      <span>Total</span> <span id="grandTotal">₹{{total}}</span>
-    </div>
-
-    <div class="mt-4 text-center">
-      <button class="btn btn-warning fw-bold text-white w-100" id="nextBtn">
-        Place Order
-      </button>
-    </div>
-
-  </div>
-</div>
-{{/if}}
+    {{/if}}
 
 
   </div> <!-- row end -->
@@ -138,23 +132,25 @@
 <script src="/js/user/selectAddress.js"></script>
 
 <script>
-function editAddress(id) {
-  window.location.href = '/address/edit/' + id + '?from=checkout';
-}
+  function editAddress(id) {
+    window.location.href = '/address/edit/' + id + '?from=checkout';
+  }
 
-{{!-- document.getElementById('nextBtn').addEventListener('click', () => {
-  const selected = document.querySelector('input[name="selectedAddress"]:checked');
-    if (!selected) {
+  {
+    {
+      !--document.getElementById('nextBtn').addEventListener('click', () => {
+        const selected = document.querySelector('input[name="selectedAddress"]:checked');
+        if (!selected) {
 
-      Swal.fire({
-        icon: 'warning',
-        title: 'Oops...',
-        text: 'Please select a delivery address'
+          Swal.fire({
+            icon: 'warning',
+            title: 'Oops...',
+            text: 'Please select a delivery address'
+          });
+
+          return;
+        }
+
+        window.location.href = '/checkout?address=' + selected.value + '&buyNow={{buyNow}}';
       });
-
-      return;
-    }
-
-  window.location.href = '/checkout?address=' + selected.value + '&buyNow={{buyNow}}';
-});
 </script> --}}

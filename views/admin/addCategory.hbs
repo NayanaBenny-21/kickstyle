@@ -1,105 +1,249 @@
 <link rel="stylesheet" href="/css/profile.css">
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script src="/js/admin/categoryImageCrop.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="container-fluid">
   <div class="row">
-   <!-- Sidebar -->
-      <div class="col-2 sidebar">
-        <h4 class="mb-4 text-danger">KICKSTYLE</h4>
-  <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2">Dashboard</a>
-  <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
-  <a href="/admin/product-management" class="btn btn-danger w-100 mb-2">Products</a>
-  <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
-  <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
-  <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
-  <a href="/admin/category-management" class="btn btn-danger w-100 mb-2 active">Category</a>
-    <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
 
-  <button class="btn w-100 mt-3" id="signout_btn" style="background-color: rgb(225, 227, 230);">
-    Signout
-  </button>
-      </div>
+    <!-- Sidebar -->
+    <div class="col-2 sidebar">
+      <h4 class="mb-4 text-danger">KICKSTYLE</h4>
+
+      <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2">Dashboard</a>
+      <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
+      <a href="/admin/product-management" class="btn btn-danger w-100 mb-2">Products</a>
+      <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
+      <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
+      <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
+      <a href="/admin/category-management" class="btn btn-danger w-100 mb-2 active">Category</a>
+      <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
+
+      <button class="btn w-100 mt-3" id="signout_btn" style="background-color: rgb(225, 227, 230);">
+        Signout
+      </button>
+    </div>
 
 
     <div class="col-md-10 d-flex justify-content-center align-items-center py-5" style="background-color: #fffbee;">
       <div class="card shadow-sm p-5 w-75" style="border-radius: 15px;">
+
         <h3 class="text-center mb-4 fw-bold">Add New Category</h3>
         <hr>
 
-        <form action="/admin/categories/add" method="POST" enctype="multipart/form-data">
+        <form id="addCategoryForm">
+
           <div class="row g-4">
+
             <!-- Category Name -->
             <div class="col-md-6">
-              <label for="categoryName" class="form-label fw-semibold">Category Name</label>
+              <label class="form-label fw-semibold">Category Name</label>
+
               <input
                 type="text"
-                id="categoryName"
                 name="category"
                 class="form-control"
                 placeholder="Enter category name"
                 required
-              />
+              >
             </div>
+
 
             <!-- Thumbnail Upload -->
             <div class="col-md-6">
-              <label for="thumbnail" class="form-label fw-semibold">Thumbnail</label>
-              <div class="border rounded-3 text-center p-4" style="border-style: dashed;">
-                <img id="preview" src="/images/placeholder.png" alt="Preview" class="img-fluid mb-2" style="max-height: 100px;">
-                <p class="text-muted small mb-2">Drag and drop your image or Change using the button</p>
+
+              <label class="form-label fw-semibold">Thumbnail</label>
+
+              <div class="border rounded-3 text-center p-4" style="border-style:dashed">
+
+                <img
+                  id="preview"
+                  src="/images/placeholder.png"
+                  class="img-fluid mb-2"
+                  style="max-height:100px"
+                >
+
+                <p class="text-muted small mb-2">
+                  Drag and drop your image or Change using the button
+                </p>
+
                 <input
                   type="file"
                   class="form-control d-none"
-                  id="thumbnail"
+                  id="categoryImageInput"
+                  accept="image/png,image/jpeg,image/jpg"
+                >
+
+                <!-- cropped image will go here -->
+                <input
+                  type="hidden"
                   name="thumbnail"
-                  accept="image/*"
-                  required
-                  onchange="previewImage(event)"
-                />
-                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('thumbnail').click()">Change Image</button>
+                  id="croppedCategoryImage"
+                >
+
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="document.getElementById('categoryImageInput').click()"
+                >
+                  Change Image
+                </button>
+
               </div>
             </div>
 
+
             <!-- Category Description -->
             <div class="col-12">
-              <label for="description" class="form-label fw-semibold">Category Description</label>
+
+              <label class="form-label fw-semibold">
+                Category Description
+              </label>
+
               <textarea
-                id="description"
                 name="description"
                 class="form-control"
                 rows="4"
                 placeholder="Write your description here..."
                 required
               ></textarea>
+
             </div>
 
-            <!-- Visibility Status -->
+
+            <!-- Visibility -->
             <div class="col-md-6">
-              <label for="isActive" class="form-label fw-semibold">Visibility Status</label>
-              <select id="isActive" name="isActive" class="form-select">
-                <option value="true" selected>Active</option>
-                <option value="false">Blocked</option>
+
+              <label class="form-label fw-semibold">
+                Visibility Status
+              </label>
+
+              <select name="isActive" class="form-select">
+
+                <option value="true" selected>
+                  Active
+                </option>
+
+                <option value="false">
+                  Blocked
+                </option>
+
               </select>
+
             </div>
+
           </div>
+
 
           <!-- Buttons -->
           <div class="d-flex justify-content-center gap-3 mt-5">
-            <a href="/admin/categories" class="btn btn-outline-danger px-5">Cancel</a>
-            <button type="submit" class="btn btn-danger px-5">Create</button>
+
+            <a href="/admin/category-management"
+               class="btn btn-outline-danger px-5">
+              Cancel
+            </a>
+
+            <button type="submit"
+                    class="btn btn-danger px-5">
+              Create
+            </button>
+
           </div>
+
         </form>
+
       </div>
     </div>
+
   </div>
 </div>
 
+
+
+<!-- ================= CROP MODAL ================= -->
+
+<div class="modal fade" id="cropModal" tabindex="-1">
+
+  <div class="modal-dialog modal-lg">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Crop Image</h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body text-center">
+
+        <img id="cropImage" style="max-width:100%;">
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          class="btn btn-secondary"
+          data-bs-dismiss="modal">
+          Cancel
+        </button>
+
+        <button
+          class="btn btn-danger"
+          id="cropBtn">
+          Crop
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
 <script>
-  function previewImage(event) {
-    const reader = new FileReader();
-    reader.onload = function() {
-      const output = document.getElementById('preview');
-      output.src = reader.result;
-    };
-    reader.readAsDataURL(event.target.files[0]);
+
+document.getElementById("addCategoryForm").addEventListener("submit", async function(e){
+
+  e.preventDefault();
+
+  const formData = new FormData(this);
+
+  const response = await fetch("/admin/categories/add",{
+    method:"POST",
+    body:formData
+  });
+
+  const data = await response.json();
+
+  if(!data.success){
+
+    Swal.fire({
+      icon:"warning",
+      title:"warning",
+      text:data.message
+    });
+
+  }else{
+
+    Swal.fire({
+      icon:"success",
+      title:"Success",
+      text:"Category created successfully",
+      timer:1500,
+      showConfirmButton:false
+    }).then(()=>{
+      window.location.href = data.redirect;
+    });
+
   }
+
+});
+
 </script>
+<script src="/js/sidebar.js"></script>

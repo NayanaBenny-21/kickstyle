@@ -72,35 +72,43 @@ document.addEventListener("DOMContentLoaded", () => {
         const avlStock = await getVariantStock(productId, variantId);
         if (avlStock === null) continue;
 
-        const maxAllowed = Math.min(avlStock, 5);
-        const currentQty = parseInt(qtyInput.value);
+       const currentQty = parseInt(qtyInput.value);
 
-        // Disable "+" if stock reached
-        incBtn.disabled = currentQty >= maxAllowed;
+// If stock becomes 0 → don't set quantity to 0
+      if (avlStock === 0) {
+        incBtn.disabled = true;
+        decBtn.disabled = true;
+        continue;
+      }
 
-        // Reduce quantity if stock reduced
-        if (currentQty > maxAllowed) {
-          qtyInput.value = maxAllowed;
+const maxAllowed = Math.min(avlStock, 5);
 
-          // Update server
-          await fetch("/cart/update-quantity", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId, variantId, quantity: maxAllowed })
-          });
+// Disable "+" if max reached
+incBtn.disabled = currentQty >= maxAllowed;
 
-          updateTotals();
-          updateCartCount();
-        }
+// Reduce quantity only if needed
+if (currentQty > maxAllowed) {
+
+  qtyInput.value = maxAllowed;
+
+  await fetch("/cart/update-quantity", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ productId, variantId, quantity: maxAllowed })
+  });
+
+  updateTotals();
+  updateCartCount();
+}
+
       } catch (err) {
         console.error(err);
       }
     }
   }
 
-  // Refresh stock every 3 seconds
-  setInterval(refreshStock, 3000);
-
+refreshStock();          
+setInterval(refreshStock, 3000);  
   // ===================== Quantity Buttons =====================
   document.querySelectorAll(".updateQtyBtn").forEach(btn => {
     btn.addEventListener("click", async () => {

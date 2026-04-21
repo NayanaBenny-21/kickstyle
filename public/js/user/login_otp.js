@@ -1,5 +1,3 @@
-console.log("OTP JS loaded");
-console.log("otpSent:", window.otpSent, "remainingTime:", window.remainingTime);
 
 document.addEventListener("DOMContentLoaded", () => {
     const resend = document.getElementById("resend");

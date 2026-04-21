@@ -24,17 +24,9 @@ const checkActiveUser = require('../../middlewares/checkActiveUserMiddleware');
 const {loadCategoryProducts} =  require('../../controllers/user/ProductListingController');
 const apiUserAuth = require('../../middlewares/apiUserAuth');
 const storeReturnTo = require('../../middlewares/returnToRoute');
-//const { isLoggedIn } = require("../../middlewares/Auth");
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 router.get('/', userController.loadHomepage );
-//  router.get('/', optionalAuth, userController.loadHomepage);
-
-
-// router.get('/auth/post-google-redirect', (req, res) => {
-//   const redirectUrl = req.session.returnTo || "/";
-//   delete req.session.returnTo;
-//   res.redirect(redirectUrl);
-// });
 
 router.get('/auth/post-google-redirect', (req, res) => {
   const redirectUrl = req.session.returnTo || "/";
@@ -119,9 +111,7 @@ router.delete(
 
 //--------------------RAZORPAY------------------------------------------------------------------------------------------------------------
 
-// router.post('/razorpay/create-order', createRazorPayOrder);
-// router.post('/razorpay/verify-payment', verifyPayment);
-// router.post("/razorpay/payment-failed", paymentFailed);
+
 router.post('/razorpay/verify-payment',userAuthMiddleware, verifyPayment);
 router.post('/razorpay/create-order',userAuthMiddleware,createRazorPayOrder);
 router.post("/razorpay/payment-failed", paymentFailed);

@@ -30,19 +30,10 @@
         <div class="card-body text-center">
 
 
-    <div class="p-3 mb-3 rounded text-white text-center" style="background-color: #139032;">
-      <h5 class="mb-1">Available Wallet Balance</h5>
-      <h3 class="mb-0 fw-bold">₹ {{wallet.balance}}</h3>
-    </div>
-<!--
-          <button
-            class="btn btn-success btn-lg w-100"
-            id="walletPayBtn"
-            data-order-id="{{orderId}}"
-            data-amount="{{payableAmount}}"
-          >
-            Pay ₹ {{payableAmount}} Using Wallet
-          </button> -->
+          <div class="p-3 mb-3 rounded text-white text-center" style="background-color: #139032;">
+            <h5 class="mb-1">Available Wallet Balance</h5>
+            <h3 class="mb-0 fw-bold">₹ {{wallet.balance}}</h3>
+          </div>
         </div>
       </div>
 
@@ -72,13 +63,11 @@
                 <td>{{this.title}}</td>
                 <td>{{this.payment_method}}</td>
                 <td>₹ {{this.amount}}</td>
-                <td
-                  class="
+                <td class="
                     {{#if (eq this.status 'success')}}text-success{{/if}}
                     {{#if (eq this.status 'failed')}}text-danger{{/if}}
                     {{#if (eq this.status 'pending')}}text-warning{{/if}}
-                  "
-                >
+                  ">
                   {{this.status}}
                 </td>
               </tr>
@@ -96,5 +85,3 @@
 </div>
 
 <script src="/js/user/walletPay.js"></script>
-
-

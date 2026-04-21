@@ -102,5 +102,29 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
 });
 
 
+// SEARCH CLEAR 
+  const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
 
+  function clearSearchIfEmpty() {
+    if (searchInput.value === "") {
+
+      const url = new URL(window.location.href);
+
+      // Remove search
+      url.searchParams.delete("search");
+
+      // Reset pagination
+      url.searchParams.delete("page");
+
+      // Keep other filters (status etc.)
+      window.location.href = url.toString();
+    }
+  }
+
+  // Works for typing + clicking ❌
+  searchInput.addEventListener("input", clearSearchIfEmpty);
+
+  // Backup for some browsers
+  searchInput.addEventListener("search", clearSearchIfEmpty);
 });

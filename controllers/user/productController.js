@@ -35,15 +35,15 @@ const loadProductsPage = async (req, res) => {
     if (req.query.brand)
       productFilter.brand = { $in: [].concat(req.query.brand) };
 
-    // ✅ 1️⃣ GET ALL FILTERED PRODUCTS (NO skip, NO limit)
+    // GET ALL FILTERED PRODUCTS (NO skip, NO limit)
     let allProducts = await Product.find(productFilter).lean();
 
-    // ✅ 2️⃣ APPLY OFFER TO ALL
+    //  APPLY OFFER TO ALL
     let productsWithOffers = await Promise.all(
       allProducts.map(p => applyBestOfferToProduct(p))
     );
 
-    // ✅ 3️⃣ SORT ALL PRODUCTS GLOBALLY
+    //  SORT ALL PRODUCTS GLOBALLY
     if (sortQuery === "priceLowHigh") {
       productsWithOffers.sort((a, b) => a.final_price - b.final_price);
     } 
@@ -56,13 +56,20 @@ const loadProductsPage = async (req, res) => {
       );
     }
 
-    // ✅ 4️⃣ NOW PAGINATE AFTER SORTING
+const selectedFilters = {
+  category: req.query.category ? [].concat(req.query.category) : [],
+  brand: req.query.brand ? [].concat(req.query.brand) : [],
+  color: req.query.color ? [].concat(req.query.color) : [],
+  size: req.query.size ? [].concat(req.query.size) : []
+};
+
+    //  NOW PAGINATE AFTER SORTING
     const totalProducts = productsWithOffers.length;
     const totalPages = Math.ceil(totalProducts / limit);
 
     const paginatedProducts = productsWithOffers.slice(skip, skip + limit);
 
-    // ✅ 5️⃣ MAP FOR FRONTEND
+    //  MAP FOR FRONTEND
     const products = paginatedProducts.map(p => ({
       _id: p._id,
       name: p.product_name,
@@ -83,7 +90,7 @@ const loadProductsPage = async (req, res) => {
       currentPage: page,
       totalPages,
       sort: sortQuery,
-      selectedFilters: req.query,
+      selectedFilters,
       categories,
       brands,
       colors,
@@ -177,7 +184,7 @@ let product = await Product.findOne({
       .limit(4)
       .lean();
 
-    // 🔥 Apply offer to similar products too
+    // Apply offer to similar products too
     similarProducts = await Promise.all(
       similarProducts.map(p => applyBestOfferToProduct(p))
     );

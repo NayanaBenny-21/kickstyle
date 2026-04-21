@@ -15,7 +15,7 @@ router.post('/signup/resend-otp', otpController.signupResendOtp);
 router.post('/signup/verify-otp', otpController.signupVerifyOtp);
 
 //LOGIN
-router.get('/login', loggedInUserRedirect, authController.loadLoginPage);
+router.get('/login',noCache, loggedInUserRedirect, authController.loadLoginPage);
 router.post('/login', authController.loginUser);
 router.get('/login/verify-otp', loggedInUserRedirect, otpController.loadLoginVerify);
 router.post('/login/verify-otp', loggedInUserRedirect, otpController.loginVerifyOtp);

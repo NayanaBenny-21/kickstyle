@@ -35,47 +35,30 @@
         <form id="editProfileForm" action="/profile/edit-profile" method="POST" enctype="multipart/form-data">
 
           <!-- PROFILE IMAGE -->
-<!-- PROFILE IMAGE -->
-<div class="text-center mb-4">
-  <div class="profile-avatar mx-auto">
+          <!-- PROFILE IMAGE -->
+          <div class="text-center mb-4">
+            <div class="profile-avatar mx-auto">
 
-    <img
-      id="profilePreview"
-      src="{{user.image}}"
-      class="{{#unless user.image}}d-none{{/unless}}"
-      alt="Profile"
-    >
+              <img id="profilePreview" src="{{user.image}}" class="{{#unless user.image}}d-none{{/unless}}"
+                alt="Profile">
 
-    <i
-      id="profileIcon"
-      class="fa fa-user {{#if user.image}}d-none{{/if}}"
-    ></i>
+              <i id="profileIcon" class="fa fa-user {{#if user.image}}d-none{{/if}}"></i>
 
-  </div>
-</div>
+            </div>
+          </div>
 
 
 
           <!-- File Input -->
           <div class="mt-2 text-center">
-            <input 
-              id="profileImageInput"
-              type="file"
-              class="form-control form-control-sm mx-auto"
-              style="max-width: 250px;"
-              {{!-- name="image" --}}
-              accept="image/*"
-            >
+            <input id="profileImageInput" type="file" class="form-control form-control-sm mx-auto"
+              style="max-width: 250px;" {{!-- name="image" --}} accept="image/*">
           </div>
 
           <!-- Remove Image Button -->
           <div class="text-center">
-            <button 
-              type="button"
-              id="removeImageBtn"
-              class="btn btn-outline-danger btn-sm mt-2"
-              {{#unless user.image}}style="display:none;"{{/unless}}
-            >
+            <button type="button" id="removeImageBtn" class="btn btn-outline-danger btn-sm mt-2" {{#unless
+              user.image}}style="display:none;" {{/unless}}>
               Remove Image
             </button>
           </div>
@@ -83,57 +66,44 @@
           <!-- Hidden Inputs -->
           <input type="hidden" id="removeImage" name="removeImage" value="false">
           <input type="hidden" id="croppedImageInput" name="croppedImage">
-    <!-- Name -->
-    <div class="mb-3">
-      <label class="form-label fw-bold">Full Name</label>
-      <p class="error text-danger mt-1" id="fullNameError"></p>
-      <input type="text" name="name" class="form-control" value="{{user.name}}"     required
-    id="name" >
-    </div>
+          <!-- Name -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Full Name</label>
+            <p class="error text-danger mt-1" id="fullNameError"></p>
+            <input type="text" name="name" class="form-control" value="{{user.name}}" required id="name">
+          </div>
           <!-- Gender -->
           <div class="mb-3 text-center mt-4">
             <label class="form-label fw-semibold text-muted text-start w-100">Gender</label>
 
             <div class="d-flex justify-content-center gap-4 mt-1">
               <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="radio" 
-                  name="gender" 
-                  id="male" 
-                  value="Male"
-                  {{#if (eq user.gender "Male")}}checked{{/if}}
-                >
+                <input class="form-check-input" type="radio" name="gender" id="male" value="Male" {{#if (eq
+                  user.gender "Male" )}}checked{{/if}}>
                 <label class="form-check-label" for="male">Male</label>
               </div>
 
               <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="radio" 
-                  name="gender" 
-                  id="female" 
-                  value="Female"
-                  {{#if (eq user.gender "Female")}}checked{{/if}}
-                >
+                <input class="form-check-input" type="radio" name="gender" id="female" value="Female" {{#if (eq
+                  user.gender "Female" )}}checked{{/if}}>
                 <label class="form-check-label" for="female">Female</label>
               </div>
             </div>
           </div>
 
-<!-- Email -->
-<div class="mb-3 text-center">
-  <label class="form-label fw-semibold text-muted text-start w-100">Email ID</label>
+          <!-- Email -->
+          <div class="mb-3 text-center">
+            <label class="form-label fw-semibold text-muted text-start w-100">Email ID</label>
 
-  <div class="d-flex justify-content-center align-items-center">
-    <input  type="email" id="email"class="form-control form-control-sm mx-auto me-2" 
-    style="max-width: 300px;" name="email" value="{{user.email}}"required>
-    
-    <button  type="button"class="btn btn-outline-danger btn-sm" id="changeEmailBtn"> Change
-    </button>
-    <input type="hidden" id="verifiedEmail" name="verifiedEmail">
-  </div>
-</div>
+            <div class="d-flex justify-content-center align-items-center">
+              <input type="email" id="email" class="form-control form-control-sm mx-auto me-2" style="max-width: 300px;"
+                name="email" value="{{user.email}}" required>
+
+              <button type="button" class="btn btn-outline-danger btn-sm" id="changeEmailBtn"> Change
+              </button>
+              <input type="hidden" id="verifiedEmail" name="verifiedEmail">
+            </div>
+          </div>
 
 
           <!-- Phone -->
@@ -143,14 +113,8 @@
             <div class="d-flex justify-content-center align-items-center">
               <span class="px-2 bg-light border rounded-start">+91</span>
 
-              <input 
-                type="text"
-                id="phone"
-                class="form-control form-control-sm border-start-0 rounded-end"
-                style="max-width: 300px; margin-left: 20px!important;"
-                name="phone"
-                value="{{phoneWithoutCode}}"
-              >
+              <input type="text" id="phone" class="form-control form-control-sm border-start-0 rounded-end"
+                style="max-width: 300px; margin-left: 20px!important;" name="phone" value="{{phoneWithoutCode}}">
             </div>
 
             <p class="error" id="phoneError"></p>
@@ -196,9 +160,9 @@
       <!-- New Email Input -->
       <div class="mb-3">
         <label class="form-label fw-semibold">New Email</label>
-             <div id="emailError" class="text-danger"></div>
+        <div id="emailError" class="text-danger"></div>
         <input type="email" id="newEmail" class="form-control" placeholder="Enter new email">
-   
+
       </div>
 
       <!-- Send OTP Button -->
@@ -234,28 +198,27 @@
 <script src="/js/user/profile_crop.js"></script>
 <style>
   .profile-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-  background: #f8f9fa;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  overflow: hidden;
-}
+    overflow: hidden;
+  }
 
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+  .profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-.profile-avatar i {
-  font-size: 48px;
-  color: #adb5bd;
-}
-
+  .profile-avatar i {
+    font-size: 48px;
+    color: #adb5bd;
+  }
 </style>

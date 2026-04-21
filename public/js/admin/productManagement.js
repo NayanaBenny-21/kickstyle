@@ -104,5 +104,29 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
     }
     window.location.href = `/admin/products/edit/${productId}`;
   });
+
+
+  const searchInput = document.getElementById("searchInput");
+
+  if (!searchInput) return;
+
+  // Triggered when user clicks built-in clear (✖)
+  searchInput.addEventListener("search", () => {
+
+    if (searchInput.value === "") {
+
+      const url = new URL(window.location.href);
+
+      // Remove ONLY search
+      url.searchParams.delete("search");
+
+      // Reset pagination
+      url.searchParams.delete("page");
+
+      // Keep category + status
+      window.location.href = url.toString();
+    }
+  });
+
 });
 

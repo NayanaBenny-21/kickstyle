@@ -3,22 +3,21 @@ const Coupon = require("../../models/couponSchema");
 
 exports.getCouponsPage = async (req, res) => {
   try {
-    const userId = req.session.userId; // ✅ FIX HERE
-
+    const userId = req.session.userId; 
     if (!userId) {
       return res.redirect("/auth/login");
     }
 
     const today = new Date();
 
-    // 1️⃣ Coupons already used by this user
+    // Coupons already used by this user
     const usedCoupons = await CouponUsage.find({ userId })
       .select("couponCode")
       .lean();
 
     const usedCouponCodes = usedCoupons.map(c => c.couponCode);
 
-    // 2️⃣ Fetch ONLY available coupons
+    // Fetch ONLY available coupons
     const coupons = await Coupon.find({
       isActive: true,
       expiryDate: { $gte: today },

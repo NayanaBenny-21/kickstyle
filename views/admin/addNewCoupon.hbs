@@ -27,7 +27,7 @@
 
         <h4 class="mb-4 fw-bold text-danger">Add New Coupon</h4>
 
-        <form action="/admin/coupon/add" method="POST" >
+        <form id="couponForm" action="/admin/coupon/add" method="POST" >
 
           <div class="row g-3">
 
@@ -88,7 +88,7 @@
             <!-- Max Discount -->
             <div class="col-md-3">
               <label class="form-label fw-semibold">Maximum Discount (₹)</label>
-              <input type="number" name="maxDiscount" class="form-control" min="0" required>
+              <input type="number" name="maxDiscount" class="form-control" min="0" >
             </div>
 
             <!-- Limit Fields -->

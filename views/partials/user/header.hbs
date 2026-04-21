@@ -18,14 +18,37 @@
         </ul>
 
 
-        <form id="searchForm" class="d-flex me-3" style="width: 300px;" onsubmit="return handleSearch(event)">
-          <div class="input-group">
-            <span class="input-group-text" id="basic-addon1">
-              <i class="bi bi-search"></i>
-            </span>
-            <input type="search" id="searchInput" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1" required>
-          </div>
-        </form>
+<form id="searchForm" class="d-flex me-3 position-relative" style="width: 300px;" onsubmit="return handleSearch(event)">
+  
+  <div class="input-group w-100">
+    <span class="input-group-text">
+      <i class="bi bi-search"></i>
+    </span>
+
+    <!-- Input -->
+    <input 
+      type="search" 
+      id="searchInput" 
+      name="q"
+      class="form-control pe-5" 
+      placeholder="Search"
+      value="{{query}}"
+      oninput="toggleClearBtn()"
+
+    >
+  </div>
+
+  <!-- CLEAR BUTTON -->
+  <button 
+    type="button"
+    id="clearBtn"
+    class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0 bg-transparent d-none"
+    style="font-size: 18px;"
+  >
+    ✖
+  </button>
+
+</form>
 
         <a href="/wishlist" class="me-3"><i class="bi bi-heart"></i></a>
 
@@ -98,7 +121,42 @@
   */
   
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
+  const clearBtn = document.getElementById("clearBtn");
+  const input = document.getElementById("searchInput");
+
+  // ✅ CLEAR BUTTON CLICK
+  clearBtn.addEventListener("click", () => {
+    input.value = "";
+
+    if (window.location.pathname.startsWith("/search")) {
+      window.location.href = "/";
+    } else {
+      window.location.reload();
+    }
+  });
+
+  // ✅ SHOW / HIDE CLEAR BUTTON
+  input.addEventListener("input", () => {
+    if (input.value.trim() !== "") {
+      clearBtn.classList.remove("d-none");
+    } else {
+      clearBtn.classList.add("d-none");
+    }
+  });
+
+});
+
+window.addEventListener("pageshow", () => {
+  const input = document.getElementById("searchInput");
+
+  if (!window.location.pathname.startsWith("/search")) {
+    input.value = "";
+  }
+});
+</script>
 <!-- in your main layout (header partial) -->
 <script src="/js/user/updatecart.js"></script>
 

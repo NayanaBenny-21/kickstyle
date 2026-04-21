@@ -40,8 +40,7 @@
 
           <!-- PRODUCT IMAGE -->
           <div class="product-image text-center flex-shrink-0">
-            <img src="{{item.image}}" class="img-fluid rounded"
-                 style="max-height:70px; width:auto;">
+            <img src="{{item.image}}" class="img-fluid rounded" style="max-height:70px; width:auto;">
           </div>
 
         </div>
@@ -52,93 +51,87 @@
         <div class="card p-2 shadow-sm mt-3" id="status-card-{{item._id}}">
           <h6 class="fw-bold mb-3">Ordered Item Status</h6>
 
-          {{#if (eq order.status "payment_failed")}}
-            <p class="fw-bold mb-0" style="font-size:13px;">
-              Status: <span class="text-danger">Payment Failed</span>
-            </p>
+          {{#if (eq order.orderStatus "payment_failed")}}
+          <p class="fw-bold mb-0" style="font-size:13px;">
+            Status: <span class="text-danger">Payment Failed</span>
+          </p>
           {{else}}
 
-            {{#if (eq item.status "delivered")}}
-              <p class="fw-bold mb-0" style="font-size:13px;">
-                Status: <span class="text-success">Delivered</span>
-                {{#if item.formattedDeliveryDate}}
-                  | Delivered on: {{item.formattedDeliveryDate}}
-                {{/if}}
-              </p>
-
-            {{else if (eq item.status "cancelled")}}
-              <p class="fw-bold mb-0" style="font-size:13px;">
-                Status: <span class="text-danger">Cancelled</span>
-              </p>
-
-            {{else if (eq item.status "returned")}}
-              <p class="fw-bold mb-0" style="font-size:13px;">
-                Status: <span class="text-warning">Returned</span>
-                {{#if item.returnReason}}
-                  | Reason: {{item.returnReason}}
-                {{/if}}
-              </p>
-
-            {{else}}
-              <p class="fw-bold mb-0" style="font-size:13px;">
-                Status: <span class="text-info">Order Processing</span>
-                | Expected Delivery: {{order.expectedDeliveryDate}}
-              </p>
+          {{#if (eq item.status "delivered")}}
+          <p class="fw-bold mb-0" style="font-size:13px;">
+            Status: <span class="text-success">Delivered</span>
+            {{#if item.formattedDeliveryDate}}
+            | Delivered on: {{item.formattedDeliveryDate}}
             {{/if}}
+          </p>
+
+          {{else if (eq item.status "cancelled")}}
+          <p class="fw-bold mb-0" style="font-size:13px;">
+            Status: <span class="text-danger">Cancelled</span>
+          </p>
+
+          {{else if (eq item.status "returned")}}
+          <p class="fw-bold mb-0" style="font-size:13px;">
+            Status: <span class="text-warning">Returned</span>
+            {{#if item.returnReason}}
+            | Reason: {{item.returnReason}}
+            {{/if}}
+          </p>
+
+          {{else}}
+          <p class="fw-bold mb-0" style="font-size:13px;">
+            Status: <span class="text-info">Order Processing</span>
+            | Expected Delivery: {{order.expectedDeliveryDate}}
+          </p>
+          {{/if}}
 
           {{/if}}
         </div>
 
-<!-- ================= CANCEL BUTTON ================= -->
-{{#if item.canCancel}}
-<div class="card p-2 shadow-sm text-center mt-3">
-  {{#if item.isSingleItemOrder}}
-    <!-- ORDER LEVEL -->
-    <a href="/orders/cancel-order/{{order._id}}"
-       class="btn btn-outline-danger fw-bold btn-sm cancel-btn"
-       data-type="order">
-      Cancel Order
-    </a>
-  {{else}}
-    <!-- ITEM LEVEL -->
-    <a href="/orders/cancel-item/{{item._id}}"
-       class="btn btn-outline-danger fw-bold btn-sm cancel-btn"
-       data-type="item">
-      Cancel Item
-    </a>
-  {{/if}}
-</div>
-{{/if}}
+        <!-- ================= CANCEL BUTTON ================= -->
+        {{#if item.canCancel}}
+        <div class="card p-2 shadow-sm text-center mt-3">
+          {{#if item.isSingleItemOrder}}
+          <!-- ORDER LEVEL -->
+          <a href="/orders/cancel-order/{{order._id}}" class="btn btn-outline-danger fw-bold btn-sm cancel-btn"
+            data-type="order">
+            Cancel Order
+          </a>
+          {{else}}
+          <!-- ITEM LEVEL -->
+          <a href="/orders/cancel-item/{{item._id}}" class="btn btn-outline-danger fw-bold btn-sm cancel-btn"
+            data-type="item">
+            Cancel Item
+          </a>
+          {{/if}}
+        </div>
+        {{/if}}
 
 
 
 
-       <!-- ================= RETURN BUTTON ================= -->
-{{#if item.canReturn}}
-<div class="card p-2 shadow-sm text-center mt-3">
-  {{#if item.isSingleItemOrder}}
-    <button class="btn btn-outline-primary fw-bold btn-sm return-btn"
-            data-type="order"
-            data-id="{{order._id}}">
-      Return Order
-    </button>
-  {{else}}
-    <button class="btn btn-outline-primary fw-bold btn-sm return-btn"
-            data-type="item"
-            data-id="{{item._id}}">
-      Return Item
-    </button>
-  {{/if}}
-</div>
-{{/if}}
+        <!-- ================= RETURN BUTTON ================= -->
+        {{#if item.canReturn}}
+        <div class="card p-2 shadow-sm text-center mt-3">
+          {{#if item.isSingleItemOrder}}
+          <button class="btn btn-outline-primary fw-bold btn-sm return-btn" data-type="order" data-id="{{order._id}}">
+            Return Order
+          </button>
+          {{else}}
+          <button class="btn btn-outline-primary fw-bold btn-sm return-btn" data-type="item" data-id="{{item._id}}">
+            Return Item
+          </button>
+          {{/if}}
+        </div>
+        {{/if}}
 
 
 
 
-    <div class="mb-3" style="margin-top: 1%;">
-      <hr style="margin:5px 0;">
-      <p style="font-size:12px;color:#7b7878;margin-top:9px">Order ID: {{order.orderId}}</p>
-    </div>
+        <div class="mb-3" style="margin-top: 1%;">
+          <hr style="margin:5px 0;">
+          <p style="font-size:12px;color:#7b7878;margin-top:9px">Order ID: {{order.orderId}}</p>
+        </div>
 
 
       </div>
@@ -200,10 +193,9 @@
 
         <hr class="my-2">
 
-<a href="/orders/{{order.orderId}}/invoice"
-   class="btn btn-outline-primary btn-sm w-100">
-  Download Invoice
-</a>
+        <a href="/orders/{{order.orderId}}/invoice" class="btn btn-outline-primary btn-sm w-100">
+          Download Invoice
+        </a>
 
 
       </div>

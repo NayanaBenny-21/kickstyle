@@ -1,24 +1,26 @@
 <link rel="stylesheet" href="/css/style1.css">
 <link rel="stylesheet" href="/css/profile.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid">
   <div class="row">
-       <div class="col-2 sidebar">
-        <h4 class="mb-4 text-danger">KICKSTYLE</h4>
-  <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2">Dashboard</a>
-  <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
-  <a href="/admin/product-management" class="btn btn-danger w-100 mb-2 active">Products</a>
-  <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
-  <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
-  <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
-  <a href="/admin/category-management" class="btn btn-danger w-100 mb-2">Category</a>
-    <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
+    <!-- Sidebar -->
+    <div class="col-2 sidebar">
+      <h4 class="mb-4 text-danger">KICKSTYLE</h4>
+      <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2">Dashboard</a>
+      <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
+      <a href="/admin/product-management" class="btn btn-danger w-100 mb-2 active">Products</a>
+      <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
+      <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
+      <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
+      <a href="/admin/category-management" class="btn btn-danger w-100 mb-2">Category</a>
+      <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
+      <button class="btn w-100 mt-3" id="signout_btn" style="background-color: rgb(225, 227, 230);">Signout</button>
+    </div>
 
-  <button class="btn w-100 mt-3" id="signout_btn" style="background-color: rgb(225, 227, 230);">
-    Signout
-  </button>
-      </div>
-
+    <!-- Main Content -->
     <div class="col-md-9 ms-auto p-4">
       <div class="card shadow-sm border-0 rounded-4 p-4">
         <h4 class="mb-4 fw-bold text-danger">Edit Product</h4>
@@ -26,19 +28,24 @@
         <form id="productForm" action="/admin/products/edit/{{product._id}}" method="POST" enctype="multipart/form-data">
           <div class="row g-3">
 
-            <!-- Product Name -->
+            <!-- Product Name / Brand / Description -->
             <div class="col-md-6">
               <label class="form-label fw-semibold">Product Name</label>
               <input type="text" name="product_name" class="form-control" value="{{product.product_name}}" required>
             </div>
+<div class="col-md-6">
+  <label class="form-label fw-semibold">Brand</label>
+  <select name="brand" class="form-select" required>
+    <option value="">Select Brand</option>
 
-            <!-- Brand -->
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Brand</label>
-              <input type="text" name="brand" class="form-control" value="{{product.brand}}">
-            </div>
+    {{#each brands}}
+      <option value="{{this}}" {{#ifEquals this ../product.brand}}selected{{/ifEquals}}>
+        {{this}}
+      </option>
+    {{/each}}
 
-            <!-- Description -->
+  </select>
+</div>
             <div class="col-12">
               <label class="form-label fw-semibold">Description</label>
               <textarea name="description" class="form-control" rows="3">{{product.description}}</textarea>
@@ -55,22 +62,21 @@
               </select>
             </div>
 
+            <!-- Pricing -->
             <div class="col-md-3">
               <label class="form-label fw-semibold">Base Price (₹)</label>
               <input type="number" name="base_price" class="form-control" value="{{product.base_price}}" min="0" required>
             </div>
-
             <div class="col-md-3">
               <label class="form-label fw-semibold">Discount (%)</label>
               <input type="number" name="discount_percentage" class="form-control" value="{{product.discount_percentage}}" min="0">
             </div>
-
             <div class="col-md-3">
               <label class="form-label fw-semibold">Final Price (₹)</label>
               <input type="number" name="finalPrice" class="form-control" value="{{product.final_price}}" readonly>
             </div>
 
-            <!-- List / Unlist -->
+            <!-- List/Unlist -->
             <div class="col-md-3 d-flex align-items-center">
               <div class="form-check mt-4">
                 <input class="form-check-input" type="checkbox" name="isActive" id="isActive" {{#if product.isActive}}checked{{/if}}>
@@ -81,27 +87,35 @@
             <!-- Main Image -->
             <div class="col-md-6">
               <label class="form-label fw-semibold">Main Image</label>
-              <input type="file" name="main" class="form-control" accept="image/*">
-              {{#if product.images.main}}
-                <img src="{{product.images.main}}" class="mt-2" width="100">
-              {{/if}}
-            </div>
-
-            <!-- Gallery -->
-            <div class="col-md-6">
-              <label>Gallery Images (min 3)</label>
-              <input type="file" id="galleryFiles" name="images" class="form-control" multiple accept="image/*">
-              <div class="d-flex flex-wrap mt-2" id="galleryContainer">
-                {{#each product.images.gallery}}
-                  <div class="gallery-image-wrapper" data-image-url="{{this}}">
-                    <img src="{{this}}" width="80" height="80" style="object-fit:cover; margin:5px;">
-                    <button type="button" class="remove-btn">×</button>
-                  </div>
-                {{/each}}
+              <input type="file" id="mainImageInput" name="main" class="form-control" accept="image/*">
+              <div id="mainPreview" class="mt-2">
+                {{#if product.images.main}}
+                  <img src="{{product.images.main}}" class="border rounded" width="150">
+                {{/if}}
+                <small id="mainImageInfo" class="text-muted"></small>
               </div>
             </div>
 
-            <!-- Variants Section -->
+            <!-- Gallery Images -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Gallery Images (min 3)</label>
+              <input type="file" id="galleryFiles" name="images" class="form-control" multiple accept="image/*">
+              <div id="preview" class="d-flex flex-wrap mt-2 gap-2">
+{{#each product.images.gallery}}
+  <div class="position-relative me-2 mb-2 gallery-item">
+    
+    <input type="hidden" name="existingGallery[]" value="{{this}}">
+
+    <img src="{{this}}" style="width:120px;height:120px;object-fit:cover" class="rounded border">
+
+    <button type="button" class="btn btn-danger btn-sm position-absolute removeBtn" style="top:4px; right:4px;">&times;</button>
+  </div>
+{{/each}}
+              </div>
+              <small id="galleryInfo" class="text-muted"></small>
+            </div>
+
+            <!-- Variants -->
             <hr class="my-4">
             <div class="d-flex justify-content-between align-items-center">
               <h5 class="fw-bold text-secondary">Product Variants</h5>
@@ -109,27 +123,73 @@
                 <i class="bi bi-plus-circle"></i> Add Variant
               </button>
             </div>
+<div id="variantContainer" class="mt-3">
+  {{#each product.variants}}
+    <div class="variant-item d-flex align-items-center gap-2 border p-2 rounded mb-2 bg-light">
 
-            <div id="variantContainer" class="mt-3">
-              {{#each product.variants}}
-                <div class="variant-item d-flex align-items-center gap-2 border p-2 rounded mb-2 bg-light">
-                  <input type="text" name="variants[{{@index}}][color]" class="form-control form-control-sm" value="{{this.color}}" placeholder="Color">
-                  <input type="text" name="variants[{{@index}}][size]" class="form-control form-control-sm" value="{{this.size}}" placeholder="Size">
-                  <input type="text" name="variants[{{@index}}][sku]" class="form-control form-control-sm" value="{{this.sku}}" placeholder="SKU">
-                  <input type="number" name="variants[{{@index}}][stock]" class="form-control form-control-sm" value="{{this.stock}}" placeholder="Stock">
-                  <!-- all variant files have same name for Multer -->
-                  <input type="file" name="variantImages" class="form-control form-control-sm" accept="image/*">
-                  <!-- store existing image -->
-                  <input type="hidden" name="variants[{{@index}}][existingImage]" value="{{this.image}}">
-                  {{#if this.image}}
-                    <img src="{{this.image}}" width="50">
-                  {{/if}}
-                  <button type="button" class="btn btn-outline-danger btn-sm removeVariantBtn">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              {{/each}}
-            </div>
+      <!-- KEEP -->
+      <input type="hidden" name="variants[{{@index}}][_id]" value="{{this._id}}">
+      <input type="hidden" name="variants[{{@index}}][existingImage]" value="{{this.image}}">
+
+      <!-- COLOR -->
+      <select name="variants[{{@index}}][color]" class="form-control form-control-sm" required>
+        <option value="" disabled>Select Color</option>
+        <option value="Red" {{#ifEquals this.color "Red"}}selected{{/ifEquals}}>Red</option>
+        <option value="Blue" {{#ifEquals this.color "Blue"}}selected{{/ifEquals}}>Blue</option>
+        <option value="Green" {{#ifEquals this.color "Green"}}selected{{/ifEquals}}>Green</option>
+        <option value="Black" {{#ifEquals this.color "Black"}}selected{{/ifEquals}}>Black</option>
+        <option value="White" {{#ifEquals this.color "White"}}selected{{/ifEquals}}>White</option>
+      </select>
+
+      <!-- SIZE -->
+      <select name="variants[{{@index}}][size]" class="form-control form-control-sm" required>
+        <option value="" disabled>Select Size</option>
+        <option value="6" {{#ifEquals this.size "6"}}selected{{/ifEquals}}>6</option>
+        <option value="7" {{#ifEquals this.size "7"}}selected{{/ifEquals}}>7</option>
+        <option value="8" {{#ifEquals this.size "8"}}selected{{/ifEquals}}>8</option>
+        <option value="9" {{#ifEquals this.size "9"}}selected{{/ifEquals}}>9</option>
+        <option value="10" {{#ifEquals this.size "10"}}selected{{/ifEquals}}>10</option>
+        <option value="11" {{#ifEquals this.size "11"}}selected{{/ifEquals}}>11</option>
+        <option value="42" {{#ifEquals this.size "42"}}selected{{/ifEquals}}>42</option>
+        <option value="43" {{#ifEquals this.size "43"}}selected{{/ifEquals}}>43</option>
+        <option value="44" {{#ifEquals this.size "44"}}selected{{/ifEquals}}>44</option>
+      </select>
+
+      <!-- SKU & STOCK -->
+      <input type="text" name="variants[{{@index}}][sku]" class="form-control form-control-sm" value="{{this.sku}}" placeholder="SKU">
+      <input type="number" name="variants[{{@index}}][stock]" class="form-control form-control-sm" value="{{this.stock}}" placeholder="Stock">
+
+<div class="variant-image-box">
+
+  <!-- HIDDEN INPUT -->
+  <input type="file"
+         name="variantImages[{{@index}}]"
+         class="variantImageInput d-none"
+         data-index="{{@index}}">
+
+  <!-- IMAGE PREVIEW -->
+  <img src="{{#if this.image}}{{this.image}}{{else}}/images/no-image.png{{/if}}"
+       class="variantPreview"
+       width="90"
+       style="cursor:pointer; border-radius:6px; border:1px solid #ddd;">
+
+  <!-- ACTIONS -->
+<div class="variant-actions">
+  <small class="uploadImageBtn text-success" style="cursor:pointer;">Upload</small>
+  <small class="editImageBtn text-primary d-none" style="cursor:pointer;">Edit</small>
+  <small class="removeImageBtn text-danger ms-2 d-none" style="cursor:pointer;">Remove</small>
+</div>
+
+</div>
+
+      <!-- REMOVE -->
+      <button type="button" class="btn btn-outline-danger btn-sm removeVariantBtn">
+        <i class="bi bi-trash"></i>
+      </button>
+
+    </div>
+  {{/each}}
+</div>
 
             <!-- Submit -->
             <div class="text-end mt-4">
@@ -141,6 +201,38 @@
     </div>
   </div>
 </div>
+<!-- Crop Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3">
+      <div class="modal-header">
+        <h5 class="modal-title">Crop Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="cropImage" style="max-width:100%; max-height:400px;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="cropBtn">Crop & Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script src="/js/sidebar.js"></script>
 <script src="/js/admin/editProduct.js"></script>
-      <script src="/js/sidebar.js"></script>
+<script src="/js/admin/editProductValidation.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const error = params.get("error");
+
+  if (error) {
+    Swal.fire({
+      icon: "Warning",
+      title: "Oops...",
+      text: error
+    });
+  }
+</script>

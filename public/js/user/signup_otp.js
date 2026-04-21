@@ -2,6 +2,49 @@ console.log("OTP JS loaded");
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    const form = document.querySelector("form");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // 🚨 THIS FIXES EVERYTHING
+
+   const formData = new URLSearchParams(new FormData(form));
+
+        try {
+            const res = await fetch("/auth/signup/verify-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData
+            });
+        const data = await res.json();
+
+        if (data.success) {
+            Swal.fire({
+                icon: "success",
+                title: data.message,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = data.redirect;
+            });
+
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: data.message
+            });
+        }
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire({
+            icon: "error",
+            title: "Something went wrong"
+        });
+    }
+});
+
     const resend = document.getElementById("resend");
     const timerElement = document.getElementById("timer");
 
@@ -51,17 +94,24 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, 1000);
     }
+// ✅ ONLY START TIMER IF OTP NOT EXPIRED
+if (window.otpSent && !window.otpExpired && countdown > 0) {
 
-    // ✅ SHOW OTP SENT ONLY FIRST TIME (PAGE SESSION)
-    if (window.otpSent && countdown > 0) {
-
-        if (!sessionStorage.getItem("otpInitialToast")) {
-            showToast("success", "OTP sent to your email");
-            sessionStorage.setItem("otpInitialToast", "true");
-        }
-
-        startTimer(); // ✅ ALWAYS START TIMER
+    if (!sessionStorage.getItem("otpInitialToast")) {
+        showToast("success", "OTP sent to your email");
+        sessionStorage.setItem("otpInitialToast", "true");
     }
+
+    startTimer();
+
+} else {
+
+    // OTP expired → keep resend visible
+    if (interval) clearInterval(interval);
+    timerElement.style.display = "none";
+    resend.style.display = "inline-block";
+    resend.disabled = false;
+}
 
     // 🔁 RESEND OTP
     resend.addEventListener("click", async (e) => {

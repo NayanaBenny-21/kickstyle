@@ -1,7 +1,7 @@
 const cron = require("node-cron");
 const Order = require("../models/orderSchema");
 const OrderedItem = require("../models/orderedItemSchema");
-const { releaseStock } = require("./stockController");
+const { releaseStock } = require("../helpers/stockController");
 
 cron.schedule("*/2 * * * *", async () => {
   console.log("Checking expired unpaid orders...");

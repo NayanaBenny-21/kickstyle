@@ -11,22 +11,19 @@ const { imgUpload, processCategoryImage } = require('../../middlewares/categoryI
 const { loadOrderManagementPage, loadOrderDetailsPage, updateOrderedItemStatus, loadOrderedItemDetailsPage } = require('../../controllers/admin/orderManagmentController');
 const { getAllOrdersById, getOrderlevelPage } = require('../../controllers/admin/order_managementontroller');
 const { loadCouponsManagement, toggleCouponStatus, deleteCoupon } = require('../../controllers/admin/couponController');
-const {loadEditCouponPage, editCoupon, loadAddCouponPage, addNewCoupon} = require('../../controllers/admin/couponUpdateController');
-const {loadOfferManagement, toggleOfferStatus, deleteOffer} = require('../../controllers/admin/offerManagementController');
-const {loadAddOffer, addOffer, loadEditOfferPage, editOffer} = require('../../controllers/admin/offerUpdateController');
-const salesController  = require('../../controllers/admin/salesReportController');
+const { loadEditCouponPage, editCoupon, loadAddCouponPage, addNewCoupon } = require('../../controllers/admin/couponUpdateController');
+const { loadOfferManagement, toggleOfferStatus, deleteOffer } = require('../../controllers/admin/offerManagementController');
+const { loadAddOffer, addOffer, loadEditOfferPage, editOffer } = require('../../controllers/admin/offerUpdateController');
+const salesController = require('../../controllers/admin/salesReportController');
 const { getReportData } = require('../../controllers/admin/salesReportController');
 const { generateSalesPdf } = require("../../controllers/utils/pdfGenerator");
 const { generateSalesExcel } = require("../../controllers/utils/excelGenerator");
-const {handleFullOrderReturn } = require("../../controllers/admin/order_managementontroller");
-const {loadDashboard,loadLedger} = require("../../controllers/admin/dashboardController");
-
+const { handleFullOrderReturn } = require("../../controllers/admin/order_managementontroller");
+const { loadDashboard, loadLedger } = require("../../controllers/admin/dashboardController");
+const editMulter = require('../../middlewares/editProductMulter');
 
 //===========DASHBOARD MANAGEMENT===========
 router.get("/dashboard", loadDashboard);
-
-
-
 
 // ========== USER MANAGEMENT ==========
 router.get('/user-management', userManagementController.loadUserManagement);
@@ -47,7 +44,12 @@ router.get('/products/add', loadAddProduct);
 router.post('/products/add', imageUploads, processProductImages, addProduct);
 
 router.get('/products/edit/:productId', loadEditProduct);
-router.post('/products/edit/:productId', imageUploads, processProductImages, editProduct);
+router.post(
+  '/products/edit/:productId',
+  editMulter.upload.any(),
+  editMulter.processProductImages,
+  editProduct
+);
 router.post('/products/:productId/remove-image', removeGalleryImage);
 
 // ========== CATEGORY MANAGEMENT ==========
@@ -85,13 +87,11 @@ router.get('/offers/add', loadAddOffer);
 router.post('/offers/add', addOffer);
 router.get('/offers/edit/:offerId', loadEditOfferPage);
 router.post('/offers/edit/:offerId', editOffer);
-router.patch("/offers/toggle-status/:offerId",toggleOfferStatus);
+router.patch("/offers/toggle-status/:offerId", toggleOfferStatus);
 router.delete('/offers/delete/:offerId', deleteOffer);
 
 // ===========  SALES REPORT =================
 router.get("/sales-report", salesController.getSalesReport);
-// router.get("/sales-report/pdf", pdf.downloadPdf);
-// router.get("/sales-report/excel", excel.downloadExcel);
 router.get("/sales-report/pdf", async (req, res) => {
   const { orders, summary } = await getReportData(req);
   return generateSalesPdf(orders, summary, res);

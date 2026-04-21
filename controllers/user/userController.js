@@ -7,21 +7,9 @@ const loadHomepage = async (req, res) => {
   try {
     const userId = req.user?.id;
     console.log(" Home userId", userId)
-   // if (!userId) return res.redirect("/auth/login");
- const user = await User.findById(userId);
-// if (!user) {
-//   req.logout(function (err) {
-//     if (err) {
-//       console.error("Logout error:", err);
-//     }
 
-//     req.session.destroy(() => {
-//       return res.redirect("/auth/login");
-//     });
-//   });
+    const user = await User.findById(userId);
 
-//   return;
-// }
 
     const featuredProducts = await Product.find({
       isActive: true,
@@ -31,7 +19,7 @@ const loadHomepage = async (req, res) => {
       .limit(4)
       .lean();
 
-   
+
     const productsWithOffers = await Promise.all(
       featuredProducts.map(async (p) => {
         const updated = await applyBestOfferToProduct(p);
@@ -39,8 +27,8 @@ const loadHomepage = async (req, res) => {
         return {
           _id: updated._id,
           name: updated.product_name,
-          price: updated.base_price,                
-          offerPrice: updated.final_price,           
+          price: updated.base_price,
+          offerPrice: updated.final_price,
           discountPercentage: updated.discount_percentage,
           images: updated.images
         };
@@ -58,4 +46,4 @@ const loadHomepage = async (req, res) => {
 
 
 
-module.exports = {loadHomepage};
+module.exports = { loadHomepage };

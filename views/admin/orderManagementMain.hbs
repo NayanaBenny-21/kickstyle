@@ -187,6 +187,23 @@
       const modal = new bootstrap.Modal(modalEl);
       filterBtn.addEventListener('click', () => modal.show());
     }
+
+    const searchInput = document.querySelector('input[name="search"]');
+  const form = document.getElementById("searchForm");
+
+  // Triggered when user clicks built-in clear (✖)
+  searchInput.addEventListener("search", () => {
+
+    if (searchInput.value === "") {
+
+      // Remove search from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("search");
+
+      // Keep status
+      window.location.href = url.toString();
+    }
+  });
   });
 </script>
 

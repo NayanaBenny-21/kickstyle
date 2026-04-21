@@ -30,11 +30,11 @@ const setAuthStatus = async (req, res, next) => {
       return next();
     }
 
-    // ✅ Attach to request (IMPORTANT FIX)
+    // Attach to request (IMPORTANT FIX)
     req.user = user;
     req.userId = user._id;
 
-    // ✅ Attach to handlebars
+    //  Attach to handlebars
     res.locals.isUserLoggedIn = true;
     res.locals.user = user;
 

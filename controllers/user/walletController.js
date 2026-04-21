@@ -49,7 +49,7 @@ exports.payUsingWallet = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid amount" });
     }
 
-    // 1️⃣ Deduct wallet (atomic)
+    // Deduct wallet (atomic)
     const wallet = await Wallet.findOneAndUpdate(
       { userId, balance: { $gte: amount } },
       { $inc: { balance: -amount } },
@@ -60,7 +60,7 @@ exports.payUsingWallet = async (req, res) => {
       return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
     }
 
-    // 2️⃣ Create order
+    //  Create order
     const generateOrderId = () =>
       "ORD-" + Math.random().toString(36).substring(2, 10).toUpperCase();
 
@@ -76,7 +76,7 @@ exports.payUsingWallet = async (req, res) => {
       couponApplied: couponId || null
     });
 
-    // 3️⃣ Wallet transaction
+    //  Wallet transaction
     await WalletTransaction.create({
       userId,
       type: "debit",

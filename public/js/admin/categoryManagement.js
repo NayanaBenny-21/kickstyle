@@ -102,4 +102,27 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
     }
     window.location.href = `/admin/categories/edit/${categoryId}`;
   });
+
+    const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
+
+  function clearSearchIfEmpty() {
+    if (searchInput.value === "") {
+
+      const url = new URL(window.location.href);
+
+      // remove search + reset page
+      url.searchParams.delete("search");
+      url.searchParams.delete("page");
+
+      // redirect (same like coupons page)
+      window.location.href = url.toString();
+    }
+  }
+
+  // works while typing
+  searchInput.addEventListener("input", clearSearchIfEmpty);
+
+  // works when clicking ❌ in search
+  searchInput.addEventListener("search", clearSearchIfEmpty);
 });

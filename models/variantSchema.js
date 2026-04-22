@@ -9,7 +9,7 @@ const variantSchema = new mongoose.Schema({
   stock: { type: Number, required: true },
   reservedStock: {type: Number,default: 0},
   image: { type: String, required: true },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true}
 }, { timestamps: true });
 
 const Variant = mongoose.model('Variant', variantSchema);

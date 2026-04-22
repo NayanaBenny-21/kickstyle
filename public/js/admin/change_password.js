@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    
     if (window.resetSuccess) {
         Swal.fire({
             icon: "success",

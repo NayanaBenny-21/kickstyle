@@ -2,153 +2,263 @@
 const Product = require('../../models/productSchema');
 const Variant = require('../../models/variantSchema');
 const Category = require('../../models/categorySchema');
+const { applyBestOfferToProduct } = require("../../helpers/offerHelper");
+
+
+
 const loadProductsPage = async (req, res) => {
-    try {
-        const sortQuery = req.query.sort || 'newest'; // default to newest
-        console.log("Sort query:", sortQuery);
+  try {
+    const sortQuery = req.query.sort || "newest";
 
-        // Ensure numeric sorting and stable order
-        let sortOption;
-        switch (sortQuery) {
-            case 'priceLowHigh':
-                sortOption = { final_price: 1, _id: 1 };
-                break;
-            case 'priceHighLow':
-                sortOption = { final_price: -1, _id: 1 };
-                break;
-            case 'newest':
-            default:
-                sortOption = { createdAt: -1, _id: 1 };
-        }
-        const page = parseInt(req.query.page) || 1;
-        const limit = 4;
-        const skip = (page - 1) * limit;
-        //variant filtering
-        const variantFilter = {};
-        if (req.query.color) variantFilter.color = { $in: Array.isArray(req.query.color) ? req.query.color : [req.query.color] };
-        if (req.query.size) variantFilter.size = { $in: Array.isArray(req.query.size) ? req.query.size : [req.query.size] };
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4;
+    const skip = (page - 1) * limit;
 
-        let productIds = [];
-        if (Object.keys(variantFilter).length) {
-            const variants = await Variant.find(variantFilter).distinct('product_id')
-            productIds = variants;
-        }
+    // ---------- Variant filtering ----------
+    const variantFilter = {};
+    if (req.query.color)
+      variantFilter.color = { $in: [].concat(req.query.color) };
+    if (req.query.size)
+      variantFilter.size = { $in: [].concat(req.query.size) };
 
-        const productFilter = { isActive: true };
-
-        if (productIds.length) productFilter._id = { $in: productIds }
-        if (req.query.category) {
-            productFilter.category_id = { $in: Array.isArray(req.query.category) ? req.query.category : [req.query.category] };
-        }
-        if (req.query.brand) {
-            productFilter.brand = { $in: Array.isArray(req.query.brand) ? req.query.brand : [req.query.brand] };
-        }
-        const totalProducts = await Product.countDocuments(productFilter);
-        const totalPages = Math.ceil(totalProducts / limit)
-
-        const loadProducts = await Product.find(productFilter).sort(sortOption).skip(skip).limit(limit).lean();
-        const product = loadProducts.map((p) => ({
-            _id: p._id,
-            name: p.product_name,
-            brand: p.brand,
-            price: p.base_price,
-            offerPrice: p.final_price,
-            discountPercentage: p.discount_percentage,
-            images: p.images
-        }));
-        const categories = await Category.find({ isActive: true }).lean();
-        const brands = await Product.distinct('brand');
-        const colors = await Variant.distinct('color');
-        const sizes = await Variant.distinct('size');
-        res.render('user/allProductsPage', {
-            products: product, currentPage: page, totalPages, sort: sortQuery || 'newest', selectedFilters: req.query,
-            categories, brands, colors, sizes
-        });
-    } catch (error) {
-        console.error("Error loading productpage:", error);
-        res.status(500).send("Server error");
+    let productIds = [];
+    if (Object.keys(variantFilter).length) {
+      productIds = await Variant.find(variantFilter).distinct("product_id");
     }
+
+    // ---------- Product filtering ----------
+    const productFilter = { isActive: true, deleted: false };
+
+    if (productIds.length) productFilter._id = { $in: productIds };
+    if (req.query.category)
+      productFilter.category_id = { $in: [].concat(req.query.category) };
+    if (req.query.brand)
+      productFilter.brand = { $in: [].concat(req.query.brand) };
+
+    // GET ALL FILTERED PRODUCTS (NO skip, NO limit)
+    let allProducts = await Product.find(productFilter).lean();
+
+    //  APPLY OFFER TO ALL
+    let productsWithOffers = await Promise.all(
+      allProducts.map(p => applyBestOfferToProduct(p))
+    );
+
+    //  SORT ALL PRODUCTS GLOBALLY
+    if (sortQuery === "priceLowHigh") {
+      productsWithOffers.sort((a, b) => a.final_price - b.final_price);
+    } 
+    else if (sortQuery === "priceHighLow") {
+      productsWithOffers.sort((a, b) => b.final_price - a.final_price);
+    } 
+    else {
+      productsWithOffers.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+    }
+
+const selectedFilters = {
+  category: req.query.category ? [].concat(req.query.category) : [],
+  brand: req.query.brand ? [].concat(req.query.brand) : [],
+  color: req.query.color ? [].concat(req.query.color) : [],
+  size: req.query.size ? [].concat(req.query.size) : []
 };
 
+    //  NOW PAGINATE AFTER SORTING
+    const totalProducts = productsWithOffers.length;
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    const paginatedProducts = productsWithOffers.slice(skip, skip + limit);
+
+    //  MAP FOR FRONTEND
+    const products = paginatedProducts.map(p => ({
+      _id: p._id,
+      name: p.product_name,
+      brand: p.brand,
+      price: p.base_price,
+      offerPrice: p.final_price,
+      discountPercentage: p.discount_percentage,
+      images: p.images
+    }));
+
+    const categories = await Category.find({ isActive: true }).lean();
+    const brands = await Product.distinct("brand");
+    const colors = await Variant.distinct("color");
+    const sizes = await Variant.distinct("size");
+
+    res.render("user/allProductsPage", {
+      products,
+      currentPage: page,
+      totalPages,
+      sort: sortQuery,
+      selectedFilters,
+      categories,
+      brands,
+      colors,
+      sizes
+    });
+
+  } catch (error) {
+    console.error("Error loading product page:", error);
+    res.status(500).send("Server error");
+  }
+};
+
+
+
 const LoadProductDetailsPage = async (req, res) => {
-    try {
-        const productId = req.params.productId;
-        console.log('Requested productId:', productId);
-        const product = await Product.findById(productId).lean();
-        console.log(product.images);
-        if(!product) {
-            return res.status(404).send("Product not found");
-        }
-        let descriptionList = [];
-        if(product.description) {
-            descriptionList = product.description.split(/[\r\n]+|\. +/).map(item => item.trim()).filter(item => item);
-        };
-        console.log("Processed descriptionList:", descriptionList);
-       
-           const sizeStocks = await Variant.aggregate([
-      { $match: { product_id: product._id, isActive: true } },
-      { $group: { _id: "$size", totalStock: { $sum: "$stock" } } }
-    ]);
+  try {
+    const productId = req.params.productId;
+    const userId = req.user?.id;
+let product = await Product.findOne({ 
+  _id: productId,
+  isActive: true 
+}).lean();
 
-        const variants = await Variant.find({ product_id: productId, isActive: true }).lean();
-     const sizes = [...new Set(variants.map(v => v.size))];
+    if (!product) {
+      return res.status(404).render("user/productUnavailable", {
+        message: "Sorry, this product is no longer available."
+      });
+    }
+
+    //  Apply offer (base_price → final_price)
+    product = await applyBestOfferToProduct(product);
+
+    // --- Description ---
+    let descriptionList = [];
+    if (product.description) {
+      descriptionList = product.description
+        .split(/[\r\n]+|\. +/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    // --- Variants ---
+    const variants = await Variant.find({
+      product_id: productId,
+      isActive: true
+    }).lean();
+
+    const sizesWithStock = variants.map(v => ({
+      size: v.size,
+      color: v.color,
+      stock: Math.max(v.stock - (v.reservedStock || 0), 0),
+      variantId: v._id
+    }));
+
     const colors = [...new Set(variants.map(v => v.color))];
-  
-const colorImages = {};
-variants.forEach(v => {
-  console.log("Variant color:", v.color, "Image path from DB:", v.image);
 
-  if (!colorImages[v.color]) {
-    let img = v.image || 'default-product.jpg';
-    // Ensure correct folder path
-    if (!img.startsWith('/images/')) {
-      img = '/images/' + img;
-    }
-    colorImages[v.color] = img;
-    console.log("Processed color image path:", colorImages[v.color]);
-  }
-});
+    // --- Color Images ---
+    const colorImages = {};
+    variants.forEach(v => {
+      if (!colorImages[v.color]) {
+        let img = v.image || "/images/default-product.jpg";
+        if (!img.startsWith("/")) img = "/" + img;
+        colorImages[v.color] = img;
+      }
+    });
 
-const sizeStockMap = {};
-variants.forEach(v => {
-  sizeStockMap[v.size] = v.stock; // or total variant stock for that size
-});
-
-const sizesWithStock = [...new Set(variants.map(v => v.size))].map(size => ({
-  size,
-  stock: sizeStockMap[size] || 0
-}));
-    console.log("Size stock map:", sizeStockMap);
- const images = {
-      main: product.images.main,
-      gallery: product.images.gallery || []
+    // --- Images ---
+    const images = {
+      main: "/images/default-product.jpg",
+      gallery: []
     };
-    if (images.main && !images.main.startsWith('/')) {
-  images.main = '/' + images.main;
-}
-if (images.gallery) {
-  images.gallery = images.gallery.map(img => img.startsWith('/') ? img : '/' + img);
-}
-    const similarProducts = await Product.find({ _id: { $ne: product._id }}).limit(4).lean();
+
+    if (product.images?.main) {
+      images.main = product.images.main.startsWith("/")
+        ? product.images.main
+        : "/" + product.images.main;
+    }
+
+    if (Array.isArray(product.images?.gallery)) {
+      images.gallery = product.images.gallery
+        .map(img => img.trim())
+        .filter(Boolean)
+        .map(img => (img.startsWith("/") ? img : "/" + img));
+    }
+
+    // --- Similar products ---
+    let similarProducts = await Product.find({
+      _id: { $ne: product._id },
+      isActive: true
+    })
+      .limit(4)
+      .lean();
+
+    // Apply offer to similar products too
+    similarProducts = await Promise.all(
+      similarProducts.map(p => applyBestOfferToProduct(p))
+    );
+
+    // Image safety
     similarProducts.forEach(p => {
-  if (p.images?.main) {
-    if (!p.images.main.startsWith('/')) {
-      p.images.main = '/' + p.images.main;
-    }
-  } else {
-    p.images.main = '/images/default-product.jpg'; // fallback
-  }
-});
-    console.log('Main image path:', product.images.main);
+      if (!p.images?.main) {
+        p.images = { main: "/images/default-product.jpg" };
+      } else if (!p.images.main.startsWith("/")) {
+        p.images.main = "/" + p.images.main;
+      }
+    });
 
-     res.render('user/productDetails', { product: {...product, description: descriptionList, sizes, colors, colorImages, images, stock: product.total_stock, sizesWithStock},
-        similarProducts});
-    
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
+    res.render("user/productDetails", {
+      product: {
+        ...product,
+        description: descriptionList,
+        colors,
+        colorImages,
+        images,
+        sizesWithStock,
+        selectedColor: colors[0] || null,
+        stock: product.total_stock
+      },
+      similarProducts
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+};
+const getVariantStock = async (req, res) => {
+  try {
+    const { productId, variantId } = req.params;
+
+    // Verify that the variant belongs to the product
+    const variant = await Variant.findOne({
+      _id: variantId,
+      product_id: productId,
+    }).lean();
+
+    if (!variant) {
+      return res.status(404).json({ success: false, message: "Variant not found" });
     }
-    
+
+    res.json({ success: true, stock: variant.stock });
+  } catch (error) {
+    console.error("Error fetching stock:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 }
 
-module.exports = { loadProductsPage, LoadProductDetailsPage };
+//live stock update
+const getLiveStock = async (req, res) => {
+  try {
+    const { productId, variantId } = req.params;
+
+    const variant = await Variant.findById(variantId).lean();
+    const product = await Product.findById(productId).lean();
+
+    if (!variant || !product) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+
+    return res.json({
+      success: true,
+      variantStock: variant.stock,
+      totalStock: product.total_stock
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+};
+module.exports = { loadProductsPage, LoadProductDetailsPage, getVariantStock, getLiveStock };

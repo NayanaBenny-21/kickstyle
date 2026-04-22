@@ -7,8 +7,9 @@ const variantSchema = new mongoose.Schema({
   color: { type: String, required: true },
   size: { type: String, required: true },
   stock: { type: Number, required: true },
+  reservedStock: {type: Number,default: 0},
   image: { type: String, required: true },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true}
 }, { timestamps: true });
 
 const Variant = mongoose.model('Variant', variantSchema);
@@ -33,5 +34,5 @@ variantSchema.post('findOneAndUpdate', async function (doc) {
 variantSchema.post('findOneAndDelete', async function (doc) {
   if (doc) await updateTotalStock(doc.product_id);
 });
-// Export the model and helper function
+
 module.exports = Variant;

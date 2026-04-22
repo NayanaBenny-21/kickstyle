@@ -108,7 +108,7 @@ const resetVerifyOtp = async (req, res) => {
     if (otp !== req.session.adminResetOtp) {
       return res.render('admin/confirmWithOTP_reset', {
         email,
-        error: "Invalid OTP",
+        general_error: "Invalid OTP",
         otpSent: false,
         remainingTime,
         otpSuccess: false

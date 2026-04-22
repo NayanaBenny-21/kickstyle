@@ -1,0 +1,215 @@
+<link rel="stylesheet" href="/css/profile.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  .chart-wrapper {
+    height: 300px;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- ================= SIDEBAR ================= -->
+    <div class="col-2 sidebar">
+      <h4 class="mb-4 text-danger">KICKSTYLE</h4>
+
+      <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2 active">Dashboard</a>
+      <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
+      <a href="/admin/product-management" class="btn btn-danger w-100 mb-2">Products</a>
+      <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
+      <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
+      <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
+      <a href="/admin/category-management" class="btn btn-danger w-100 mb-2">Category</a>
+      <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
+    
+
+      <button class="btn w-100 mt-3" style="background:#e1e3e6">Signout</button>
+    </div>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="col-10 p-4">
+
+      <!-- HEADER -->
+      <div class="d-flex justify-content-between mb-3">
+        <h4>Admin Dashboard</h4>
+        <a href="/admin/ledger" class="btn btn-outline-danger">📒 Ledger Book</a>
+      </div>
+
+      <!-- ================= SUMMARY CARDS ================= -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card p-3 text-center" style="background:#e2ffb9">
+            <h4>{{totalOrders}}</h4>
+            <small>Total Orders</small>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center" style="background:#f8f8b4">
+            <h4>₹{{totalRevenue}}</h4>
+            <small>Total Revenue</small>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center" style="background:#e2c2ff">
+            <h4>{{totalUsers}}</h4>
+            <small>Total Users</small>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center" style="background:#ffbadc">
+            <h4>{{totalProducts}}</h4>
+            <small>Total Products</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CHART ================= -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="card p-3 h-100">
+
+            <div class="d-flex justify-content-between mb-2">
+              <h5>Sales Chart</h5>
+              <select id="chartFilter" class="form-select w-auto">
+                <option value="daily" {{#if (eq filter "daily")}}selected{{/if}}>Daily</option>
+                <option value="monthly" {{#if (eq filter "monthly")}}selected{{/if}}>Monthly</option>
+                <option value="yearly" {{#if (eq filter "yearly")}}selected{{/if}}>Yearly</option>
+              </select>
+            </div>
+
+            <div class="chart-wrapper">
+              <canvas id="salesChart"></canvas>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TABLES ================= -->
+      <div class="row">
+
+        <div class="col-md-4">
+          <div class="card p-3" style="background:#f8eacf">
+            <h6>🔥 Best Products</h6>
+            <table class="table table-sm table-bordered">
+              {{#each bestProducts}}
+              <tr>
+                <td>{{plusOne @index}}</td>
+                <td>{{this.name}}</td>
+                <td>{{this.totalSold}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card p-3" style="background:#f8eacf">
+            <h6>🏷️ Best Categories</h6>
+            <table class="table table-sm table-bordered">
+              {{#each bestCategories}}
+              <tr>
+                <td>{{ plusOne @index}}</td>
+                <td>{{this.name}}</td>
+                <td>{{this.totalSold}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card p-3" style="background:#f8eacf">
+            <h6>🏆 Best Brands</h6>
+            <table class="table table-sm table-bordered">
+              {{#each bestBrands}}
+              <tr>
+                <td>{{plusOne @index}}</td>
+                <td>{{this.name}}</td>
+                <td>{{this.totalSold}}</td>
+              </tr>
+              {{/each}}
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= BACKEND DATA ================= -->
+<script>
+  const rawLabels = {{{chartLabels}}}.map(String);
+  const rawData = {{{chartData}}};
+  const filter = "{{filter}}";
+</script>
+
+<!-- ================= BAR CHART SCRIPT ================= -->
+<script>
+  function dailyLabels() {
+    const now = new Date();
+    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return Array.from({ length: days }, (_, i) => String(i + 1));
+  }
+
+  function monthlyLabels() {
+    return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  }
+
+  function yearlyLabels() {
+    const year = new Date().getFullYear();
+    return Array.from({ length: 10 }, (_, i) => String(year - 5 + i));
+  }
+
+  let labels = [];
+  if (filter === "daily") labels = dailyLabels();
+  if (filter === "monthly") labels = monthlyLabels();
+  if (filter === "yearly") labels = yearlyLabels();
+
+  // Force zero values for missing points
+  const data = labels.map(label => {
+    const idx = rawLabels.indexOf(label);
+    return idx !== -1 ? rawData[idx] : 0;
+  });
+
+  const ctx = document.getElementById("salesChart").getContext("2d");
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Revenue (₹)",
+        data,
+        backgroundColor: "rgba(220, 53, 69, 0.75)",
+        borderRadius: 6,
+        barThickness: "flex"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { autoSkip: false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => `₹ ${v}`
+          }
+        }
+      }
+    }
+  });
+
+  document.getElementById("chartFilter").addEventListener("change", e => {
+    window.location.href = `/admin/dashboard?filter=${e.target.value}`;
+  });
+</script>

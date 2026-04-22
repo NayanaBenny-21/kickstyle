@@ -3,56 +3,108 @@
 
 <div class="card shadow-sm mx-auto" style="max-width: 400px;">
   <div class="card-body">
+    <a href="/">
+      <img src="/images/logo.jpg" alt="KickStyle Admin" height="35" class="d-block mx-auto mb-2">
+    </a>
     <h3 class="text-center text-danger mb-3">Welcome Back</h3>
 
-<a href="/auth/google" class="btn btn-google w-100 mb-3">
-  <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2"> 
-  Login with Google
-</a>
-
+    {{!-- <a href="/auth/google" class="btn btn-google w-100 mb-3">
+      <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2">
+      Login with Google
+    </a> --}}
+    <a href="/auth/google" class="btn btn-google w-100 mb-3" id="google-login-btn">
+      <img src="https://www.svgrepo.com/show/355037/google.svg" width="20" class="me-2">
+      Login with Google
+    </a>
 
     <p class="text-center text-muted">or</p>
-{{#if general_error}}
-  <p class="text-danger">{{general_error}}</p>
-{{/if}}
-    <form action="/auth/login" method="POST">
+    {{#if general_error}}
+    <p class="text-danger">{{general_error}}</p>
+    {{/if}}
+    <form action="/auth/login" method="POST" novalidate>
       <div class="form-group mb-3">
         <label class="form-label">Email <span class="text-danger">*</span></label>
-        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required value="{{email}}">
+        <input type="email" name="email" id="email" class="form-control" placeholder="Enter email" required
+          value="{{email}}">
       </div>
-   <div class="form-group mb-3">
+      <div class="form-group mb-3 position-relative">
         <label class="form-label">Password <span class="text-danger">*</span></label>
         <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required
-         pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}" title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
+          pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}"
+          title="Password must be 8–12 characters long and include at least one letter, one number, and one special character.">
+        <button type="button" id="togglePasswordBtn" class="btn position-absolute "
+          style="top: 72%; right: 10px; transform: translateY(-50%);border: none; background: transparent;">
+          <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+        </button>
       </div>
       <button type="submit" class="btn btn-danger w-100">Login</button>
     </form>
 
     <div class="d-flex justify-content-between mt-3">
-  <div>
-    <p class="mb-0 loginbase_text">Don't have an account? <a class="loginbase_text" href="/auth/signup">Join Us</a></p>
-  </div>
-  <div>
-    <a class="mb-0 loginbase_text" href="/auth/forgot-password">Forgot Password?</a>
-  </div>
-</div>
+      <div>
+        <p class="mb-0 loginbase_text">Don't have an account? <a class="loginbase_text" href="/auth/signup">Join Us</a>
+        </p>
+      </div>
+      <div>
+        <a class="mb-0 loginbase_text" href="/auth/forgot-password">Forgot Password?</a>
+      </div>
+    </div>
   </div>
 </div>
 {{#if swal}}
 <script>
-        Swal.fire({
-            icon: '{{swal.icon}}',
-            text: '{{{swal.text}}}',
-            toast: true,
-            position: "bottom",
-            timer: 3000,
-            showConfirmButton: false,
-            width: 350,
-            padding: '0.5em 1em',
-            customClass: { popup: 'small-toast' },
-            showClass: { popup: '' }
-        })
+  Swal.fire({
+    icon: '{{swal.icon}}',
+    text: '{{{swal.text}}}',
+    toast: true,
+    position: "bottom",
+    timer: 3000,
+    showConfirmButton: false,
+    width: 350,
+    padding: '0.5em 1em',
+    customClass: { popup: 'small-toast' },
+    showClass: { popup: '' }
+  })
 </script>
 
 {{/if}}
 
+<script>
+  //toggle password
+  document.getElementById('togglePasswordBtn').addEventListener('click', function () {
+    const passwordField = document.getElementById('password');
+    const icon = document.getElementById('togglePasswordIcon');
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      passwordField.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye')
+    }
+
+  }) 
+</script>
+
+<script>
+  document.getElementById('google-login-btn').addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Get the page user originally tried to access
+    const redirectUrl = window.location.pathname;
+
+    const popup = window.open(
+      "/auth/google?redirect=" + encodeURIComponent(redirectUrl),
+      "Google Login",
+      "width=500,height=600"
+    );
+
+    window.addEventListener("message", function (event) {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === "google-auth-success") {
+        const redirectUrl = event.data.returnTo || "/";
+        window.location.href = redirectUrl;
+      }
+    });
+  });
+</script>

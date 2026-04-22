@@ -2,6 +2,7 @@ const express =require('express');
 const router = express.Router();
 const adminAuthController = require('../../controllers/admin/authController');
 const forgotPasswordController = require('../../controllers/admin/forgotPasswordController');
+const noCache =  require('../../middlewares/noCache');
 
 //LOGIN
 router.get('/login', adminAuthController.loadLoginPage);

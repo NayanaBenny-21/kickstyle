@@ -1,6 +1,24 @@
+<link rel="stylesheet" href="/css/profile.css">
+
 <div class="container-fluid">
   <div class="row">
-    {{> adminSidebar}}
+ <!-- Sidebar -->
+      <div class="col-2 sidebar">
+        <h4 class="mb-4 text-danger">KICKSTYLE</h4>
+  <a href="/admin/dashboard" class="btn btn-danger w-100 mb-2">Dashboard</a>
+  <a href="/admin/order-management" class="btn btn-danger w-100 mb-2">Orders</a>
+  <a href="/admin/product-management" class="btn btn-danger w-100 mb-2">Products</a>
+  <a href="/admin/sales-report" class="btn btn-danger w-100 mb-2">Sales Report</a>
+  <a href="/admin/user-management" class="btn btn-danger w-100 mb-2">Customers</a>
+  <a href="/admin/coupon-management" class="btn btn-danger w-100 mb-2">Coupons</a>
+  <a href="/admin/category-management" class="btn btn-danger w-100 mb-2 active">Category</a>
+    <a href="/admin/offer-management" class="btn btn-danger w-100 mb-2">Offers</a>
+
+  <button class="btn w-100 mt-3" id="signout_btn" style="background-color: rgb(225, 227, 230);">
+    Signout
+  </button>
+      </div>
+
 
     <div class="col-10 p-4">
 
@@ -11,7 +29,7 @@
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <!-- Search Bar -->
           <form class="d-flex align-items-center" style="gap: 6px; margin-bottom: 0;">
-            <input class="form-control" type="search" placeholder="Search category..." name="search" value="{{search}}" aria-label="Search" style="height: 36px; width: 220px; font-size: 0.9rem; padding: 4px 8px;">
+            <input class="form-control" type="search"   id="searchInput" placeholder="Search category..." name="search" value="{{search}}" aria-label="Search" style="height: 36px; width: 220px; font-size: 0.9rem; padding: 4px 8px;">
             <button  class="btn btn-outline-success" type="submit" style="height: 36px; padding: 4px 12px; font-size: 0.9rem; line-height: 1;">
               <i class="bi bi-search"></i>
             </button>

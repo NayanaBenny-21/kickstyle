@@ -24,65 +24,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  emailInput.addEventListener("input", () =>{
-const email = emailInput.valur.trim();
-if(!email) {
-    emailError.textContent = 'Please enter your email';   
-} else if (!passwordRegex.test(email)) {
-    emailError.textContent = 'Inavalid email address';
-} else {
-    emailError.textContent = '';
-}
-  });
+emailInput.addEventListener("input", () => {
+  const email = emailInput.value.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  passwordInput.addEventListener("input", () => {
-    const password = passwordInput.value.trim();
-    if(!password) {
-        passwordError.textContent = 'Please fill the password field.';
-    } else if (!passwordRegex.test(password)) {
-        "Password must have 8–12 chars, 1 letter, 1 number & 1 special char.";
-    } else{
-        passwordError.textContent ='';
-    }
-  });
-  confirmInput.addEventListener("input", ()=>{
-    if (confirmInput.value.trim()!= password){
-         confirmError.textContent = "Passwords do not match";
-    } else {
-        confirmError.textContent = "";
-    }
-  });
+  if (!email) {
+    emailError.textContent = "Please enter your email";
+  } 
+  else if (!emailRegex.test(email)) {
+    emailError.textContent = "Invalid email address";
+  } 
+  else {
+    emailError.textContent = "";
+  }
+});
+
+passwordInput.addEventListener("input", () => {
+  const password = passwordInput.value; 
+  if (password.length === 0) {
+    passwordError.textContent = "Please fill the password field.";
+  } 
+  else if (!passwordRegex.test(password)) {
+    passwordError.textContent =
+      "Password must be 8–12 characters and include at least one letter, one number, and one special character.";
+  } 
+  else {
+    passwordError.textContent = "";
+  }
+});
 
   //form submit validation
 
-  form.addEventListener("submit", (e)=> {
- let valid = true;
+form.addEventListener("submit", (e) => {
+  let valid = true;
 
+  const password = passwordInput.value.trim();
+  const confirmPassword = confirmInput.value.trim();
 
-    if (!nameInput.value.trim() || !nameRegex.test(nameInput.value.trim())) {
-      nameError.textContent = "Please enter a valid name";
-      valid = false;
-    }
+  // Clear old errors
+  confirmError.textContent = "";
 
-    if (
-      !emailInput.value.trim() ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())
-    ) {
-      emailError.textContent = "Please enter a valid email";
-      valid = false;
-    }
+  // Confirm password validation (ONLY here)
+  if (!confirmPassword) {
+    confirmError.textContent = "Please confirm your password.";
+    valid = false;
+  } 
+  else if (password !== confirmPassword) {
+    confirmError.textContent = "Passwords do not match.";
+        passwordInput.value = "";
+    confirmInput.value = "";
+    valid = false;
+  }
 
-    if (!passwordRegex.test(passwordInput.value.trim())) {
-      passwordError.textContent =
-        "Password must have 8–12 chars, 1 letter, 1 number & 1 special char.";
-      valid = false;
-    }
-
-    if (confirmInput.value.trim() !== passwordInput.value.trim()) {
-      confirmError.textContent = "Passwords do not match";
-      valid = false;
-    }
- if (!valid) e.preventDefault();
-  });
+  if (!valid) {
+    e.preventDefault();
+  }
+});
 
 });

@@ -1,13 +1,34 @@
-const express = require('express');
-const path = require("path");
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
-const exphbs = require('express-handlebars'); 
-const cookieParser = require('cookie-parser');
-const connectDB = require("./config/db");
-const passport = require("./config/passport");
 require("dotenv").config();
+require("./helpers/stockExpiryCron");
 
+<<<<<<< HEAD
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const passport = require("./config/passport");
+const connectDB = require("./config/db");
+const exphbs = require("express-handlebars");
+
+
+// -------------------- MIDDLEWARES --------------------
+const setAuthStatus = require("./middlewares/setAuthStatus");        // user
+const adminAuthStatus = require("./middlewares/adminAuthStatus");
+const checkActiveUser = require('./middlewares/checkActiveUserMiddleware');
+
+
+// -------------------- ROUTERS --------------------
+const userRouter = require("./routes/user/userRouter");
+const authRouter = require("./routes/user/authRouter");
+const adminAuthRouter = require("./routes/admin/adminAuthRouter");
+const adminRouter = require("./routes/admin/adminRouter");
+const searchRouter = require("./routes/search");
+const hbsHelpers = require("./helpers/hbsHelpers");
+const wishlistMiddleware = require('./middlewares/wishlistMiddleware');
+// -------------------- DATABASE --------------------
+connectDB();
+=======
 const setAuthStatus = require('./middlewares/setAuthStatus');
 const userRouter = require('./routes/user/userRouter');
 const authRouter = require('./routes/user/authRouter');
@@ -16,11 +37,16 @@ const adminRouter = require('./routes/admin/adminRouter');
 const hbsHelpers = require('./helpers/hbsHelpers'); 
 const searchRouter = require('./routes/search');
 
+>>>>>>> main
 
 const app = express();
 
+// -------------------- BASIC MIDDLEWARE --------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+<<<<<<< HEAD
+app.use(cookieParser());
+=======
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -33,33 +59,29 @@ app.use(session({
     maxAge: 72 * 60 * 60 * 1000
   }
 }));
+>>>>>>> main
 
-app.use(passport.initialize());
-app.use(passport.session());
-// -------------------- Handlebars setup --------------------
-const hbs = exphbs.create({
-  extname: '.hbs',
-  helpers: hbsHelpers,          
-  defaultLayout: 'main',          
-  layoutsDir: path.join(__dirname, 'views', 'layouts'),
-  partialsDir: path.join(__dirname, 'views', 'partials')
-});
+// Static files
+app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "public/images")));
 
-app.engine('hbs', hbs.engine);
-app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views'));
-
-// -----------------------------------------------------------
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use(setAuthStatus);
-
+// Disable caching
 app.use((req, res, next) => {
-  console.log('Incoming req.body:', req.body);
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   next();
 });
 
+<<<<<<< HEAD
+// -------------------- HANDLEBARS --------------------
+const hbs = exphbs.create({
+  extname: ".hbs",
+  helpers: hbsHelpers,
+  defaultLayout: "main",
+  layoutsDir: path.join(__dirname, "views/layouts"),
+  partialsDir: path.join(__dirname, "views/partials"),
+=======
 
 app.use('/', userRouter);
 app.use('/auth', authRouter);
@@ -74,7 +96,74 @@ connectDB().then(() => {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
   });
+>>>>>>> main
 });
+app.engine("hbs", hbs.engine);
+app.set("view engine", "hbs");
+app.set("views", path.join(__dirname, "views"));
+
+// -------------------- USER SESSION --------------------
+app.use(
+  session({
+    name: "user_session",
+    secret: process.env.USER_SESSION_SECRET || "usersecret123",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URL }),
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 72 * 60 * 60 * 1000,
+    },
+  })
+);
+
+// Passport initialization for user
+app.use(passport.initialize());
+app.use(passport.session());
+
+// User auth status
+app.use(setAuthStatus);
+app.use(wishlistMiddleware);
+
+// -------------------- USER ROUTES --------------------
+
+app.use("/auth", authRouter);
+app.use("/search", searchRouter);
+app.use("/", checkActiveUser, userRouter);
+// -------------------- ADMIN SESSION --------------------
+app.use(
+  "/admin",
+  session({
+    name: "admin_session",
+    secret: process.env.ADMIN_SESSION_SECRET || "adminsecret123",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URL }),
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      maxAge: 72 * 60 * 60 * 1000,
+    },
+  })
+);
+
+// -------------------- ADMIN ROUTES --------------------
+// Admin login routes (no header)
+app.use("/adminAuth", adminAuthRouter);
+
+// Admin protected routes (show admin header)
+app.use("/admin", adminAuthStatus, adminRouter);
+
+// -------------------- SERVER --------------------
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);
+
+
 
 
 module.exports = app;

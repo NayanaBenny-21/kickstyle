@@ -12,8 +12,13 @@
 
   <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-2 sidebar">
-      <h5 class="fw-bold">FILTERS</h5>
+    <div class="col-md-2 sidebar" >
+<div class="d-flex justify-content-between align-items-center">
+  <h5 class="fw-bold mb-0">FILTERS</h5>
+  <button class="btn btn-sm btn-link text-danger p-0 d-none" style="margin-bottom: 2px;  text-decoration: none " id="clearFilterTop">
+    Clear All
+  </button>
+</div>
       <hr class="my-3" style="border: 0 !important; height: 3px!important; background-color: black !important;">
 
 
@@ -84,7 +89,8 @@
       </div>
 
 
-      <button class="btn btn-primary w-100" id="applyFilter">Apply Filters</button>
+      <button class="btn btn-primary w-100" id="applyFilter"style="background:#de8024">Apply Filters</button>
+      
     </div>
 
 
@@ -104,11 +110,19 @@
             <div class="card-body p-2">
               <h6 class="card-title fw-bold mb-1">{{this.brand}}</h6>
               <p class="mb-1" style="font-size: small;">{{this.name}}</p>
-              <div class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
-                <p class="fw-bold mb-0" style="font-size: small;">Rs. {{this.offerPrice}}</p>
-                <p class="mb-0 text-muted" style="font-size: small;"><s>Rs. {{this.price}}</s></p>
-              </div>
-              <span class="badge bg-danger">-{{this.discountPercentage}}%</span>
+{{#if (gt this.discountPercentage 0)}}
+  <div class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
+    <p class="fw-bold mb-0" style="font-size: small;">Rs. {{this.offerPrice}}</p>
+    <p class="mb-0 text-muted" style="font-size: small;">
+      <s>Rs. {{this.price}}</s>
+    </p>
+  </div>
+  <span class="badge bg-danger">-{{this.discountPercentage}}%</span>
+{{else}}
+  <div class="mb-1">
+    <p class="fw-bold mb-0" style="font-size: small;">Rs. {{this.price}}</p>
+  </div>
+{{/if}}
             </div>
           </div>
           </a>
@@ -142,3 +156,4 @@
 </div>
 
  <script src="/js/user/products.js"></script>
+   <script src="/js/user/wishlist.js"></script>

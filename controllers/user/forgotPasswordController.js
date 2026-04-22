@@ -6,7 +6,7 @@ const { generateOTP, sendOTPEmail } = require('../../helpers/otp_email');
 // --- Load Forgot Password page ---
 const loadForgotPassword = async (req, res) => {
   try {
-    res.render('user/forgotPassword', { email: '', general_error: null });
+    res.render('user/forgotPassword', { email: '', general_error: null,hideHeader: true });
   } catch (error) {
     console.error('Forgot password page error:', error);
     res.status(500).send('Server Error');
@@ -22,15 +22,15 @@ const forgotPassword = async (req, res) => {
 
     if (!validator.isEmail(email)) general_error = "Invalid email address";
     if (general_error) {
-      return res.render("user/forgotPassword", { general_error, email });
+      return res.render("user/forgotPassword", { general_error, email,hideHeader: true });
     }
 
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      return res.render("user/login", { swal: { text: "No account found with this email", icon: "error" } });
+      return res.render("user/login", { swal: { text: "No account found with this email", icon: "error",hideHeader: true } });
     }
     if (existingUser.isBlocked) {
-      return res.render("user/forgotPassword", { swal: { text: "Your account is blocked", icon: "warning" } });
+      return res.render("user/forgotPassword", { swal: { text: "Your account is blocked", icon: "warning" },hideHeader: true });
     }
 
     const otp = generateOTP();
@@ -48,7 +48,8 @@ const forgotPassword = async (req, res) => {
     console.error("Forgot password error:", error);
     return res.render("user/forgotPassword", {
       email: req.body.email || '',
-      swal: { text: "Something went wrong. Please try again later", icon: "error" }
+      swal: { text: "Something went wrong. Please try again later", icon: "error" },
+      hideHeader: true
     });
   }
 };
@@ -68,7 +69,9 @@ const loadResetVerify = async (req, res) => {
       email,
       otpSent,
       remainingTime,
-      otpSuccess: false
+      otpSuccess: false,
+      showOtpSentToast: true,
+      hideHeader: true
     });
 
   } catch (error) {
@@ -87,9 +90,11 @@ const resetVerifyOtp = async (req, res) => {
     if (!req.session.resetOtp || !req.session.resetOtpExpiresAt || Date.now() > req.session.resetOtpExpiresAt) {
       return res.render('user/confirmWithOTP_reset', {
         email,
-        swal: { icon: "error", text: "OTP invalid or expired" },
+        general_error: "OTP invalid or expired",
         otpSent: false,
         remainingTime: 0,
+        showOtpSentToast: false ,
+        hideHeader: true
       });
     }
 
@@ -99,9 +104,11 @@ const resetVerifyOtp = async (req, res) => {
     : 0;
       return res.render('user/confirmWithOTP_reset', {
         email,
-        swal: { icon: "error", text: "Invalid OTP" },
+        general_error: "Invalid OTP",
+        showOtpSentToast: false, 
         otpSent:  remainingTime > 0,
-       remainingTime
+       remainingTime,
+       hideHeader: true
       });
     }
 
@@ -118,7 +125,8 @@ const resetVerifyOtp = async (req, res) => {
       email: req.session.resetEmail,
       swal: { icon: "error", text: "Server error. Please try again." },
       otpSent: false,
-      remainingTime: 0
+      remainingTime: 0,
+      hideHeader: true
     });
   }
 };
@@ -159,7 +167,8 @@ const loadReset = async (req, res) => {
 
     res.render('user/changePassword', { 
       email: req.session.resetEmail || '',
-      resetSuccess
+      resetSuccess,
+      hideHeader: true
     });
 
   } catch (error) {
@@ -189,7 +198,7 @@ const resetPassword = async (req, res) => {
     else if (confirm !== password) general_error = "Passwords do not match";
 
     if (general_error) {
-      return res.render("user/changePassword", { general_error, email, resetSuccess: false });
+      return res.render("user/changePassword", { general_error, email, resetSuccess: false,hideHeader: true });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -211,7 +220,8 @@ const resetPassword = async (req, res) => {
     return res.render("user/changePassword", { 
       swal: { icon: "error", text: "Something went wrong. Please try again." },
       email: req.session.resetEmail,
-      resetSuccess: false
+      resetSuccess: false,
+      hideHeader: true
     });
   }
 };

@@ -3,10 +3,9 @@ const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 
-// Define upload directory outside of OneDrive/public issues
 const uploadDir = path.join(__dirname, "../images/category");
 
-// Ensure folder exists
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

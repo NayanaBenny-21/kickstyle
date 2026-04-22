@@ -45,8 +45,20 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-
-   
+  image: {
+    type: String, 
+    default: "" 
+  },
+referralCode: {
+  type: String,
+  unique: true
+},
+referredBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  default: null
+},
+  
 },{timestamps: true});
 
 //to hash

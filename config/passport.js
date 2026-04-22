@@ -1,6 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/userSchema");
+const generateReferralCode = require("../helpers/generateReferralCode");
 
 passport.use(
   new GoogleStrategy(
@@ -11,6 +12,25 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+<<<<<<< HEAD
+        const email = profile.emails[0].value;
+        let user = await User.findOne({ email });
+        // Create user if not exists
+        if (!user) {
+          const referralCode = generateReferralCode(profile.displayName);
+
+          user = await User.create({
+            name: profile.displayName,
+            email: email,
+            googleId: profile.id,
+            referralCode: referralCode,
+            isVerified: true
+          });
+        }
+
+        // Attach googleId if user registered with email/password earlier
+        if (user && !user.googleId) {
+=======
         // Google always provides verified email
         const email = profile.emails?.[0]?.value;
         if (!email) {
@@ -27,6 +47,7 @@ passport.use(
 
         // Link Google account if not already linked
         if (!user.googleId) {
+>>>>>>> main
           user.googleId = profile.id;
           await user.save();
         }

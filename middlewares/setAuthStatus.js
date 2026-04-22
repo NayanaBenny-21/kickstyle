@@ -1,37 +1,46 @@
+// setAuthStatus.js
 const jwt = require('jsonwebtoken');
+const User = require('../models/userSchema');
 require('dotenv').config();
 
-const setAuthStatus = (req, res, next) => {
-  // ---------------- User Status ----------------
-  const userToken = req.cookies.user_jwt;
+const setAuthStatus = async (req, res, next) => {
+  // Skip admin routes
+  if (req.originalUrl.startsWith('/admin')) return next();
+
   res.locals.isUserLoggedIn = false;
   res.locals.user = null;
 
-  if (userToken) {
-    try {
-      const decodedUser = jwt.verify(userToken, process.env.JWT_SECRET);
-      res.locals.isUserLoggedIn = true;
-      res.locals.user = decodedUser;
-    } catch (err) {
-      res.locals.isUserLoggedIn = false;
-      res.locals.user = null;
-    }
+  const userToken = req.cookies.user_jwt;
+
+  if (!userToken) {
+    return next();
   }
 
-  // ---------------- Admin Status ----------------
-  const adminToken = req.cookies.admin_jwt;
-  res.locals.isAdminLoggedIn = false;
-  res.locals.admin = null;
+  try {
+    const decoded = jwt.verify(userToken, process.env.JWT_SECRET);
 
-  if (adminToken) {
-    try {
-      const decodedAdmin = jwt.verify(adminToken, process.env.JWT_SECRET);
-      res.locals.isAdminLoggedIn = true;
-      res.locals.admin = decodedAdmin;
-    } catch (err) {
-      res.locals.isAdminLoggedIn = false;
-      res.locals.admin = null;
+    if (decoded?.role !== 'user') {
+      return next();
     }
+
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.isBlocked) {
+      res.clearCookie('user_jwt');
+      return next();
+    }
+
+    // Attach to request (IMPORTANT FIX)
+    req.user = user;
+    req.userId = user._id;
+
+    //  Attach to handlebars
+    res.locals.isUserLoggedIn = true;
+    res.locals.user = user;
+
+  } catch (err) {
+    console.log("setAuthStatus JWT error:", err.message);
+    res.clearCookie('user_jwt');
   }
 
   next();

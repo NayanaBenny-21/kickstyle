@@ -9,9 +9,30 @@ const loadUserManagement = async (req, res) => {
     const limit = 7;
     const skip = (page - 1) * limit;
 
-    // Aggregate users with orders and wallet info
+    const { status, search } = req.query;
+
+    // SAME AS COUPON → BUILD FILTER OBJECT
+    const filter = {};
+
+    // STATUS FILTER
+    if (status && status !== "All") {
+      filter.isBlocked = status.toLowerCase() === "blocked";
+    }
+
+    // SEARCH (name + email)
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // AGGREGATION
     const userData = await User.aggregate([
-      { $sort: { createdAt: -1 } }, 
+      { $match: filter }, 
+
+      { $sort: { createdAt: -1 } },
+
       {
         $lookup: {
           from: "orders",
@@ -49,17 +70,21 @@ const loadUserManagement = async (req, res) => {
           isActive: 1
         }
       },
+
       { $skip: skip },
       { $limit: limit }
     ]);
 
-    const totalUsers = await User.countDocuments();
+    // SAME AS COUPON COUNT
+    const totalUsers = await User.countDocuments(filter);
     const totalPages = Math.ceil(totalUsers / limit);
 
     res.render("admin/user_management", {
       users: userData,
       currentPage: page,
-      totalPages
+      totalPages,
+      selectedStatus: status || "All",
+      search: search || ""
     });
 
   } catch (err) {
@@ -67,7 +92,6 @@ const loadUserManagement = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 const blockToggleUser = async (req, res) => {
   try {
     const userId = req.params.userId;

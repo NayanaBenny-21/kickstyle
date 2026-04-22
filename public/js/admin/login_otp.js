@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let countdown = parseInt(window.remainingTime) || 0;
     let interval;
- let toastShown = false;
+    let toastShown = false;
     function showToast(icon, text, redirect = null) {
         Swal.fire({
             icon,
@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
             width: 350,
             padding: '0.5em 1em',
             customClass: { popup: 'small-toast' }
-        }).then(()=>{
-            if (redirect){
+        }).then(() => {
+            if (redirect) {
                 window.location.href = redirect;
             }
         })
@@ -54,15 +54,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (countdown > 0 && !toastShown) {
-        if(window.otpSent ) {
-        showToast("success", "OTP sent to your email");
-        toastShown = true;
+        if (window.otpSent) {
+            showToast("success", "OTP sent to your email");
+            toastShown = true;
         }
 
         startTimer();
     }
 
-     // Resend OTP
+    // Resend OTP
     resend.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
@@ -84,27 +84,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-     // OTP input autofocus
+    // OTP input autofocus
     const inputs = document.querySelectorAll(".otp-input");
     inputs.forEach(input => {
         input.addEventListener("input", e => {
             if (isNaN(e.target.value)) e.target.value = '';
-            else if (e.target.nextElementSibling && e.target.value !== '')input.nextElementSibling.focus();
+            else if (e.target.nextElementSibling && e.target.value !== '') input.nextElementSibling.focus();
         });
         input.addEventListener("keydown", e => {
-             if (e.key === "Backspace" || e.key === "Delete") {
-                   e.preventDefault(); 
-            if (input.value !== '') {
-               input.value = '';
-            } else if (input.previousElementSibling) {
-                input.previousElementSibling.value = '';
-                input.previousElementSibling.focus();
+            if (e.key === "Backspace" || e.key === "Delete") {
+                e.preventDefault();
+                if (input.value !== '') {
+                    input.value = '';
+                } else if (input.previousElementSibling) {
+                    input.previousElementSibling.value = '';
+                    input.previousElementSibling.focus();
+                }
+
             }
-            
-        }
-    })});
-    
+        })
+    });
+
     if (window.otpSuccess) {
-    showToast("success", "Logged Successfully!", '/admin/user-management');
-}
+        showToast("success", "Logged Successfully!", '/admin/user-management');
+    }
 });

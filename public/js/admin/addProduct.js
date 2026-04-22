@@ -1,106 +1,339 @@
+document.addEventListener("DOMContentLoaded", () => {
 
-  let variantCount = 1;
+  // ===== HELPER: CHECK REQUIRED FIELDS =====
+  function isBasicDetailsFilled() {
+    const productName = document.querySelector('[name="product_name"]').value.trim();
+    const brand = document.querySelector('[name="brand"]').value;
+    const category = document.querySelector('[name="category_id"]').value;
+    const basePrice = document.querySelector('[name="base_price"]').value;
 
-document.getElementById('addVariantBtn').addEventListener('click', () => {
-  const container = document.getElementById('variantContainer');
-  const variantDiv = document.createElement('div');
-  variantDiv.classList.add('variant-item', 'd-flex', 'align-items-center', 'gap-2', 'border', 'p-2', 'rounded', 'mb-2', 'bg-light');
-
-  variantDiv.innerHTML = `
-    <input type="text" name="variants[${variantCount}][color]" class="form-control form-control-sm" placeholder="Color">
-    <input type="text" name="variants[${variantCount}][size]" class="form-control form-control-sm" placeholder="Size">
-    <input type="text" name="variants[${variantCount}][sku]" class="form-control form-control-sm" placeholder="SKU">
-    <input type="number" name="variants[${variantCount}][stock]" class="form-control form-control-sm" placeholder="Stock">
-    <input type="file" name="variants[${variantCount}][image]" class="form-control form-control-sm" accept="image/*">
-    <button type="button" class="btn btn-outline-danger btn-sm removeVariantBtn">
-      <i class="bi bi-trash"></i>
-    </button>
-  `;
-
-  container.appendChild(variantDiv);
-  variantCount++;
-});
-
-// Remove variant row
-document.addEventListener('click', function(e) {
-  if (e.target.closest('.removeVariantBtn')) {
-    e.target.closest('.variant-item').remove();
+    return productName && brand && category && basePrice;
   }
-});
 
-//calculate final price
+  // ===== ERROR FUNCTIONS =====
+function showError(field, message) {
+  removeError(field);
 
-function calculateFinalPrice() {
-    const basePriceInput = document.querySelector('input[name="base_price"]');
-    const discountInput = document.querySelector('input[name="discount_percentage"]');
-    const finalPriceInput = document.querySelector('input[name="finalPrice"]');
+  const error = document.createElement("div");
+  error.className = "text-danger small field-error mb-1";
+  error.innerText = message;
 
-    if (!basePriceInput || !discountInput || !finalPriceInput) return;
+  field.classList.add("is-invalid");
 
-    let basePrice = parseFloat(basePriceInput.value) || 0;
-    let discount = parseFloat(discountInput.value) || 0;
-
-    basePrice = Math.max(0, basePrice);
-    discount = Math.max(0, discount);
-
-    const finalPrice = basePrice - (basePrice * discount / 100);
-    finalPriceInput.value = finalPrice.toFixed(2);
+  // 👉 INSERT ABOVE FIELD
+  field.parentElement.insertBefore(error, field);
 }
+  function removeError(field) {
+    field.classList.remove("is-invalid");
+    const err = field.parentElement.querySelector(".field-error");
+    if (err) err.remove();
+  }
 
+  // ===== CROP SETUP =====
+  let cropper;
+  let currentInput = null;
 
-document.querySelector('input[name="base_price"]').addEventListener('input', calculateFinalPrice);
-document.querySelector('input[name="discount_percentage"]').addEventListener('input', calculateFinalPrice);
+  const cropImage = document.getElementById("cropImage");
+  const cropBtn = document.getElementById("cropBtn");
+  const preview = document.getElementById("preview");
+  const mainPreview = document.getElementById("mainPreview");
 
-calculateFinalPrice();
+  const mainInput = document.getElementById("mainImageInput");
+  const galleryInput = document.getElementById("galleryFiles");
 
-// Validate minimum 3 images
+  const cropModal = new bootstrap.Modal(document.getElementById("cropModal"));
 
-const imageInput = document.getElementById('galleryFiles');
-const productForm = document.getElementById('productForm');
-const preview = document.getElementById('preview');
+  function openCropper(file, input) {
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
 
-// Store selected files
-let selectedFiles = [];
+    cropImage.src = "";
 
-imageInput.addEventListener('change', (e) => {
-  const files = Array.from(e.target.files);
-  selectedFiles = selectedFiles.concat(files);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      cropImage.src = e.target.result;
+      currentInput = input;
+      cropModal.show();
 
-  // Show previews
-  preview.innerHTML = '';
-  selectedFiles.forEach(file => {
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(file);
-    img.style.height = '80px';
-    img.style.margin = '5px';
-    img.style.objectFit = 'cover';
-    preview.appendChild(img);
+      setTimeout(() => {
+        if (cropper) {
+          cropper.destroy();
+        }
+
+        cropper = new Cropper(cropImage, {
+          aspectRatio: 1,
+          viewMode: 1
+        });
+      }, 300);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  // ===== IMAGE INPUT CONTROL =====
+  document.addEventListener("change", function (e) {
+
+    const input = e.target;
+
+    // 🚫 BLOCK IMAGE UPLOAD
+    if (
+      input.id === "mainImageInput" ||
+      input.id === "galleryFiles" ||
+      input.classList.contains("variantImageInput")
+    ) {
+
+      if (!isBasicDetailsFilled()) {
+
+        input.value = "";
+
+        const productNameField = document.querySelector('[name="product_name"]');
+        const brandField = document.querySelector('[name="brand"]');
+        const categoryField = document.querySelector('[name="category_id"]');
+        const priceField = document.querySelector('[name="base_price"]');
+
+        if (!productNameField.value.trim()) showError(productNameField, "Enter product name first");
+        if (!brandField.value) showError(brandField, "Select brand first");
+        if (!categoryField.value) showError(categoryField, "Select category first");
+        if (!priceField.value) showError(priceField, "Enter base price first");
+
+        productNameField.focus();
+        return;
+      }
+    }
+
+    // MAIN IMAGE
+    if (input.id === "mainImageInput") {
+      const file = input.files[0];
+      if (!file) return;
+      openCropper(file, input);
+    }
+
+    // GALLERY
+    if (input.id === "galleryFiles") {
+      const files = Array.from(input.files);
+      if (files.length === 0) return;
+      openCropper(files[0], input);
+    }
+
+    // VARIANT IMAGE
+    if (input.classList.contains("variantImageInput")) {
+      const file = input.files[0];
+      if (!file) return;
+      openCropper(file, input);
+    }
+
   });
 
-  // Clear input so the same file can be added again if needed
-  imageInput.value = '';
-});
+  // ===== CROPPING =====
+  cropBtn.addEventListener("click", () => {
 
-productForm.addEventListener('submit', (e) => {
-  if (selectedFiles.length < 3) {
-    e.preventDefault();
-    alert('Please select at least 3 product images.');
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 500,
+      height: 500
+    });
+
+    canvas.toBlob((blob) => {
+
+      // ===== FILE NAMING =====
+      let productName = document.querySelector('[name="product_name"]').value || "product";
+      let brand = document.querySelector('[name="brand"]').value || "brand";
+
+      productName = productName.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+      brand = brand.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+
+      const timestamp = Date.now();
+
+      let fileName = "image.jpg";
+
+      if (currentInput === mainInput) {
+        fileName = `${productName}_${brand}_main_${timestamp}.jpg`;
+      } 
+      else if (currentInput === galleryInput) {
+        fileName = `${productName}_${brand}_gallery_${timestamp}.jpg`;
+      } 
+      else if (currentInput.classList.contains("variantImageInput")) {
+
+        const variantItem = currentInput.closest(".variant-item");
+
+        const color = variantItem.querySelector('[name*="[color]"]')?.value || "color";
+        const size = variantItem.querySelector('[name*="[size]"]')?.value || "size";
+
+        fileName = `${productName}_${brand}_${color}_${size}_${timestamp}.jpg`
+          .toLowerCase()
+          .replace(/\s+/g, "_");
+      }
+
+      const file = new File([blob], fileName, { type: "image/jpeg" });
+
+      const container = new DataTransfer();
+      container.items.add(file);
+      currentInput.files = container.files;
+
+      // ===== PREVIEW =====
+      if (currentInput === galleryInput) {
+
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("position-relative");
+
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(blob);
+        img.style.width = "120px";
+        img.style.height = "120px";
+        img.style.objectFit = "cover";
+        img.classList.add("rounded", "border");
+
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "&times;";
+        removeBtn.classList.add("btn", "btn-danger", "btn-sm", "position-absolute");
+
+        removeBtn.style.top = "4px";
+        removeBtn.style.right = "4px";
+
+        removeBtn.onclick = () => {
+          wrapper.remove();
+          updateGalleryInput();
+        };
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(removeBtn);
+        preview.appendChild(wrapper);
+
+        updateGalleryInput();
+      }
+
+      else if (currentInput === mainInput) {
+        mainPreview.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(blob);
+        img.style.width = "150px";
+        img.style.height = "150px";
+        img.style.objectFit = "cover";
+        img.classList.add("border", "rounded");
+        mainPreview.appendChild(img);
+      }
+
+      else if (currentInput.classList.contains("variantImageInput")) {
+
+        const variantItem = currentInput.closest(".variant-item");
+        let wrapper = variantItem.querySelector(".variantPreview");
+
+        if (!wrapper) {
+          wrapper = document.createElement("div");
+          wrapper.classList.add("variantPreview");
+          variantItem.appendChild(wrapper);
+        }
+
+        wrapper.innerHTML = "";
+
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(blob);
+        img.style.width = "80px";
+        img.style.height = "80px";
+        img.style.objectFit = "cover";
+
+        wrapper.appendChild(img);
+      }
+
+      cropModal.hide();
+      cropper.destroy();
+      cropper = null;
+
+    });
+  });
+
+  // ===== UPDATE GALLERY =====
+  function updateGalleryInput() {
+    const images = preview.querySelectorAll("img");
+    const dt = new DataTransfer();
+
+    images.forEach((img, i) => {
+      fetch(img.src)
+        .then(res => res.blob())
+        .then(blob => {
+          dt.items.add(new File([blob], `gallery_${i}.jpg`, { type: blob.type }));
+          galleryInput.files = dt.files;
+        });
+    });
   }
 
-  
+  // ===== PRICE CALCULATION =====
+  function calculateFinalPrice() {
+    const base = parseFloat(document.querySelector('[name="base_price"]').value) || 0;
+    const discount = parseFloat(document.querySelector('[name="discount_percentage"]').value) || 0;
 
-    const variantItems = document.querySelectorAll('.variant-item');
-  for (let i = 0; i < variantItems.length; i++) {
-    const variantImageInput = variantItems[i].querySelector('input[type="file"]');
-    if (!variantImageInput || variantImageInput.files.length === 0) {
-      e.preventDefault();
-      alert(`Please upload an image for variant #${i + 1}`);
-      return;
-    }
+    const final = base - (base * discount / 100);
+    document.querySelector('[name="finalPrice"]').value = final.toFixed(2);
   }
-//"DataTransfer" to include selected files in actual form submit
-  const dataTransfer =  new DataTransfer();
-  selectedFiles.forEach(files => dataTransfer.items.add(files));
-  imageInput.files = dataTransfer.files;
+
+  document.querySelector('[name="base_price"]').addEventListener("input", calculateFinalPrice);
+  document.querySelector('[name="discount_percentage"]').addEventListener("input", calculateFinalPrice);
+
+
+// ================== SKU GENERATION ==================
+function generateSKU(productName, brand, color, size) {
+  const clean = (s) => s.toUpperCase().replace(/\s+/g, "");
+  const shortBrand = brand.substring(0, 3).toUpperCase();
+
+  const colorMap = {
+    BLACK: "BLK",
+    BLUE: "BLU",
+    GREEN: "GRN",
+    BROWN: "BRN",
+    RED: "RED"
+  };
+
+  const colorKey = color.toUpperCase();
+  const shortColor = colorMap[colorKey] || colorKey.substring(0, 3);
+
+  return `${shortBrand}-${clean(productName)}-${shortColor}-${size}`;
+}
+
+function tryGenerateSKU(variant) {
+
+  const productName = document.querySelector('[name="product_name"]').value.trim();
+  const brand = document.querySelector('[name="brand"]').value.trim();
+
+  const colorField = variant.querySelector('[name*="[color]"]');
+  const sizeField = variant.querySelector('[name*="[size]"]');
+  const skuField = variant.querySelector('[name*="[sku]"]');
+
+  const color = colorField.value.trim();
+  const size = sizeField.value.trim();
+
+  //  if not all filled → clear SKU
+  if (!productName || !brand || !color || !size) {
+    skuField.value = "";
+    return;
+  }
+
+  // generate SKU
+  skuField.value = generateSKU(productName, brand, color, size);
+}
+
+// Auto trigger
+document.addEventListener("change", (e) => {
+  const variant = e.target.closest(".variant-item");
+  if (!variant) return;
+
+  if (
+    e.target.name.includes("[color]") ||
+    e.target.name.includes("[size]")
+  ) {
+    tryGenerateSKU(variant);
+  }
 });
 
+// Base fields trigger
+document.querySelector('[name="product_name"]').addEventListener("input", () => {
+  document.querySelectorAll(".variant-item").forEach(tryGenerateSKU);
+});
+
+document.querySelector('[name="brand"]').addEventListener("change", () => {
+  document.querySelectorAll(".variant-item").forEach(tryGenerateSKU);
+});
+
+});

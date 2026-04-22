@@ -1,0 +1,164 @@
+
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="/images/logo.jpg" alt="KickStyle" height="35">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="/products/men">Men</a></li>
+          <li class="nav-item"><a class="nav-link" href="/products/women">Women</a></li>
+          <li class="nav-item"><a class="nav-link" href="/products/kids">Kids</a></li>
+          <li class="nav-item"><a class="nav-link" href="/products/sports">Sports</a></li>
+        </ul>
+
+
+<form id="searchForm" class="d-flex me-3 position-relative" style="width: 300px;" onsubmit="return handleSearch(event)">
+  
+  <div class="input-group w-100">
+    <span class="input-group-text">
+      <i class="bi bi-search"></i>
+    </span>
+
+    <!-- Input -->
+    <input 
+      type="search" 
+      id="searchInput" 
+      name="q"
+      class="form-control pe-5" 
+      placeholder="Search"
+      value="{{query}}"
+      oninput="toggleClearBtn()"
+
+    >
+  </div>
+
+  <!-- CLEAR BUTTON -->
+  <button 
+    type="button"
+    id="clearBtn"
+    class="btn position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0 bg-transparent d-none"
+    style="font-size: 18px;"
+  >
+    ✖
+  </button>
+
+</form>
+
+        <a href="/wishlist" class="me-3"><i class="bi bi-heart"></i></a>
+
+<!-- Cart Icon with Updated Badge -->
+<a href="/cart" class="me-3 position-relative">
+  <i class="bi bi-cart"></i>
+
+  <span id="cartCount"
+    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger
+    {{#unless cartCount}}d-none{{/unless}}">
+    {{cartCount}}
+  </span>
+</a>
+
+
+        <a href="/profile" class="me-3"><i class="bi bi-person"></i></a>
+
+
+        <form action="/auth/logout" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+
+<script>
+  // -------------------- Existing Search Code --------------------
+  function handleSearch(event) {
+    event.preventDefault(); // prevent page reload
+    const query = document.getElementById('searchInput').value.trim();
+    if(query) {
+      window.location.href = `/search?q=${encodeURIComponent(query)}`;
+    }
+    return false;
+  }
+
+/*
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add to Cart button click handler
+    document.querySelectorAll('.addToCartBtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const productId = btn.dataset.productId;
+        if(!productId) return;
+
+        try {
+          const res = await fetch('/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, quantity: 1 })
+          });
+
+          const data = await res.json();
+          if(data.success) {
+            const cartBadge = document.getElementById('cartCount');
+            if(cartBadge) {
+              cartBadge.innerText = data.cartCount;       // Update count
+              cartBadge.classList.remove('d-none');      // Show badge if hidden
+            }
+          }
+        } catch(err) {
+          console.error('Error updating cart:', err);
+        }
+      });
+    });
+    
+  });
+  */
+  
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const clearBtn = document.getElementById("clearBtn");
+  const input = document.getElementById("searchInput");
+
+  // ✅ CLEAR BUTTON CLICK
+  clearBtn.addEventListener("click", () => {
+    input.value = "";
+
+    if (window.location.pathname.startsWith("/search")) {
+      window.location.href = "/";
+    } else {
+      window.location.reload();
+    }
+  });
+
+  // ✅ SHOW / HIDE CLEAR BUTTON
+  input.addEventListener("input", () => {
+    if (input.value.trim() !== "") {
+      clearBtn.classList.remove("d-none");
+    } else {
+      clearBtn.classList.add("d-none");
+    }
+  });
+
+});
+
+window.addEventListener("pageshow", () => {
+  const input = document.getElementById("searchInput");
+
+  if (!window.location.pathname.startsWith("/search")) {
+    input.value = "";
+  }
+});
+</script>
+<!-- in your main layout (header partial) -->
+<script src="/js/user/updatecart.js"></script>
+
+
+ 

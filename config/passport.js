@@ -8,10 +8,11 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/callback",
+      callbackURL: process.env.GOOGLE_CALLBACK_URL, // ✅ ENV-based
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+<<<<<<< HEAD
         const email = profile.emails[0].value;
         let user = await User.findOne({ email });
         // Create user if not exists
@@ -29,27 +30,48 @@ passport.use(
 
         // Attach googleId if user registered with email/password earlier
         if (user && !user.googleId) {
+=======
+        // Google always provides verified email
+        const email = profile.emails?.[0]?.value;
+        if (!email) {
+          return done(null, false, { message: "Google account has no email" });
+        }
+
+        // Find existing user
+        let user = await User.findOne({ email });
+        if (!user) {
+          return done(null, false, {
+            message: "No account found with this email",
+          });
+        }
+
+        // Link Google account if not already linked
+        if (!user.googleId) {
+>>>>>>> main
           user.googleId = profile.id;
           await user.save();
         }
 
         return done(null, user);
-      } catch (err) {
-        return done(err, null);
+      } catch (error) {
+        return done(error, null);
       }
     }
   )
 );
 
+// Serialize user id into session
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
+
+// Deserialize user from session
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);
     done(null, user);
-  } catch (err) {
-    done(err, null);
+  } catch (error) {
+    done(error, null);
   }
 });
 

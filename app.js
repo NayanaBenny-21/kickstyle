@@ -1,6 +1,7 @@
 require("dotenv").config();
 require("./helpers/stockExpiryCron");
 
+<<<<<<< HEAD
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
@@ -27,13 +28,38 @@ const hbsHelpers = require("./helpers/hbsHelpers");
 const wishlistMiddleware = require('./middlewares/wishlistMiddleware');
 // -------------------- DATABASE --------------------
 connectDB();
+=======
+const setAuthStatus = require('./middlewares/setAuthStatus');
+const userRouter = require('./routes/user/userRouter');
+const authRouter = require('./routes/user/authRouter');
+const adminAuthRouter = require('./routes/admin/adminAuthRouter');
+const adminRouter = require('./routes/admin/adminRouter');
+const hbsHelpers = require('./helpers/hbsHelpers'); 
+const searchRouter = require('./routes/search');
+
+>>>>>>> main
 
 const app = express();
 
 // -------------------- BASIC MIDDLEWARE --------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+<<<<<<< HEAD
 app.use(cookieParser());
+=======
+app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI}),
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    maxAge: 72 * 60 * 60 * 1000
+  }
+}));
+>>>>>>> main
 
 // Static files
 app.use(express.static(path.join(__dirname, "public")));
@@ -47,6 +73,7 @@ app.use((req, res, next) => {
   next();
 });
 
+<<<<<<< HEAD
 // -------------------- HANDLEBARS --------------------
 const hbs = exphbs.create({
   extname: ".hbs",
@@ -54,6 +81,22 @@ const hbs = exphbs.create({
   defaultLayout: "main",
   layoutsDir: path.join(__dirname, "views/layouts"),
   partialsDir: path.join(__dirname, "views/partials"),
+=======
+
+app.use('/', userRouter);
+app.use('/auth', authRouter);
+app.use('/adminAuth', adminAuthRouter);
+app.use('/admin', adminRouter);
+app.use('/search', searchRouter);
+
+
+const PORT = process.env.PORT || 3000;
+
+connectDB().then(() => {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+>>>>>>> main
 });
 app.engine("hbs", hbs.engine);
 app.set("view engine", "hbs");
@@ -119,6 +162,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log(`Server running at http://localhost:${PORT}`)
 );
+
 
 
 

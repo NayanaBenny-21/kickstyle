@@ -195,11 +195,11 @@ const generateInvoice = async (req, res) => {
     const userId = req.user?._id || req.session.userId;
 
     // Fetch order with coupon and shipping address
-    const order = await Order.findOne({ orderId, user_id: userId })
+  const order = await Order.findOne({   orderId: orderId, user_id: userId })
       .populate("couponApplied")
       .lean();
 
-    if (!order) return res.status(404).send("Order not found");
+  if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
     // Fetch all items for this order (excluding cancelled/returned)
     const items = await OrderedItem.find({
@@ -209,7 +209,9 @@ const generateInvoice = async (req, res) => {
       .populate("productId")
       .lean();
 
-    if (!items || items.length === 0) return res.status(404).send("No items found");
+if (!items || items.length === 0) {
+  return res.status(404).json({ success: false, message: "No items found for invoice" });
+}
 
   const address = order.shippingAddress;
 
@@ -383,7 +385,10 @@ For queries, contact: support@kickstyle.com`,
 
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error generating invoice");
+    res.status(500).json({
+  success: false,
+  message: err.message || "Error generating invoice"
+});
   }
 };
 

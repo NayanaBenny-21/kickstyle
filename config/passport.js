@@ -8,14 +8,22 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL, // ✅ ENV-based
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-<<<<<<< HEAD
-        const email = profile.emails[0].value;
+        // Get email safely
+        const email = profile.emails?.[0]?.value;
+        if (!email) {
+          return done(null, false, {
+            message: "Google account has no email",
+          });
+        }
+
+        // Find user
         let user = await User.findOne({ email });
-        // Create user if not exists
+
+        // ✅ If user does not exist → create
         if (!user) {
           const referralCode = generateReferralCode(profile.displayName);
 
@@ -24,30 +32,12 @@ passport.use(
             email: email,
             googleId: profile.id,
             referralCode: referralCode,
-            isVerified: true
+            isVerified: true,
           });
         }
 
-        // Attach googleId if user registered with email/password earlier
+        // ✅ If user exists but no Google linked → link it
         if (user && !user.googleId) {
-=======
-        // Google always provides verified email
-        const email = profile.emails?.[0]?.value;
-        if (!email) {
-          return done(null, false, { message: "Google account has no email" });
-        }
-
-        // Find existing user
-        let user = await User.findOne({ email });
-        if (!user) {
-          return done(null, false, {
-            message: "No account found with this email",
-          });
-        }
-
-        // Link Google account if not already linked
-        if (!user.googleId) {
->>>>>>> main
           user.googleId = profile.id;
           await user.save();
         }

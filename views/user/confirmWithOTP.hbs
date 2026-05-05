@@ -31,10 +31,10 @@
 </div>
 
 <script>
-    window.otpSent = {{ #if otpSent }}true{ {else } } false{ {/if } };
-    window.remainingTime = {{ #if remainingTime }}{ { remainingTime } } { {else } } 0{ {/if } };
-    window.otpSuccess = {{ #if otpSuccess }}true{ {else } } false{ {/if } };
-    window.showToast = {{ #if showToast }}true{ {else } } false{ {/if } };
+    window.otpSent = {{#if otpSent}}true{{else}}false{{/if}};
+    window.remainingTime = {{#if remainingTime}}{{remainingTime}}{{else}}0{{/if}};
+    window.otpSuccess = {{#if otpSuccess}}true{{else}}false{{/if}};
+    window.showToast = {{#if showToast}}true{{else}}false{{/if}};
 
     console.log("DEBUG: window.otpSent =", window.otpSent);
     console.log("DEBUG: window.remainingTime =", window.remainingTime);

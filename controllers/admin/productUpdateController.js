@@ -163,8 +163,7 @@ const editProduct = async (req, res) => {
     if (!product) {
       return res.json({ success: false, message: "Product not found" });
     }
-    console.log("BODY VARIANTS:", JSON.stringify(req.body.variants, null, 2));
-    console.log("FILES:", req.files);
+
     const {
       product_name,
       brand,
@@ -191,6 +190,26 @@ const editProduct = async (req, res) => {
     product.isActive = isActive === "on";
 
     await product.save();
+
+// ===== DELETE REMOVED VARIANTS =====
+const existingVariants = await Variant.find({ product_id: productId });
+
+// IDs coming from frontend
+const incomingIds = Object.values(req.body.variants || {})
+  .map(v => v._id)
+  .filter(id => id); // only existing ones
+
+for (const variant of existingVariants) {
+  if (!incomingIds.includes(variant._id.toString())) {
+
+    // delete image if exists
+    if (variant.image) {
+      deleteImage(variant.image);
+    }
+
+    await Variant.findByIdAndDelete(variant._id);
+  }
+}
 
     const processedVariants = req.body.processedImages?.variants || {};
 

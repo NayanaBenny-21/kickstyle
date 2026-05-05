@@ -184,7 +184,10 @@ const cancelEntireOrder = async (req, res) => {
 
 
 
-return res.redirect("/orders");
+return res.json({
+  success: true,
+  message: "Order cancelled successfully"
+});
   } catch (error) {
     console.error("Error cancelling order:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });

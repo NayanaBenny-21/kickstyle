@@ -158,4 +158,37 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+
+
+  // DOWNLOAD INVOICE 
+document.body.addEventListener("click", async (e) => {
+
+  const btn = e.target.closest(".download-invoice");
+  if (!btn) return;
+
+  e.preventDefault();
+
+  try {
+    const res = await fetch(btn.href);
+
+    const isJson = res.headers.get("content-type")?.includes("application/json");
+
+    if (!res.ok) {
+      if (isJson) {
+        const data = await res.json();
+        return Swal.fire("Oops!", data.message, "error");
+      }
+      return Swal.fire("Oops!", "Failed to generate invoice", "error");
+    }
+
+    // success → download
+    window.location.href = btn.href;
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error!", "Something went wrong", "error");
+  }
+
+});
+  
 });

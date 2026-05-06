@@ -205,77 +205,85 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================= ADD VARIANT =================
-  let count = container.querySelectorAll(".variant-item").length;
+// ================= ADD VARIANT =================
+let count = container.querySelectorAll(".variant-item").length;
 
- document.getElementById("addVariantBtn").addEventListener("click", () => {
-  const tr = document.createElement("tr");
+document.getElementById("addVariantBtn").addEventListener("click", () => {
 
-  tr.className = "variant-item";
+  const div = document.createElement("div");
+  div.className = "variant-item d-flex align-items-center gap-2 border p-2 rounded mb-2 bg-light";
 
-  tr.innerHTML = `
-    <td>
-      <select name="variants[${count}][color]" class="form-select" required>
-        <option value="">Color</option>
-        <option>Red</option>
-        <option>Blue</option>
-        <option>Black</option>
-      </select>
-    </td>
+  div.innerHTML = `
+    <select name="variants[${count}][color]" class="form-control form-control-sm" required>
+      <option value="" disabled selected>Select Color</option>
+      <option value="Red">Red</option>
+      <option value="Blue">Blue</option>
+      <option value="Green">Green</option>
+      <option value="Black">Black</option>
+      <option value="White">White</option>
+    </select>
 
-    <td>
-      <select name="variants[${count}][size]" class="form-select" required>
-        <option value="">Size</option>
-        <option>6</option>
-        <option>7</option>
-        <option>8</option>
-      </select>
-    </td>
+    <select name="variants[${count}][size]" class="form-control form-control-sm" required>
+      <option value="" disabled selected>Select Size</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="42">42</option>
+      <option value="43">43</option>
+      <option value="44">44</option>
+    </select>
 
-    <td>
-      <input name="variants[${count}][sku]" class="form-control" placeholder="SKU">
-    </td>
+    <input name="variants[${count}][sku]" class="form-control form-control-sm" placeholder="SKU">
 
-    <td>
-      <input name="variants[${count}][stock]" type="number" class="form-control">
-    </td>
+    <input name="variants[${count}][stock]" type="number" class="form-control form-control-sm" placeholder="Stock">
 
-    <td>
-      <div class="variant-image-box text-center">
-        <input type="file" name="variantImages[${count}]" 
-          class="variantImageInput d-none" data-index="${count}">
+    <div class="variant-image-box">
+      <input type="file" name="variantImages[${count}]" 
+        class="variantImageInput d-none" data-index="${count}">
 
-        <img src="/images/no-image.png" 
-             class="variantPreview mb-1" width="70">
+      <img src="/images/no-image.png" 
+           class="variantPreview" width="90"
+           style="cursor:pointer; border-radius:6px; border:1px solid #ddd;">
 
-        <div class="variant-actions">
-          <small class="uploadImageBtn text-success">Upload</small>
-          <small class="editImageBtn text-primary d-none">Edit</small>
-          <small class="removeImageBtn text-danger d-none">Remove</small>
-        </div>
+      <div class="variant-actions">
+        <small class="uploadImageBtn text-success">Upload</small>
+        <small class="editImageBtn text-primary d-none">Edit</small>
+        <small class="removeImageBtn text-danger ms-2 d-none">Remove</small>
       </div>
-    </td>
+    </div>
 
-    <td>
-      <button type="button" class="btn btn-sm btn-danger removeVariantBtn">X</button>
-    </td>
+    <button type="button" class="btn btn-outline-danger btn-sm removeVariantBtn">
+      X
+    </button>
 
     <input type="hidden" name="variants[${count}][_id]">
     <input type="hidden" name="variants[${count}][existingImage]">
   `;
 
-  container.appendChild(tr);
+  container.appendChild(div);
 
-  updateVariantUI(tr.querySelector(".variant-image-box"));
+  updateVariantUI(div.querySelector(".variant-image-box"));
+  
+      if (window.updateSKU) {
+      window.updateSKU(div);
+    }
 
   count++;
 });
 
   // ================= REMOVE VARIANT =================
-  document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("removeVariantBtn")) {
-      e.target.closest(".variant-item").remove();
-      reindexVariants();
-    }
-  });
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".removeVariantBtn");
+  if (!btn) return;
+
+  const item = btn.closest(".variant-item");
+  if (!item) return;
+
+  item.remove();
+  reindexVariants();
+});
 
 });

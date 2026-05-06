@@ -59,7 +59,7 @@
           <div class="input-group">
             <input type="text" class="form-control rounded-start" placeholder="Enter coupon code" id="couponCode">
             <button class="btn btn-dark px-4" type="button" id="openCouponModal">
-              <i class="fa-solid fa-ticket me-1"></i> Apply
+              <i class="fa-solid fa-ticket me-1"></i> View Coupons
             </button>
 
           </div>
@@ -172,7 +172,7 @@
   </div>
 
   <script>
-    window.couponSession = {{ {json coupon } }} || {};
+    window.couponSession = {{{json coupon}}} || {};
   </script>
 
 

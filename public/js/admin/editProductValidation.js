@@ -24,9 +24,9 @@ const mainInput = document.getElementById("mainImageInput");
   }
 
   // ================= AUTO SKU =================
-  function updateSKU(variant) {
+  window.updateSKU = function (variant) {
     const name = document.querySelector('[name="product_name"]').value.trim();
-    const brand = document.querySelector('[name="brand"]').value.trim();
+    const brand = document.querySelector('[name="brand"]').value;
     const color = variant.querySelector('[name*="[color]"]').value;
     const size = variant.querySelector('[name*="[size]"]').value;
     const skuField = variant.querySelector('[name*="[sku]"]');
@@ -35,21 +35,24 @@ const mainInput = document.getElementById("mainImageInput");
     skuField.value = generateSKU(name, brand, color, size);
   }
 
-  document.addEventListener("change", (e) => {
-    const variant = e.target.closest(".variant-item");
-    if (!variant) return;
+document.addEventListener("change", (e) => {
+  const variant = e.target.closest(".variant-item");
+  if (!variant) return;
 
-    if (e.target.name.includes("[color]") || e.target.name.includes("[size]")) {
-      updateSKU(variant);
-    }
-  });
+  if (
+    e.target.matches('select[name*="[color]"]') ||
+    e.target.matches('select[name*="[size]"]')
+  ) {
+    window.updateSKU(variant);
+  }
+});
 
   document.querySelector('[name="product_name"]').addEventListener("input", () => {
-    document.querySelectorAll(".variant-item").forEach(updateSKU);
+    document.querySelectorAll(".variant-item").forEach(window.updateSKU);
   });
 
   document.querySelector('[name="brand"]').addEventListener("change", () => {
-    document.querySelectorAll(".variant-item").forEach(updateSKU);
+    document.querySelectorAll(".variant-item").forEach(window.updateSKU);
   });
 
   // ================= DUPLICATE SKU CHECK =================

@@ -29,9 +29,9 @@
 </div>
 
 <script>
-  window.remainingTime = {{ remainingTime }};
-  window.otpSent = {{ #if otpSent }}true{ {else } } false{ {/if } };
-  window.otpExpired = {{ #if otpExpired }}true{ {else } } false{ {/if } };
+  window.remainingTime = {{#if remainingTime}}{{remainingTime}}{{else}}0{{/if}};
+  window.otpSent = {{#if otpSent}}true{{else}}false{{/if}};
+  window.otpExpired = {{#if otpExpired}}true{{else}}false{{/if}};
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/user/signup_otp.js"></script>
